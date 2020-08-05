@@ -1,0 +1,46 @@
+{
+	"short_name": "Tetreml",
+	"name": "Tetreml",
+	"description": "Tetris written with pure HTML and JS.",
+	"lang": "en-US",
+	"icons": [
+		{
+			"src": "Icons/Main.png",
+			"type": "image/png",
+			"sizes": "256x256"
+		}
+	],
+	"start_url": "index.html",
+	"background_color": "#989800",
+	"theme_color": "#ECEC00",
+	"display": "standalone",
+	"scope": ".",
+	"shortcuts": [
+		{
+			"name": "Singleplayer",
+			"short_name": "1P",
+			"description": "Play Tetreml solo with various modes.",
+			"url": "Tetreml.html",
+			"icons": [
+				{
+					"src": "Icons/Singleplayer.png",
+					"type": "image/png",
+					"sizes": "256x256"
+				}
+			]
+		},
+		{
+			"name": "Two-player",
+			"short_name": "2P",
+			"description": "Head-to-head battle between two players with garbage mechanics.",
+			"url": "Tetreml-2P.html",
+			"icons": [
+				{
+					"src": "Icons/Two-player.png",
+					"type": "image/png",
+					"sizes": "256x256"
+				}
+			]
+		}
+	]
+}

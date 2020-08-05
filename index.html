@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="Tetreml" />
+		<meta property="og:description" content="Tetris written with pure HTML and JS." />
+		<meta property="og:url" content="https://leduyquang753.github.io/tetreml/" />
+		<meta property="og:image" content="https://leduyquang753.github.io/tetreml/Icons/Main.png" />
+		<title>Tetreml</title>
+		<link rel="manifest" href="manifest.json">
+		<script src="ProgressiveInstaller.js"></script>
+		<style>
+			body {
+				font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+				font-size: 12px;
+				margin: 15px;
+			}
+
+			h1, h2, h3 {
+				font-family: 'Segoe UI Light', Helvetica, Arial, sans-serif;
+				font-weight: normal;
+			}
+
+			h1 {
+				font-size: 40px;
+				margin-top: 5px;
+				margin-bottom: 3px;
+			}
+
+			h2 {
+				font-size: 30px;
+				margin-bottom: 8px;
+			}
+
+			h3 {
+				margin-top: 0px;
+				margin-bottom: 5px;
+				font-size: 22px;
+			}
+
+			h4 {
+				margin-bottom: 4px;
+			}
+
+			.linkButton {
+				display: inline;
+				background-color: #DDD;
+				border-radius: 3px;
+				font-size: 20px;
+				padding: 5px;
+				color: black;
+				text-align: center;
+			}
+
+			a {
+				text-decoration: none;
+			}
+
+			p {
+				text-align: justify;
+			}
+
+			ul {
+				list-style-type: "– ";
+			}
+
+			details h4, details p, details ul, details details {
+				margin-left: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Tetreml</h1>
+		<span><i>Tetris written with pure HTML and JavaScript.</i></span>
+		<h2>Play it</h2>
+		<span>
+			<a href="Tetreml.html"><div class=linkButton>Singleplayer</div></a>
+			<a href="Tetreml-2P.html"><div class=linkButton>Two-player</div></a>
+			<a href="Tetreml-Sandbox.html"><div class=linkButton>Sandbox</div></a>
+		</span>
+		<br>
+		<p><a href="ReplayerSingleplayer.html">Singleplayer replay viewer</a></p>
+		<p><b>Note: </b>This game only works with Chromium browsers (Google Chrome, Microsoft Edge,...) and Firefox. Please use one of those to play.</p>
+		<h2>How to play</h2>
+		<h3>Basics</h3>
+		<p>The game happens in a "machine" called <i>Tetrion</i>. You try to drop pieces, called <i>tetriminoes</i>, into it such that they form a continuous line from the Tetrion's left edge to the right, in which case they disappear. But don't let the tetriminoes stack too high, the machine will overflow and it'll be <i>Game over</i>.</p>
+
+		<p>Each tetrimino entering the machine falls naturally, at the speed that gets faster and faster as you play. If it cannot fall further into the machine for some time, it locks in place and the next tetrimino enters the Tetrion.</p>
+
+		<p>To maneuver the falling tetrimino, there are these buttons:</p>
+		<ul>
+			<li><i>Move left</i></li>
+			<li><i>Move right</i></li>
+			<li><i>Rotate clockwise</i></li>
+			<li><i>Rotate counterclockwise</i></li>
+			<li><i>Soft drop</i>: Makes the tetrimino fall faster than natural.</li>
+			<li><i>Hard drop</i>: Drops the tetrimino as far as possible and lock it there.</li>
+		</ul>
+
+		<p>The <i>NEXT</i> box allows you to see which tetriminoes are waiting to enter the Tetrion, so you can plan ahead and score more points.</p>
+
+		<p>The <i>HOLD</i> box can store one tetrimino for use later. By pressing the <i>Hold</i> button you can send the current tetrimino there and take the tetrimino that was previously in the box, putting it into the Tetrion again. If there is nothing in the HOLD box, the NEXT piece will enter the machine instead.</p>
+
+		<h3>Scoring</h3>
+		<p>You receive points when you lock a tetrimino, when you clear lines, or when you do special things. <i>Tetreml</i> has two scoring systems in place:</p>
+
+		<details>
+			<summary>Tengen-like</summary>
+			<h4>Locking</h4>
+			<p>When you lock a tetrimino, the higher it is, or the higher the level, the more points you receive, up to 1000 each tetrimino.</p>
+
+			<h4>Clearing lines</h4>
+			<p>Normally, when you lock a tetrimino, you receive additional points for number of lines you clear after doing so:</p>
+			<ul>
+				<li>1 line – <i>Single</i>: 100 points</li>
+				<li>2 lines – <i>Double</i>: 400 points</li>
+				<li>3 lines – <i>Triple</i>: 900 points</li>
+				<li>4 lines – <i>Tetris</i>: 2500 points</li>
+			</ul>
+
+			<h4>Combo</h4>
+			<p>If you clear lines consecutively, you are creating what's called a <i>combo</i> and you will be awarded additional points of 50 . (number of consecutive clearings – 1). For example, if this is the 4th consecutive tetrimino that clears lines, you will get 50(4–1) = 150 points.</p>
+
+			<h4>T-spin</h4>
+			<p>If you manage to rotate the T tetrimino such that it is immovable when it locks, it's called a T-spin. The amount of points you receive depends on the number of lines cleared, overriding the <i>Clearing lines</i> section above:</p>
+			<ul>
+				<li>0 lines – <i>T-spin zero</i>: 50 points</li>
+				<li>1 line – <i>T-spin single</i>: 150 points</li>
+				<li>2 lines – <i>T-spin double</i>: 600 points</li>
+				<li>3 lines – <i>T-spin triple</i>: 1250 points</li>	
+			</ul>
+
+			<h4>Back-to-back</h4>
+			<p>If you manage to get consecutive Tetrises or T-spins, it's called <i>Back-to-back</i>, and the amount of points you receive from clearing the lines will be increased by 50%.</p>
+
+			<h4>All clear</h4>
+			<p>If you clear the lines such that the Tetrion becomes empty, it's an <i>All clear</i>, and you get 1000 points.</p>
+		</details>
+		<details>
+			<summary>Guideline</summary>
+			<h4>Dropping</h4>
+			<p>When you soft or hard drop a tetrimino, you receive 1 point for each block soft dropped, and 2 points for each block hard dropped.</p>
+
+			<h4>Clearing lines</h4>
+			<p>Normally, when you lock a tetrimino, you receive additional points for number of lines you clear after doing so:</p>
+			<ul>
+				<li>1 line – <i>Single</i>: 100 points . level</li>
+				<li>2 lines – <i>Double</i>: 300 points . level</li>
+				<li>3 lines – <i>Triple</i>: 500 points . level</li>
+				<li>4 lines – <i>Tetris</i>: 800 points . level</li>
+			</ul>
+
+			<h4>Combo</h4>
+			<p>If you clear lines consecutively, you are creating what's called a <i>combo</i> and you will be awarded additional points of 50 . (number of consecutive clearings – 1) . level. For example, if this is the 4th consecutive tetrimino that clears lines at level 6, you will get 50(4–1).6 = 900 points.</p>
+
+			<h4>T-spin</h4>
+			<p>If you manage to rotate the T tetrimino such that it is immovable when it locks, it's called a T-spin. The amount of points you receive depends on the number of lines cleared, overriding the <i>Clearing lines</i> section above:</p>
+			<ul>
+				<li>0 lines – <i>T-spin zero</i>: 400 points . level</li>
+				<li>1 line – <i>T-spin single</i>: 800 points . level</li>
+				<li>2 lines – <i>T-spin double</i>: 1200 points . level</li>
+				<li>3 lines – <i>T-spin triple</i>: 1600 points . level</li>	
+			</ul>
+
+			<h4>Back-to-back</h4>
+			<p>If you manage to get consecutive Tetrises or T-spins, it's called <i>Back-to-back</i>, and the amount of points you receive from clearing the lines will be increased by 50%.</p>
+
+			<h4>All clear</h4>
+			<p>If you clear the lines such that the Tetrion becomes empty, it's an <i>All clear</i>, and you get 1000 points.</p>
+		</details>
+
+		<h3 style="margin-top: 10px;">Some technical things for nerds</h3>
+		<h4>Lock delay</h4>
+		<p>When the tetrimino realizes it cannot fall anymore, it will wait for a small while before deciding to lock into place. If you successfully rotate it, the timer will reset. However, you can only rotate a number of times until that no longer works, but if the tetrimino falls further, you can rotate it to reset the timer again.</p>
+
+		<h4>Clear delay</h4>
+		<p>After lines are cleared, the Tetrion pauses for a brief moment before letting a new tetrimino enter. The amount of time is half a second most of the time, but it is a full second when you level up in singleplayer or get an <i>All clear</i>.</p>
+
+		<h4>Auto-repeat</h4>
+		<p>When you hold down the <i>Move left</i> or <i>Move right</i> button, after an amount of time called <i>Auto repeat delay</i>, the game will continue to move the tetrimino every interval known as <i>Auto repeat period</i>. These can be adjusted in the <i>Game options</i>.</p>
+
+		<h3>Player versus player (PvP)</h3>
+		<p>The two-player version is essentially a PvP game: the two battle until one gets their Tetrion full and eliminated. There are special mechanics in this version:</p>
+
+		<h4>Global level</h4>
+		<p>When a player clears lines, the number of lines cleared gets added to a total of both players and is used to calculate the level, thus falling speed, of both players. Thus, if your opponent is slow, you can still boost it fast yourself.</p>
+
+		<h4>Garbage</h4>
+		<p>If a player clears lines, makes a combo or other things, they can send <i>garbage lines</i> to the opponent which push stuff in the opponent's Tetrion upwards. Each Tetrion has a gauge displaying garbage the opponent has sent waiting to be deployed. When they appear, don't be panic yet, there is a delay before they actually get inside the Tetrion, and you can do the same as attacking to negate them.</p>
+		
+		<h2>Game controls</h2>
+		<p>Game controls are viewable and customizable in each game mode. An exception is the sandbox whose controls derive from singleplayer, thus changing singleplayer controls also changes the sandbox's.</p>
+	</body>
+</html>

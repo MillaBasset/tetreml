@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Tetreml – Sandbox</title>
+		<link rel="manifest" href="manifest.json">
+	</head>
+	<body>
+		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 10; image-rendering: pixelated;"></canvas>
+		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;" onchange="location.replace(document.getElementById('selector').options[document.getElementById('selector').selectedIndex].value);">
+			<option value="Tetreml.html">Singleplayer</option>
+			<option value="Tetreml-2P.html">Two-player</option>
+			<option value="Tetreml-sandbox.html" selected>Sandbox</option>
+			<option value="ReplayerSingleplayer.html">Replay</option>
+		</select>
+		<script src="Tetriminos.js"></script>
+		<script src="SoundHandler.js"></script>
+		<script src="Utils.js"></script>
+		<script src="Controls.js"></script>
+		<script src="Fumen.js"></script>
+		<script src="ProgressiveInstaller.js"></script>
+		<script src="Tetreml-sandbox.js" defer></script>
+	</body>
+</html>
