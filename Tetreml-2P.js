@@ -102,11 +102,6 @@ const sfx = {
 	gameOver: new SFX("SFX/Game over.wav", gainNode),
 	win: new SFX("SFX/Win.wav", gainNode)
 };
-for (let s of Object.values(sfx)) {
-	s.preload = "auto";
-	s.load();
-	audioContext.createMediaElementSource(s).connect(gainNode);
-}
 sfx.warning = new Audio("SFX/Warning.wav");
 sfx.warning.loop = true;
 var warningPanNode = audioContext.createStereoPanner();
