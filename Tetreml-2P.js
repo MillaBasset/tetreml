@@ -96,11 +96,11 @@ const garbageAmounts = [0, 1, 2, 4, 1, 2, 4, 6];
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
 const sfx = {
-	ready: new Audio("SFX/Ready.wav", 1),
-	countdown: new Audio("SFX/Countdown.wav", 1),
-	pause: new Audio("SFX/Pause.wav"),
-	gameOver: new Audio("SFX/Game over.wav"),
-	win: new Audio("SFX/Win.wav")
+	ready: new SFX("SFX/Ready.wav", gainNode),
+	countdown: new SFX("SFX/Countdown.wav", gainNode),
+	pause: new SFX("SFX/Pause.wav", gainNode),
+	gameOver: new SFX("SFX/Game over.wav", gainNode),
+	win: new SFX("SFX/Win.wav", gainNode)
 };
 for (let s of Object.values(sfx)) {
 	s.preload = "auto";
