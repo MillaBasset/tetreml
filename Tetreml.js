@@ -2,26 +2,26 @@ var playScreenImage = new Image();
 playScreenImage.src = "Textures/Play screen singleplayer.png";
 
 const sfx = {
-	ready: new SFX("SFX/Ready.wav", 1),
-	countdown: new SFX("SFX/Countdown.wav", 1),
-	single: new SFX("SFX/Single.wav", 4),
-	double: new SFX("SFX/Double.wav", 4),
-	triple: new SFX("SFX/Triple.wav", 4),
-	tetris: new SFX("SFX/Tetris.wav", 4),
-	tSpin: new SFX("SFX/T spin.wav", 2),
-	move: new SFX("SFX/Move.wav", 8),
-	rotate: new SFX("SFX/Rotate.wav", 4),
-	softDrop: new SFX("SFX/Soft drop.wav", 8),
-	hardDrop: new SFX("SFX/Hard drop.wav", 8),
-	lock: new SFX("SFX/Lock.wav", 4),
-	land: new SFX("SFX/Land.wav", 4),
-	hold: new SFX("SFX/Hold.wav", 3),
-	pause: new SFX("SFX/Pause.wav", 4),
-	gameOver: new SFX("SFX/Game over.wav", 1),
-	complete: new SFX("SFX/Win.wav", 1),
-	allClear: new SFX("SFX/All clear.wav", 1),
-	afterClear: new SFX("SFX/After clear.wav", 2),
-	softLock: new SFX("SFX/Soft lock.wav", 4)
+	ready: new SFX("SFX/Ready.wav", gainNode),
+	countdown: new SFX("SFX/Countdown.wav", gainNode),
+	single: new SFX("SFX/Single.wav", gainNode),
+	double: new SFX("SFX/Double.wav", gainNode),
+	triple: new SFX("SFX/Triple.wav", gainNode),
+	tetris: new SFX("SFX/Tetris.wav", gainNode),
+	tSpin: new SFX("SFX/T spin.wav", gainNode),
+	move: new SFX("SFX/Move.wav", gainNode),
+	rotate: new SFX("SFX/Rotate.wav", gainNode),
+	softDrop: new SFX("SFX/Soft drop.wav", gainNode),
+	hardDrop: new SFX("SFX/Hard drop.wav", gainNode),
+	lock: new SFX("SFX/Lock.wav", gainNode),
+	land: new SFX("SFX/Land.wav", gainNode),
+	hold: new SFX("SFX/Hold.wav", gainNode),
+	pause: new SFX("SFX/Pause.wav", gainNode),
+	gameOver: new SFX("SFX/Game over.wav", gainNode),
+	complete: new SFX("SFX/Win.wav", gainNode),
+	allClear: new SFX("SFX/All clear.wav", gainNode),
+	afterClear: new SFX("SFX/After clear.wav", gainNode),
+	softLock: new SFX("SFX/Soft lock.wav", gainNode)
 };
 
 const music = {
@@ -37,6 +37,7 @@ const music = {
 for (let m of Object.values(music)) {
 	m.preload = "auto";
 	m.load();
+	audioContext.createMediaElementSource(m).connect(gainNode);
 }
 
 music.level1.loop = music.level6.loop = music.level11.loop = true;
@@ -47,8 +48,7 @@ function setVolume(newVolume) {
 	volume = Math.max(0, Math.min(10, newVolume));
 	localStorage.tetrisVolume = volume;
 	newVolume = Math.pow(volume / 10, 4);
-	for (let track of Object.values(music)) track.volume = newVolume;
-	for (let effect of Object.values(sfx)) effect.setVolume(newVolume);
+	gainNode.gain.value = newVolume;
 }
 
 setVolume(localStorage.tetrisVolume == undefined ? 10 : Number.parseInt(localStorage.tetrisVolume));
@@ -137,13 +137,13 @@ class OptionsScreen {
 	}
 
 	init() {
-		this.setSpeedCurve(localStorage.tetrisSpeedCurve == null ? 0 : localStorage.tetrisSpeedCurve);
-		this.setStartingLevel(localStorage.tetrisStartingLevel == null ? 1 : localStorage.tetrisStartingLevel);
-		this.setMode(localStorage.tetrisMode == null ? 0 : localStorage.tetrisMode);
-		this.setHandicappedLines(localStorage.tetrisHandicappedLines == null ? 0 : localStorage.tetrisHandicappedLines);
-		this.setAutoRepeatDelay(localStorage.tetrisAutoRepeatDelay == null ? 150 : localStorage.tetrisAutoRepeatDelay);
-		this.setAutoRepeatPeriod(localStorage.tetrisAutoRepeatPeriod == null ? 40 : localStorage.tetrisAutoRepeatPeriod);
-		this.setSoftDropPeriod(localStorage.tetrisSoftDropPeriod == null ? 25 : localStorage.tetrisSoftDropPeriod);
+		this.setSpeedCurve(localStorage.tetrisSpeedCurve == null ? 0 : Number.parseInt(localStorage.tetrisSpeedCurve));
+		this.setStartingLevel(localStorage.tetrisStartingLevel == null ? 1 : Number.parseInt(localStorage.tetrisStartingLevel));
+		this.setMode(localStorage.tetrisMode == null ? 0 : Number.parseInt(localStorage.tetrisMode));
+		this.setHandicappedLines(localStorage.tetrisHandicappedLines == null ? 0 : Number.parseInt(localStorage.tetrisHandicappedLines));
+		this.setAutoRepeatDelay(localStorage.tetrisAutoRepeatDelay == null ? 150 : Number.parseInt(localStorage.tetrisAutoRepeatDelay));
+		this.setAutoRepeatPeriod(localStorage.tetrisAutoRepeatPeriod == null ? 40 : Number.parseInt(localStorage.tetrisAutoRepeatPeriod));
+		this.setSoftDropPeriod(localStorage.tetrisSoftDropPeriod == null ? 25 : Number.parseInt(localStorage.tetrisSoftDropPeriod));
 		this.setShowKeystrokes(localStorage.tetrisShowKeystrokes == "true");
 		document.addEventListener("keydown", this.keyDownHandler = (key) => this.onKeyDown(key));
 		document.addEventListener("keyup", this.keyUpHandler = (key) => this.onKeyUp(key));
@@ -395,6 +395,7 @@ class MainScreen {
 		this.onkeypress = (key) => {
 			switch (key.code) {
 				case "Enter":
+					audioContext.resume();
 					openGui(new OptionsScreen(this));
 					break;
 				case "KeyC":

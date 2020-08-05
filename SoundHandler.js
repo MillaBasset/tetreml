@@ -1,21 +1,30 @@
+audioContext = new AudioContext();
+
+var gainNode = audioContext.createGain();
+gainNode.connect(audioContext.destination);
+
 class SFX {
-	constructor(source, polyphony) {
-		this.polyphony = polyphony;
-		this.instances = [];
-		this.lastInstance = -1;
-		for (let i = 0; i < polyphony; i++) {
-			let audio = new Audio(source);
-			audio.preload = "auto";
-			audio.load();
-			this.instances.push(audio);
+	constructor(source, outputNode) {
+		this.outputNode = outputNode;
+		this.ready = false;
+		let request = new XMLHttpRequest();
+		request.open('GET', source, true);
+		request.responseType = 'arraybuffer';
+		let that = this;
+		request.onload = function () {
+			audioContext.decodeAudioData(request.response, function (buffer) {
+				that.buffer = buffer;
+				that.ready = true;
+			}, (error) => { console.error(error); });
 		}
+		request.send();
 	}
 
 	play() {
-		this.instances[this.lastInstance = (this.lastInstance + 1) % this.polyphony].play();
-	}
-
-	setVolume(newVolume) {
-		for (let instance of this.instances) instance.volume = newVolume;
+		if (!this.ready) return;
+		let source = audioContext.createBufferSource();
+		source.buffer = this.buffer;
+		source.connect(this.outputNode);
+		source.start(0);
 	}
 }

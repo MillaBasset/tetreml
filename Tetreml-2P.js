@@ -16,6 +16,7 @@ const music = {
 for (let m of Object.values(music)) {
 	m.preload = "auto";
 	m.load();
+	audioContext.createMediaElementSource(m).connect(gainNode);
 }
 
 music.level1.loop = music.level6.loop = music.level11.loop = music.gameOver.loop = true;
@@ -99,40 +100,54 @@ const sfx = {
 	countdown: new Audio("SFX/Countdown.wav", 1),
 	pause: new Audio("SFX/Pause.wav"),
 	gameOver: new Audio("SFX/Game over.wav"),
-	win: new Audio("SFX/Win.wav"),
-	warning: new Audio("SFX/Warning.wav")
+	win: new Audio("SFX/Win.wav")
 };
-for (let s in sfx) sfx[s].load();
+for (let s of Object.values(sfx)) {
+	s.preload = "auto";
+	s.load();
+	audioContext.createMediaElementSource(s).connect(gainNode);
+}
+sfx.warning = new Audio("SFX/Warning.wav");
 sfx.warning.loop = true;
+var warningPanNode = audioContext.createStereoPanner();
+warningPanNode.connect(audioContext.destination);
+audioContext.createMediaElementSource(sfx.warning).connect(warningPanNode);
 
-function getSFXes() {
+const panNodes = [];
+for (let i = 0; i < 2; i++) {
+	let node = audioContext.createStereoPanner();
+	node.connect(gainNode);
+	panNodes.push(node);
+}
+
+function getSFXes(panNode) {
 	return {
-		single: new SFX("SFX/Single.wav", 4),
-		double: new SFX("SFX/Double.wav", 4),
-		triple: new SFX("SFX/Triple.wav", 4),
-		tetris: new SFX("SFX/Tetris.wav", 4),
-		tSpin: new SFX("SFX/T spin.wav", 2),
-		move: new SFX("SFX/Move.wav", 8),
-		rotate: new SFX("SFX/Rotate.wav", 4),
-		softDrop: new SFX("SFX/Soft drop.wav", 8),
-		hardDrop: new SFX("SFX/Hard drop.wav", 8),
-		lock: new SFX("SFX/Lock.wav", 4),
-		softLock: new SFX("SFX/Soft lock.wav", 4),
-		land: new SFX("SFX/Land.wav", 4),
-		hold: new SFX("SFX/Hold.wav", 3),
-		allClear: new SFX("SFX/All clear.wav", 1),
-		afterClear: new SFX("SFX/After clear.wav", 2),
-		attack1: new SFX("SFX/Attack 1.wav", 3),
-		attack2: new SFX("SFX/Attack 2.wav", 3),
-		attackNear: new SFX("SFX/Attack near.wav", 2),
-		attackDetonating: new SFX("SFX/Attack detonating.wav", 2),
-		defend: new SFX("SFX/Defend.wav", 3)
+		single: new SFX("SFX/Single.wav", panNode),
+		double: new SFX("SFX/Double.wav", panNode),
+		triple: new SFX("SFX/Triple.wav", panNode),
+		tetris: new SFX("SFX/Tetris.wav", panNode),
+		tSpin: new SFX("SFX/T spin.wav", panNode),
+		move: new SFX("SFX/Move.wav", panNode),
+		rotate: new SFX("SFX/Rotate.wav", panNode),
+		softDrop: new SFX("SFX/Soft drop.wav", panNode),
+		hardDrop: new SFX("SFX/Hard drop.wav", panNode),
+		lock: new SFX("SFX/Lock.wav", panNode),
+		softLock: new SFX("SFX/Soft lock.wav", panNode),
+		land: new SFX("SFX/Land.wav", panNode),
+		hold: new SFX("SFX/Hold.wav", panNode),
+		allClear: new SFX("SFX/All clear.wav", panNode),
+		afterClear: new SFX("SFX/After clear.wav", panNode),
+		attack1: new SFX("SFX/Attack 1.wav", panNode),
+		attack2: new SFX("SFX/Attack 2.wav", panNode),
+		attackNear: new SFX("SFX/Attack near.wav", panNode),
+		attackDetonating: new SFX("SFX/Attack detonating.wav", panNode),
+		defend: new SFX("SFX/Defend.wav", panNode)
 	}
 }
 
 const playSfx = [
-	getSFXes(),
-	getSFXes()
+	getSFXes(panNodes[0]),
+	getSFXes(panNodes[1])
 ];
 
 var volume;
@@ -143,7 +158,7 @@ function setVolume(newVolume) {
 	newVolume = Math.pow(volume / 10, 4);
 	for (let track of Object.values(music)) track.volume = newVolume;
 	for (let effect of Object.values(sfx)) effect.volume = newVolume;
-	for (let sfxSet of playSfx) for (let effect of Object.values(sfxSet)) effect.setVolume(newVolume);
+	gainNode.gain.value = newVolume;
 }
 
 setVolume(localStorage.tetrisVolume == undefined ? 10 : Number.parseInt(localStorage.tetrisVolume));
@@ -265,7 +280,7 @@ class GameOverScreen {
 }
 
 class PlayScreen {
-	constructor(parent, scoring, levels, handicappedLines, garbageType, autoRepeatDelay, autoRepeatPeriod, softDropPeriod, showKeystrokes) {
+	constructor(parent, scoring, levels, handicappedLines, garbageType, autoRepeatDelay, autoRepeatPeriod, softDropPeriod, showKeystrokes, stereoSeparation) {
 		this.parent = parent;
 		this.levels = levels;
 		this.level = 1;
@@ -309,6 +324,7 @@ class PlayScreen {
 		this.buttonVolumeDown = false;
 		this.buttonVolumeUp = false;
 		this.volumeDisplayTime = 0;
+		this.stereoSeparation = stereoSeparation;
 	}
 
 	init() {
@@ -529,8 +545,10 @@ class PlayScreen {
 	}
 
 	updateWarning() {
-		if (this.warning != (this.playfields[0].isInDanger() || this.playfields[1].isInDanger())) {
-			this.warning = (this.playfields[0].isInDanger() || this.playfields[1].isInDanger());
+		let danger = [this.playfields[0].isInDanger(), this.playfields[1].isInDanger()];
+		warningPanNode.pan.value = danger[0] ? danger[1] ? 0 : -this.stereoSeparation : this.stereoSeparation;
+		if (this.warning != (danger[0] || danger[1])) {
+			this.warning = (danger[0] || danger[1]);
 			if (this.warning) {
 				sfx.warning.currentTime = 0;
 				sfx.warning.play();
@@ -1325,8 +1343,10 @@ class KeymappingScreen {
 	onKeyDown(keycode) {
 		switch (keycode) {
 			case "Enter":
-				localStorage.tetris2PHasNumericPad = this.hasNumericPad;
-				openGui(new PlayScreen(new MainScreen(), this.parent.scorings[this.parent.scoringType], this.parent.speedCurves[this.parent.speedCurve], this.parent.handicappedLines, this.parent.garbageType, this.parent.autoRepeatDelay, this.parent.autoRepeatPeriod, this.parent.softDropPeriod, this.parent.showKeystrokes));
+				let pan = this.parent.stereoSeparation / 100;
+				panNodes[0].pan.value = -pan;
+				panNodes[1].pan.value = pan;
+				openGui(new PlayScreen(new MainScreen(), this.parent.scorings[this.parent.scoringType], this.parent.speedCurves[this.parent.speedCurve], this.parent.handicappedLines, this.parent.garbageType, this.parent.autoRepeatDelay, this.parent.autoRepeatPeriod, this.parent.softDropPeriod, this.parent.showKeystrokes, pan));
 				break;
 			case "KeyC":
 				openGui(new ControlsEditScreen(this, [
@@ -1431,6 +1451,7 @@ class OptionsScreen {
 		this.autoRepeatPeriod = [0, 0];
 		this.softDropPeriod = [0, 0];
 		this.showKeystrokes = [false, false];
+		this.stereoSeparation = 0;
 		this.selectedProperty = [0, 0];
 
 		this.shiftLeft = this.shiftRight = this.ctrlLeft = this.ctrlRight = false;
@@ -1442,21 +1463,23 @@ class OptionsScreen {
 			(player, keycode) => this.handleAutoRepeatDelayChange(player, keycode),
 			(player, keycode) => this.handleAutoRepeatPeriodChange(player, keycode),
 			(player, keycode) => this.handleSoftDropPeriodChange(player, keycode),
-			(player, keycode) => this.handleShowKeystrokesChange(player, keycode)
+			(player, keycode) => this.handleShowKeystrokesChange(player, keycode),
+			(player, keycode) => this.handleStereoSeparationChange(player, keycode)
 		];
 	}
 
 	init() {
-		this.setScoringType(localStorage.tetris2PScoringType == null ? 0 : localStorage.tetris2PScoringType);
-		this.setSpeedCurve(localStorage.tetris2PSpeedCurve == null ? 0 : localStorage.tetris2PSpeedCurve);
-		this.setHandicappedLines(localStorage.tetris2PHandicappedLines == null ? 0 : localStorage.tetris2PHandicappedLines);
-		this.setGarbageType(localStorage.tetris2PGarbageType == null ? 0 : localStorage.tetris2PGarbageType);
+		this.setScoringType(localStorage.tetris2PScoringType == null ? 0 : Number.parseInt(localStorage.tetris2PScoringType));
+		this.setSpeedCurve(localStorage.tetris2PSpeedCurve == null ? 0 : Number.parseInt(localStorage.tetris2PSpeedCurve));
+		this.setHandicappedLines(localStorage.tetris2PHandicappedLines == null ? 0 : Number.parseInt(localStorage.tetris2PHandicappedLines));
+		this.setGarbageType(localStorage.tetris2PGarbageType == null ? 0 : Number.parseInt(localStorage.tetris2PGarbageType));
 		for (let i = 0; i < 2; i++) {
 			this.setAutoRepeatDelay(i, localStorage.tetris2PAutoRepeatDelay == null ? 150 : JSON.parse("[" + localStorage.tetris2PAutoRepeatDelay + "]")[i]);
 			this.setAutoRepeatPeriod(i, localStorage.tetris2PAutoRepeatPeriod == null ? 40 : JSON.parse("[" + localStorage.tetris2PAutoRepeatPeriod + "]")[i]);
 			this.setSoftDropPeriod(i, localStorage.tetris2PSoftDropPeriod == null ? 25 : JSON.parse("[" + localStorage.tetris2PSoftDropPeriod + "]")[i]);
 			this.setShowKeystrokes(i, localStorage.tetris2PShowKeystrokes == null ? false : JSON.parse("[" + localStorage.tetris2PShowKeystrokes + "]")[i]);
 		}
+		this.setStereoSeparation(localStorage.tetris2PStereoSeparation == null ? 0 : Number.parseInt(localStorage.tetris2PStereoSeparation));
 		document.addEventListener("keydown", this.keyDownHandler = (key) => this.onKeyDown(key));
 		document.addEventListener("keyup", this.keyUpHandler = (key) => this.onKeyUp(key));
 	}
@@ -1464,19 +1487,19 @@ class OptionsScreen {
 	onKeyDown(key) {
 		switch (key.code) {
 			case "KeyS":
-				this.selectedProperty[0] = (this.selectedProperty[0] + 1) % 8;
+				this.selectedProperty[0] = (this.selectedProperty[0] + 1) % 9;
 				key.preventDefault();
 				break;
 			case "KeyW":
-				this.selectedProperty[0] = (this.selectedProperty[0] + 7) % 8;
+				this.selectedProperty[0] = (this.selectedProperty[0] + 8) % 9;
 				key.preventDefault();
 				break;
 			case "ArrowDown":
-				this.selectedProperty[1] = (this.selectedProperty[1] + 1) % 8;
+				this.selectedProperty[1] = (this.selectedProperty[1] + 1) % 9;
 				key.preventDefault();
 				break;
 			case "ArrowUp":
-				this.selectedProperty[1] = (this.selectedProperty[1] + 7) % 8;
+				this.selectedProperty[1] = (this.selectedProperty[1] + 8) % 9;
 				key.preventDefault();
 				break;
 			case "Enter":
@@ -1488,6 +1511,7 @@ class OptionsScreen {
 				localStorage.tetris2PAutoRepeatPeriod = this.autoRepeatPeriod;
 				localStorage.tetris2PSoftDropPeriod = this.softDropPeriod;
 				localStorage.tetris2PShowKeystrokes = this.showKeystrokes;
+				localStorage.tetris2PStereoSeparation = this.stereoSeparation;
 				openGui(new KeymappingScreen(this));
 				break;
 			case "Escape":
@@ -1675,6 +1699,14 @@ class OptionsScreen {
 		return false;
 	}
 
+	setStereoSeparation(amount) {
+		this.stereoSeparation = Math.max(0, Math.min(100, amount));
+	}
+
+	handleStereoSeparationChange(player, keycode) {
+		this.handleNumericPropertyChange(player, keycode, (player, amount) => this.setStereoSeparation(amount), [this.stereoSeparation, this.stereoSeparation]);
+	}
+
 	render() {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "40px Segoe UI Light";
@@ -1683,37 +1715,39 @@ class OptionsScreen {
 
 		ctx.textAlign = "center";
 		ctx.font = "12px Segoe UI";
-		ctx.fillText("Scoring type", 320, 100);
-		ctx.fillText("Speed curve", 320, 128);
-		ctx.fillText("Handicapped lines", 320, 156);
-		ctx.fillText("Garbage type", 320, 184);
-		ctx.fillText("Auto repeat delay", 320, 212);
-		ctx.fillText("Auto repeat period", 320, 240);
-		ctx.fillText("Soft drop period", 320, 268);
-		ctx.fillText("Show keystrokes", 320, 296);
+		ctx.fillText("Scoring type", 320, 90);
+		ctx.fillText("Speed curve", 320, 115);
+		ctx.fillText("Handicapped lines", 320, 140);
+		ctx.fillText("Garbage type", 320, 165);
+		ctx.fillText("Auto repeat delay", 320, 190);
+		ctx.fillText("Auto repeat period", 320, 215);
+		ctx.fillText("Soft drop period", 320, 240);
+		ctx.fillText("Show keystrokes", 320, 265);
+		ctx.fillText("Stereo separation", 320, 290);
 
 		ctx.fillText("Press Enter to review controls and start or Esc to cancel.", 320, 340);
 
 		for (let i = 0; i < 2; i++) {
 			let posX = i == 0 ? 134 : 506;
-			ctx.fillText(this.scoringTypeNames[this.scoringType], posX, 100);
-			ctx.fillText(this.speedCurveNames[this.speedCurve], posX, 128);
-			ctx.fillText(this.handicappedLines + "", posX, 156);
-			ctx.fillText(this.garbageTypeNames[this.garbageType], posX, 184);
-			ctx.fillText(this.autoRepeatDelay[i] + " ms", posX, 212);
-			ctx.fillText(this.autoRepeatPeriod[i] + " ms", posX, 240);
-			ctx.fillText(this.softDropPeriod[i] + " ms", posX, 268);
-			ctx.fillText(this.showKeystrokes[i] ? "On" : "Off", posX, 296);
+			ctx.fillText(this.scoringTypeNames[this.scoringType], posX, 90);
+			ctx.fillText(this.speedCurveNames[this.speedCurve], posX, 115);
+			ctx.fillText(this.handicappedLines + "", posX, 140);
+			ctx.fillText(this.garbageTypeNames[this.garbageType], posX, 165);
+			ctx.fillText(this.autoRepeatDelay[i] + " ms", posX, 190);
+			ctx.fillText(this.autoRepeatPeriod[i] + " ms", posX, 215);
+			ctx.fillText(this.softDropPeriod[i] + " ms", posX, 240);
+			ctx.fillText(this.showKeystrokes[i] ? "On" : "Off", posX, 265);
+			ctx.fillText(this.stereoSeparation + "", posX, 290);
 		}
 
 		ctx.textAlign = "left";
-		ctx.fillText("\u25c4", 55, 100 + 28 * this.selectedProperty[0]);
-		ctx.fillText("\u25c4", 426, 100 + 28 * this.selectedProperty[1]);
-		if (this.selectedProperty[0] > 3 && this.selectedProperty[0] < 7) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 30, 320);
+		ctx.fillText("\u25c4", 55, 90 + 25 * this.selectedProperty[0]);
+		ctx.fillText("\u25c4", 426, 90 + 25 * this.selectedProperty[1]);
+		if ((this.selectedProperty[0] > 3 && this.selectedProperty[0] < 7) || this.selectedProperty[0] == 8) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 30, 320);
 		ctx.textAlign = "right";
-		ctx.fillText("\u25ba", 214, 100 + 28 * this.selectedProperty[0]);
-		ctx.fillText("\u25ba", 585, 100 + 28 * this.selectedProperty[1]);
-		if (this.selectedProperty[1] > 3 && this.selectedProperty[1] < 7) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 610, 320);
+		ctx.fillText("\u25ba", 214, 90 + 25 * this.selectedProperty[0]);
+		ctx.fillText("\u25ba", 585, 90 + 25 * this.selectedProperty[1]);
+		if ((this.selectedProperty[1] > 3 && this.selectedProperty[1] < 7) || this.selectedProperty[1] == 8) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 610, 320);
 	}
 
 	close() {

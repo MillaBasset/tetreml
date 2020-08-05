@@ -8,27 +8,28 @@ var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
 
 const sfx = {
-	single: new SFX("SFX/Single.wav", 4),
-	double: new SFX("SFX/Double.wav", 4),
-	triple: new SFX("SFX/Triple.wav", 4),
-	tetris: new SFX("SFX/Tetris.wav", 4),
-	tSpin: new SFX("SFX/T spin.wav", 2),
-	move: new SFX("SFX/Move.wav", 8),
-	rotate: new SFX("SFX/Rotate.wav", 4),
-	softDrop: new SFX("SFX/Soft drop.wav", 8),
-	hardDrop: new SFX("SFX/Hard drop.wav", 8),
-	lock: new SFX("SFX/Lock.wav", 4),
-	land: new SFX("SFX/Land.wav", 4),
-	hold: new SFX("SFX/Hold.wav", 3),
-	pause: new SFX("SFX/Pause.wav", 4),
-	afterClear: new SFX("SFX/After clear.wav", 2),
-	softLock: new SFX("SFX/Soft lock.wav", 4)
+	single: new SFX("SFX/Single.wav", gainNode),
+	double: new SFX("SFX/Double.wav", gainNode),
+	triple: new SFX("SFX/Triple.wav", gainNode),
+	tetris: new SFX("SFX/Tetris.wav", gainNode),
+	tSpin: new SFX("SFX/T spin.wav", gainNode),
+	move: new SFX("SFX/Move.wav", gainNode),
+	rotate: new SFX("SFX/Rotate.wav", gainNode),
+	softDrop: new SFX("SFX/Soft drop.wav", gainNode),
+	hardDrop: new SFX("SFX/Hard drop.wav", gainNode),
+	lock: new SFX("SFX/Lock.wav", gainNode),
+	land: new SFX("SFX/Land.wav", gainNode),
+	hold: new SFX("SFX/Hold.wav", gainNode),
+	pause: new SFX("SFX/Pause.wav", gainNode),
+	afterClear: new SFX("SFX/After clear.wav", gainNode),
+	softLock: new SFX("SFX/Soft lock.wav", gainNode)
 };
 
 music = new Audio("Music/Sandbox.mp3");
 music.loop = true;
 music.preload = "auto";
 music.load();
+audioContext.createMediaElementSource(music).connect(gainNode);
 
 const rewardNames = [
 	"Single",
@@ -62,8 +63,7 @@ function setVolume(newVolume) {
 	volume = Math.max(0, Math.min(10, newVolume));
 	localStorage.tetrisVolume = volume;
 	newVolume = Math.pow(volume / 10, 4);
-	music.volume = newVolume;
-	for (let effect of Object.values(sfx)) effect.setVolume(newVolume);
+	gainNode.gain.value = newVolume;
 }
 
 setVolume(localStorage.tetrisVolume == undefined ? 10 : Number.parseInt(localStorage.tetrisVolume));
