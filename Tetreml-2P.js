@@ -96,12 +96,17 @@ const garbageAmounts = [0, 1, 2, 4, 1, 2, 4, 6];
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
 const sfx = {
-	ready: new SFX("SFX/Ready.wav", gainNode),
-	countdown: new SFX("SFX/Countdown.wav", gainNode),
-	pause: new SFX("SFX/Pause.wav", gainNode),
-	gameOver: new SFX("SFX/Game over.wav", gainNode),
-	win: new SFX("SFX/Win.wav", gainNode)
+	ready: new Audio("SFX/Ready.wav", 1),
+	countdown: new Audio("SFX/Countdown.wav", 1),
+	pause: new Audio("SFX/Pause.wav"),
+	gameOver: new Audio("SFX/Game over.wav"),
+	win: new Audio("SFX/Win.wav")
 };
+for (let s of Object.values(sfx)) {
+	s.preload = "auto";
+	s.load();
+	audioContext.createMediaElementSource(s).connect(gainNode);
+}
 sfx.warning = new Audio("SFX/Warning.wav");
 sfx.warning.loop = true;
 var warningPanNode = audioContext.createStereoPanner();
@@ -388,7 +393,7 @@ class PlayScreen {
 		} else this.buttonVolumeDown = false;
 
 		ctx.globalAlpha = 1;
-		ctx.imageSmoothingEnabled = true;
+		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(playScreenImage, 0, 0);
 		for (let i = 0; i < 2; i++) this.playfields[i].render(timePassed);
 		
@@ -449,11 +454,11 @@ class PlayScreen {
 				ctx.fillStyle = "#FF0";
 				if (this.warmupLeft > 2) {
 					if (this.warmupLeft == 3) ctx.globalAlpha = this.warmupSecond / 1000;
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Segoe UI";
 					ctx.fillText("READY", 320, 105);
 					ctx.globalAlpha = 1;
 				} else {
-					ctx.font = "45px Segoe UI Light";
+					ctx.font = "300 45px Segoe UI";
 					ctx.fillText("" + this.warmupLeft, 320, 113);
 				}
 				break;
@@ -466,7 +471,7 @@ class PlayScreen {
 				} else ctx.fillText(this.playfields[0].buttonStatus.quitModifier ? `${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit` : `${keyNamesPlayer1.esc} Pause`, 320, 17);
 				if (this.levelUpTime > 0) {
 					ctx.fillText("LEVEL", 320, 75);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Segoe UI";
 					ctx.fillText("" + this.level, 320, 105);
 					this.levelUpTime -= timePassed;
 				}
@@ -845,6 +850,12 @@ class Playfield {
 		}
 
 		// Actually render things on the screen.
+		ctx.fillStyle = "#FFF";
+		ctx.font = "350 13px Segoe UI";
+		ctx.textAlign = "center";
+		ctx.fillText("HOLD", this.xPos-32, this.yPos+15);
+		ctx.fillText("NEXT", this.xPos+152, this.yPos+15);
+
 		ctx.fillStyle = "#F00";
 		if (this.isInDanger()) this.warningTime = Math.min(500, this.warningTime + timePassed);
 		else this.warningTime = Math.max(0, this.warningTime - timePassed);
@@ -1382,7 +1393,7 @@ class KeymappingScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText("Game controls", 15, 50);
 
@@ -1704,7 +1715,7 @@ class OptionsScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText("Game options", 15, 50);
 
@@ -1732,7 +1743,7 @@ class OptionsScreen {
 			ctx.fillText(this.autoRepeatPeriod[i] + " ms", posX, 215);
 			ctx.fillText(this.softDropPeriod[i] + " ms", posX, 240);
 			ctx.fillText(this.showKeystrokes[i] ? "On" : "Off", posX, 265);
-			ctx.fillText(this.stereoSeparation + "", posX, 290);
+			ctx.fillText(this.stereoSeparation + "%", posX, 290);
 		}
 
 		ctx.textAlign = "left";
@@ -1753,12 +1764,8 @@ class OptionsScreen {
 
 // ------------------------------------------
 
-var mainWindow = document.getElementById("mainWindow");
-
 var sprite = new Image();
 sprite.src = "Textures/Sprite two-player.png";
-
-var ctx = mainWindow.getContext("2d");
 
 class MainScreen {
 	constructor(parent) {
@@ -1772,7 +1779,7 @@ class MainScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "center";
 		ctx.fillText("Tetreml", 320, 100);
 		ctx.font = "12px Segoe UI";

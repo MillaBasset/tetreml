@@ -2,7 +2,7 @@ var editScreenImage = new Image();
 editScreenImage.src = "Textures/Sandbox edit screen.png";
 
 var playScreenImage = new Image();
-playScreenImage.src = "Textures/Play screen sandbox.png";
+playScreenImage.src = "Textures/Play screen singleplayer.png";
 
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
@@ -361,11 +361,20 @@ class PlayScreen {
 		} else this.buttonVolumeDown = false;
 
 		// Actually render things on the screen.
-
+		
+		ctx.imageSmoothingEnabled = false;
 		ctx.globalAlpha = 1;
-		ctx.imageSmoothingEnabled = true;
 		ctx.drawImage(playScreenImage, 0, 0);
+		
 		ctx.fillStyle = "#FFF";
+		ctx.font = "16px Segoe UI";
+		ctx.textAlign = "center";
+		ctx.fillText("HOLD", 198, 23);
+		ctx.fillText("NEXT", 440, 23);
+		ctx.font = "350 24px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("KEYS", 14, 86);
+		
 		ctx.font = "12px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText(keyNames.left, 15, 120, 60);
@@ -412,7 +421,6 @@ class PlayScreen {
 			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
 			ctx.fillText(this.rewardName, 406, 348);
 		}
-		ctx.imageSmoothingEnabled = false;
 
 		if (this.stackMinY < 24) {
 			ctx.fillStyle = "#F00";
@@ -697,8 +705,8 @@ class EditScreen {
 	getCell(event) {
 		let x = event.offsetX;
 		let y = event.offsetY;
-		if (x < 22 || x > 181 || y < 4 || y > 355) return null;
-		return { x: Math.floor((x - 22) / 16), y: Math.floor((y - 4) / 16) + 18 };
+		if (x < (22*scale) || x > (181*scale) || y < (4*scale) || y > (355*scale)) return null;
+		return { x: Math.floor((x - 22*scale) / (16*scale)), y: Math.floor((y - 4*scale) / (16*scale)) + 18 };
 	}
 
 	processAction(cell) {
@@ -817,9 +825,8 @@ class EditScreen {
 	}
 
 	render() {
-		ctx.imageSmoothingEnabled = true;
-		ctx.drawImage(editScreenImage, 0, 0);
 		ctx.imageSmoothingEnabled = false;
+		ctx.drawImage(editScreenImage, 0, 0);
 		// Render the current board.
 		for (let x = 0; x < 10; x++) for (let y = 18; y < 40; y++)
 			if (board[x][y]) ctx.drawImage(sprite, 0, 0, 8, 8, 22 + 16 * x, -284 + 16 * y, 16, 16);
@@ -839,6 +846,35 @@ class EditScreen {
 				ctx.drawImage(sprite, mino[2] * 8, tetrimino.textureY, 8, 8, 213 + xPos + 8 * mino[0], 200 + yPos * 24 + 8 * mino[1], 8, 8);
 			xPos += width + 4;
 		}
+		// Render text.
+		ctx.fillStyle = "#FFF";
+		ctx.font = "300 26px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("Tetreml sandbox", 194, 36);
+		ctx.font = "15px Segoe UI";
+		ctx.fillText("Tools", 196, 63);
+		ctx.fillText("Tetriminoes sequence", 196, 177);
+		ctx.font = "12px Segoe UI";
+		ctx.fillText("No modifier key", 210, 94);
+		ctx.fillText("Shift", 210, 109);
+		ctx.fillText("Ctrl", 210, 124);
+		ctx.fillText("Alt", 210, 139);
+		ctx.fillText("Left mouse button", 334, 73);
+		ctx.fillText("Set cell", 334, 94);
+		ctx.fillText("Set row", 334, 109);
+		ctx.fillText("Insert row", 334, 124);
+		ctx.fillText("Invert cell", 334, 139);
+		ctx.fillText("Right mouse button", 481, 73);
+		ctx.fillText("Unset cell", 481, 94);
+		ctx.fillText("Unset row", 481, 109);
+		ctx.fillText("Delete row", 481, 124);
+		ctx.fillText("Invert row", 481, 139);
+		ctx.font = "italic 12px Segoe UI";
+		ctx.globalAlpha = 0.5;
+		ctx.textAlign = "right";
+		ctx.fillText("Press Enter to start.", 624, 36);
+		ctx.fillText("Press S to edit. Tetriminoes afterwards are random.", 624, 177);
+		ctx.globalAlpha = 1;
 	}
 
 	close() {

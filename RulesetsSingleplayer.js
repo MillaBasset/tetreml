@@ -323,12 +323,19 @@ class PlayScreenBase {
 		// Actually render things on the screen.
 
 		ctx.globalAlpha = 1;
-		ctx.imageSmoothingEnabled = true;
+		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(playScreenImage, 0, 0);
+		
+		ctx.fillStyle = "#FFF";
+		ctx.font = "16px Segoe UI";
+		ctx.textAlign = "center";
+		ctx.fillText("HOLD", 198, 23);
+		ctx.fillText("NEXT", 440, 23);
+		ctx.font = "350 24px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("STATS", 19, 86);
 
 		this.renderBehind(timePassed);
-
-		ctx.imageSmoothingEnabled = false;
 
 		if (this.state != GameState.paused && this.stackMinY < 24) {
 			ctx.fillStyle = "#F00";

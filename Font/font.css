@@ -1,0 +1,22 @@
+@font-face {
+	font-family: "Segoe UI";
+	src: url("segoeui.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: "Segoe UI";
+	src: url("segoeuii.ttf") format("truetype");
+	font-style: italic;
+}
+
+@font-face {
+	font-family: "Segoe UI";
+	src: url("segoeuisl.ttf") format("truetype");
+	font-weight: 350;
+}
+
+@font-face {
+	font-family: "Segoe UI";
+	src: url("segoeuil.ttf") format("truetype");
+	font-weight: 300;
+}

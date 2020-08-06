@@ -4,15 +4,17 @@
 		<meta charset=utf-8>
 		<title>Tetreml – Two-player</title>
 		<link rel="manifest" href="manifest.json">
+		<link rel="stylesheet" href="Font/font.css">
 	</head>
 	<body>
 		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 1; image-rendering: pixelated;"></canvas>
-		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;" onchange="location.replace(document.getElementById('selector').options[document.getElementById('selector').selectedIndex].value);">
+		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
 			<option value="Tetreml.html">Singleplayer</option>
 			<option value="Tetreml-2P.html" selected>Two-player</option>
 			<option value="Tetreml-sandbox.html">Sandbox</option>
 			<option value="ReplayerSingleplayer.html">Replay</option>
 		</select>
+		<script src="HTMLHandler.js"></script>
 		<script src="MersenneTwister.js"></script>
 		<script src="Tetriminos.js"></script>
 		<script src="SoundHandler.js"></script>

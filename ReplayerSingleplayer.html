@@ -4,6 +4,7 @@
 		<meta charset=utf-8>
 		<title>Tetreml – Singleplayer replay</title>
 		<link rel="manifest" href="manifest.json">
+		<link rel="stylesheet" href="Font/font.css">
 	</head>
 	<body>
 		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 10; image-rendering: pixelated;"></canvas>
@@ -11,7 +12,7 @@
 			<input type=file id=fileSelector accept=".tetreml_replay" onchange="onReplayFileChange()" disabled=true/>
 			<input id=buttonLoad type=button value=Load onclick="loadReplay()" disabled=true/>
 		</span></div>
-		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;" onchange="location.replace(document.getElementById('selector').options[document.getElementById('selector').selectedIndex].value);">
+		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
 			<option value="Tetreml.html">Singleplayer</option>
 			<option value="Tetreml-2P.html">Two-player</option>
 			<option value="Tetreml-sandbox.html">Sandbox</option>

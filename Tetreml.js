@@ -317,7 +317,7 @@ class OptionsScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText("Game options", 15, 50);
 
@@ -382,12 +382,8 @@ class OptionsScreen {
 
 // ------------------------------------------
 
-var mainWindow = document.getElementById("mainWindow");
-
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
-
-var ctx = mainWindow.getContext("2d");
 
 class MainScreen {
 	constructor(parent) {
@@ -430,7 +426,7 @@ class MainScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "center";
 		ctx.fillText("Tetreml", 320, 100);
 		ctx.font = "12px Segoe UI";
@@ -439,7 +435,7 @@ class MainScreen {
 		ctx.fillText("Singleplayer version", 320, 200);
 
 		ctx.fillText("Controls", 320, 240);
-		ctx.fillText(`${keyNames.left} Left | ${keyNames.right} Right | ${keyNames.softDrop} Soft drop | ${keyNames.hardDrop} Hard drop | ${keyNames.rotateCounterClockwise} Rotate counterclockwise | ${keyNames.rotateClockwise} Rotate clockwise | ${keyNames.hold} Hold`, 320, 255);
+		ctx.fillText(`${keyNames.left} Left | ${keyNames.right} Right | ${keyNames.softDrop} Soft drop | ${keyNames.hardDrop} Hard drop | ${keyNames.rotateCounterClockwise} Rotate counterclockwise | ${keyNames.rotateClockwise} Rotate clockwise | ${keyNames.hold} Hold`, 320, 255, 620);
 		ctx.fillText("Press Enter to set options and start the game or C to edit controls.", 320, 340);
 	}
 

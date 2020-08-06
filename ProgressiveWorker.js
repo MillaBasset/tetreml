@@ -1,8 +1,14 @@
-// Version: 7
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.delete("Tetreml"));
 	event.waitUntil(caches.open("Tetreml").then(function(cache) { return cache.addAll([
+		'Font/font.css',
+		'Font/segoeui.ttf',
+		'Font/segoeuii.ttf',
+		'Font/segoeuil.ttf',
+		'Font/segoeuisl.ttf',
+	
 		'Music/Level 1 main.mp3',
 		'Music/Level 1 opening.mp3',
 		'Music/Level 6.mp3',
@@ -68,6 +74,7 @@ self.addEventListener('install', function (event) {
 		'Controls.js',
 		'/favicon.ico',
 		'Fumen.js',
+		'HTMLHandler.js',
 		'index.html',
 		'MersenneTwister.js',
 		'ProgressiveInstaller.js',

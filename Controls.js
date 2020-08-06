@@ -140,7 +140,7 @@ class ControlsEditScreen {
 		}
 
 		ctx.fillStyle = "#FFF";
-		ctx.font = "40px Segoe UI Light";
+		ctx.font = "300 40px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText("Edit controls", 15, 50);
 
