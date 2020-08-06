@@ -64,7 +64,6 @@ self.addEventListener('install', function (event) {
 		'SFX/Warning.wav',
 		'SFX/Win.wav',
 
-		'Textures/Play screen sandbox.png',
 		'Textures/Play screen singleplayer.png',
 		'Textures/Play screen two-player.png',
 		'Textures/Sandbox edit screen.png',
