@@ -751,7 +751,7 @@ class PlayScreenBase {
 	}
 
 	getLockDelay() {
-		return 1000;
+		return 500;
 	}
 
 	pushToQueue() {
