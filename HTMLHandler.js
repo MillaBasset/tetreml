@@ -17,7 +17,8 @@ function setAdaptiveSizing(enabled) {
 function fitScreen() {
 	let width = innerWidth - 20;
 	let height = innerHeight - 20;
-	scale = Math.max(1, Math.floor(width / height > 16 / 9 ? height / 360 : width / 640));
+	scale = width / height > 16 / 9 ? height / 360 : width / 640;
+	scale = scale >= 1 ? Math.floor(scale) : 1/Math.ceil(1/scale);
 	mainWindow.width = Math.floor(640 * scale);
 	mainWindow.height = Math.floor(360 * scale);
 	ctx.scale(scale, scale);
