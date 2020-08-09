@@ -270,7 +270,7 @@ class GameOverScreen {
 			ctx.fillRect(this.scrollbarX[i], this.top - 10 + (157 - scrollbarHeight) * startPos / (content.length - 5), 1, scrollbarHeight);
 		}
 		ctx.textAlign = "center";
-		ctx.fillText("Press Esc to continue.", 320, 340);
+		ctx.fillText(`Press ${keyNamesPlayer1.esc} to continue.`, 320, 340);
 	}
 
 	close() {
@@ -349,6 +349,7 @@ class PlayScreen {
 				switch (this.state) {
 					case GameState.playing:
 						if (this.playfields[0].buttonStatus.quitModifier) {
+							if (this.warning) sfx.warning.pause();
 							this.currentSong.pause();
 							goBack();
 							break;
@@ -369,6 +370,7 @@ class PlayScreen {
 						if (this.warning) sfx.warning.play();
 						break;
 					case GameState.over:
+						this.currentSong.pause();
 						goBack();
 						break;
 				}
