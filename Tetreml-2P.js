@@ -248,10 +248,6 @@ class GameOverScreen {
 			case "ArrowDown":
 				this.scrollPos[1] = Math.min(this.scrollPos[1] + 1, this.content[1].length-5);
 				break;
-			case "Escape":
-				this.playScreen.currentSong.pause();
-				goBack();
-				break;
 		}
 	}
 
