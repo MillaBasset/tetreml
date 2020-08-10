@@ -88,7 +88,7 @@ class PlayScreenBase {
 			mode: this.getModeName(),
 			modeParameters: {}
 		};
-		this.singleSaveableFields = ["score", "lines", "combo", "backToBack", "rewardName", "rewardAmount", "rewardTime", "lockScore", "holdSwitched", "clearedLines", "clearEffectTime", "tetriminoes", "holds", "keypressed", "wasNull", "moveLock", "isClearing"];
+		this.singleSaveableFields = ["score", "lines", "combo", "backToBack", "rewardName", "rewardAmount", "rewardTime", "lockScore", "holdSwitched", "clearTime", "clearedLines", "clearEffectTime", "tetriminoes", "holds", "keypressed", "wasNull", "moveLock", "isClearing"];
 		this.isReplay = false;
 		this.isClearing = false;
 		this.isSeeking = false;
@@ -850,7 +850,7 @@ class PlayScreenBase {
 
 	readStateData(state) {
 		this.playTime = state.timestamp;
-		for (let field of this.singleSaveableFields) this[field] = state[field];
+		for (let field of this.singleSaveableFields) if (state[field] !== undefined) this[field] = state[field];
 		let minos = 0, x = 0, board = state.board, mino = 0;
 		this.totalMinos = 0;
 		this.stackMinY = 40;
