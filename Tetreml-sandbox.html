@@ -8,6 +8,9 @@
 	</head>
 	<body>
 		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 10; image-rendering: pixelated;"></canvas>
+		<div id=fileInputWrapper style="text-align: center; width: 100%; margin-top: 20px; display: none;"><span style="display: inline; position: relative; margin: auto; z-index: 10;">
+			<input type=file id=fileSelector accept=".tetreml_sandbox"/>
+		</span></div>
 		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
 			<option value="Tetreml.html">Singleplayer</option>
 			<option value="Tetreml-2P.html">Two-player</option>

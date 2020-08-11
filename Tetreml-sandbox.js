@@ -93,7 +93,7 @@ document.addEventListener("keyup", (key) => {
 const fumenStateMapping = ["spawn", "right", "reverse", "left"];
 
 class PlayScreen {
-	constructor(parent, board, sequence) {
+	constructor(parent, board, sequence, hold, maxTetriminoes) {
 		this.parent = parent;
 		this.fumenPages = [];
 		this.currentFumenPage = {};
@@ -109,19 +109,21 @@ class PlayScreen {
 		for (let i = 0; i < 10; i++) this.board.push([...col]);
 		this.stackMinY = 40;
 		for (let y = 40; y > 19; y--) for (let x = 0; x < 10; x++) if (board[x][y]) {
-			this.board[x][y] = board[x][y];
+			this.board[x][y] = board[x][y].clone();
 			this.minos[y]++;
 			this.stackMinY = y;
 		}
+		this.hold = hold;
+		this.maxTetriminoes = this.tetriminoesLeft = maxTetriminoes;
 		let fieldString = "";
-		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? "X" : "_";
+		let fumenColorMapping = ["X", "I", "J", "L", "O", "S", "T", "Z"]
+		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? fumenColorMapping[this.board[x][y].textureY / 8] : "_";
 		this.currentFumenPage.field = tetrisFumen.Field.create(fieldString);
 		this.currentFumenPageDataCart.flags = { lock: true };
 
 		this.current = null;
 		this.queue = [];
 		for (let c of sequence) this.queue.push(new (tetriminoTypeMapping[c])());
-		this.hold = null;
 		this.softDropCounter = -1;
 		this.oldSoftDropCounter = -1;
 		this.softDropLock = false;
@@ -157,6 +159,7 @@ class PlayScreen {
 	}
 
 	init() {
+		for (let key in buttonStatus) buttonStatus[key] = false;
 		this.pushToQueue();
 		this.nextTetrimino();
 		music.currentTime = 0;
@@ -255,7 +258,7 @@ class PlayScreen {
 					}
 				} else this.buttonRotateCounterClockwise = false;
 				if (buttonStatus.hold) {
-					if (!this.buttonHold && !this.holdSwitched) {
+					if (!this.buttonHold && this.hold != -1 && !this.holdSwitched) {
 						this.current.x = 4;
 						this.current.y = 19;
 						this.currentFumenPageDataCart.operation = {
@@ -362,6 +365,19 @@ class PlayScreen {
 
 		// Actually render things on the screen.
 		
+		if (this.hold == -1) {
+			ctx.strokeStyle = "#F00";
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.moveTo(182, 38);
+			ctx.lineTo(213, 69);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(213, 38);
+			ctx.lineTo(182, 69);
+			ctx.stroke();
+		}
+
 		ctx.imageSmoothingEnabled = false;
 		ctx.globalAlpha = 1;
 		ctx.drawImage(playScreenImage, 0, 0);
@@ -412,7 +428,16 @@ class PlayScreen {
 
 		ctx.fillText("Intermediate Fumen frames", 485, 20);
 		ctx.textAlign = "right";
-		ctx.fillText("" + this.fumenPagesForCurrent.length, 635, 40);
+		ctx.fillText("" + this.fumenPagesForCurrent.length, 632, 40);
+
+		if (this.maxTetriminoes) {
+			ctx.textAlign = "left";
+			ctx.fillText("Tetriminoes left", 485, 70);
+			ctx.fillText(this.tetriminoesLeft, 485, 96, 73);
+			ctx.textAlign = "right";
+			ctx.fillText(this.maxTetriminoes, 632, 96, 73);
+			ctx.fillRect(485, 74, 147 * this.tetriminoesLeft / this.maxTetriminoes, 10);
+		}
 
 		ctx.textAlign = "left";
 
@@ -463,7 +488,7 @@ class PlayScreen {
 		if (this.current != null && this.state != GameState.over) {
 			this.current.render(this);
 		}
-		if (this.hold != null) this.renderTetrimino(this.hold, 182, 54, this.holdSwitched);
+		if (this.hold != null && this.hold != -1) this.renderTetrimino(this.hold, 182, 54, this.holdSwitched);
 		for (let i = 0; i < 3; i++) this.renderTetrimino(this.queue[i], 424, 48 + 48 * i);
 
 		ctx.imageSmoothingEnabled = true;
@@ -501,7 +526,7 @@ class PlayScreen {
 	}
 
 	pushFumenPage() {
-		if (this.hold != null) this.currentFumenPage.comment = `#Q=[${this.hold.code}](${this.current.code})`;
+		if (this.hold != null && this.hold != -1) this.currentFumenPage.comment = `#Q=[${this.hold.code}](${this.current.code})`;
 		this.fumenPages.push(this.currentFumenPage);
 		this.currentFumenPage = {};
 	}
@@ -613,6 +638,7 @@ class PlayScreen {
 		} else {
 			this.nextTetrimino();
 		}
+		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 	}
 
 	clearLines(toClear) {
@@ -672,13 +698,243 @@ class PlayScreen {
 	}
 }
 
-var board = [];
-var col = [];
-for (let i = 0; i < 40; i++) col.push(undefined);
-for (let i = 0; i < 10; i++) board.push([...col]);
-delete col;
+class PaneButton {
+	constructor(x, y, key, getText, clickCallback) {
+		this.x = x;
+		this.y = y;
+		this.key = key;
+		this.keyName = formatKeycode(key);
+		this.getText = getText;
+		this.clickCallback = clickCallback;
+	}
 
-var sequence = "";
+	isMouseOn(mouseX, mouseY) {
+		return mouseX >= this.x && mouseX < this.x + 196 && mouseY >= this.y && mouseY < this.y + 21;
+	}
+
+	render(mouseX, mouseY) {
+		if (mouseX != null && this.isMouseOn(mouseX, mouseY)) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(this.x + 1, this.y + 1, 194, 19);
+			ctx.globalAlpha = 1;
+		}
+		ctx.strokeRect(this.x + 0.5, this.y + 0.5, 195, 20);
+		ctx.font = "12px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText(this.getText(), this.x + 7, this.y + 15, 155);
+		ctx.textAlign = "right";
+		ctx.fillText(this.keyName, this.x + 191, this.y + 15, 24);
+	}
+
+	onClick(mouseX, mouseY) {
+		if (this.isMouseOn(mouseX, mouseY)) this.clickCallback();
+	}
+
+	onKey(keycode) {
+		if (keycode == this.key) this.clickCallback();
+	}
+}
+
+class PaneDrawAndMain {
+	constructor(owner) {
+		this.owner = owner;
+		this.buttonList = [
+			new PaneButton(314, 220, "KeyM", () => `Max tetriminoes: ${this.owner.maxTetriminoes == 0 ? "\u221e" : this.owner.maxTetriminoes}`, () => {
+				let value = Number.parseInt(prompt("Enter maximum number of tetriminoes (0 for unlimited)", this.owner.maxTetriminoes));
+				if (!isNaN(value) && value > -1) this.owner.maxTetriminoes = value;
+			}),
+			new PaneButton(314, 247, "Backspace", () => "Clear board", () => {
+				this.owner.board = [];
+				let col = [];
+				for (let i = 0; i < 40; i++) col.push(undefined);
+				for (let i = 0; i < 10; i++) this.owner.board.push([...col]);
+			}),
+			// Tetreml-sandbox file format:
+			// 400 bytes: Board. Each byte contains data for a cell:
+			//         0      000      0000
+			//     Has mino  Color  Directions
+			// 8 bytes: Max tetriminoes stored as 64-bit float.
+			// Hold slot: N for none, IJLOSTZ for a tetrimino, X for disabled.
+			// Tetrimino sequence. Each tetrimino is a character corresponding to its name.
+			new PaneButton(314, 274, "KeyI", () => "Import file", async () => {
+				if (this.owner.fileInput.files.length == 0) return;
+				let reader = new FileReader();
+				reader.addEventListener("load", (event) => {
+					this.owner.load(event.target.result);
+				});
+				reader.readAsText(this.owner.fileInput.files[0]);
+			}),
+			new PaneButton(314, 301, "KeyO", () => "Export file", () => {
+				let date = new Date();
+				createAndDownloadFile(`${date.getHours()}h${date.getMinutes() < 10 ? "0" : ""}${date.getMinutes()}.${date.getSeconds() < 10 ? "0" : ""}${date.getSeconds()} ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.tetreml_sandbox`, this.owner.getSaveString());
+			}),
+			new PaneButton(314, 328, "KeyL", () => "Get link", () => {
+				prompt("Copy this link to share the current sandbox preset", window.location.origin + window.location.pathname + "?code=" + encodeURIComponent(btoa(this.owner.getSaveString())));
+			})
+		];
+	}
+
+	onKeyPress(keycode) {
+		if (this.owner.colorKeyMapping[keycode] != undefined && this.owner.colorKeyMapping[keycode] != 8) this.owner.color = this.owner.colorKeyMapping[keycode];
+		else for (let button of this.buttonList) button.onKey(keycode);
+	}
+
+	getColorCell(mouseX, mouseY) {
+		if (mouseX != null && mouseY > 161 && mouseY < 194 && (mouseX - 271) % 37 < 32) {
+			let i = Math.floor((mouseX - 271) / 37);
+			return i > -1 && i < 8 ? i : null;
+		}
+		return null;
+	}
+
+	onClick(mouseX, mouseY) {
+		if (mouseX == null) return null;
+		let cell = this.getColorCell(mouseX, mouseY);
+		if (cell != null) this.owner.color = cell;
+		else for (let button of this.buttonList) button.onClick(mouseX, mouseY);
+	}
+
+	render(mouseX, mouseY) {
+		ctx.fillStyle = "#FFF";
+		ctx.font = "12px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("No modifier key", 210, 94);
+		ctx.fillText("Shift", 210, 109);
+		ctx.fillText("Ctrl", 210, 124);
+		ctx.fillText("Alt", 210, 139);
+		ctx.fillText("Left mouse button", 334, 73);
+		ctx.fillText("Set cell", 334, 94);
+		ctx.fillText("Set row", 334, 109);
+		ctx.fillText("Insert row", 334, 124);
+		ctx.fillText("Connect", 334, 139);
+		ctx.fillText("Right mouse button", 481, 73);
+		ctx.fillText("Unset cell", 481, 94);
+		ctx.fillText("Unset row", 481, 109);
+		ctx.fillText("Delete row", 481, 124);
+		ctx.fillText("Copy color", 481, 139);
+
+		ctx.imageSmoothingEnabled = false;
+		ctx.textAlign = "center";
+		for (let i = 0; i < 8; i++) {
+			ctx.drawImage(sprite, 0, i * 8, 8, 8, 270 + 37 * i, 162, 32, 32);
+			ctx.fillText(this.owner.colorKeyNameMapping[i], 286 + 37 * i, 208);
+		}
+
+		let hoveredCell = this.getColorCell(mouseX, mouseY);
+		if (hoveredCell != null) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(270 + 37 * hoveredCell, 162, 32, 32);
+			ctx.globalAlpha = 1;
+		}
+
+		ctx.font = "350 15px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("Colors", 196, 183);
+		
+		ctx.strokeStyle = "#FFF";
+		ctx.lineWidth = 1;
+		ctx.strokeRect(268.5 + 37 * this.owner.color, 160.5, 35, 35);
+		for (let button of this.buttonList) button.render(mouseX, mouseY);
+	}
+}
+
+class PaneTetriminoes {
+	constructor(owner) {
+		this.owner = owner;
+		this.holdBorders = [[353.5, 66.5, 43, 19], [397.5, 66.5, 35, 19], [433.5, 66.5, 27, 19], [461.5, 66.5, 27, 19], [489.5, 66.5, 19, 19], [509.5, 66.5, 27, 19], [537.5, 66.5, 27, 19], [565.5, 66.5, 27, 19], [593.5, 66.5, 19, 19]];
+		this.holdHover = [[354, 67, 42, 18], [398, 67, 34, 18], [434, 67, 26, 18], [462, 67, 26, 18], [490, 67, 18, 18], [510, 67, 26, 18], [538, 67, 26, 18], [566, 67, 26, 18], [594, 67, 18, 18]];
+		this.holdBounds = [[353, 66, 396, 85], [397, 66, 432, 85], [433, 66, 460, 85], [461, 66, 488, 85], [489, 66, 508, 85], [509, 66, 536, 85], [537, 66, 564, 85], [565, 66, 592, 85], [593, 66, 612, 85]];
+		this.holdDrawX = [0, 407, 443, 471, 491, 519, 547, 575];
+	}
+
+	setSequence() {
+		let res = prompt("Set the current tetrimino sequence (space to clear)", this.owner.sequence);
+		if (!res) return;
+		this.owner.sequence = "";
+		for (let c of res.toUpperCase()) if (tetriminoMapping[c]) this.owner.sequence += c;
+	}
+
+	onKeyPress(keycode) {
+		if (this.owner.colorKeyMapping[keycode] != undefined) this.owner.hold = this.owner.colorKeyMapping[keycode];
+		else if (keycode == "KeyS") this.setSequence();
+	}
+
+	getHoldTetrimino(mouseX, mouseY) {
+		let bounds;
+		for (let i = 0; i < 9; i++)	{
+			bounds = this.holdBounds[i];
+			if (mouseX != null && mouseX > bounds[0] && mouseX < bounds[2] && mouseY > bounds[1] && mouseY < bounds[3]) return i;
+		}
+		return null;
+	}
+
+	onClick(mouseX, mouseY) {
+		let tetrimino = this.getHoldTetrimino(mouseX, mouseY);
+		if (tetrimino != null) this.owner.hold = tetrimino;
+		else if (mouseX != null && mouseX > 300 && mouseX < 335 && mouseY > 108 && mouseY < 128) this.owner.sequence = "";
+		else if (mouseX != null && mouseX > 197 && mouseX < 625 && mouseY > 133 && mouseY < 359) this.setSequence();
+	}
+
+	render(mouseX, mouseY) {
+		ctx.fillStyle = "#FFF";
+		ctx.font = "350 15px Segoe UI";
+		ctx.textAlign = "left";
+		ctx.fillText("Hold", 348, 61);
+		ctx.fillText("Sequence", 196, 124);
+
+		ctx.font = "12px Segoe UI";
+		ctx.fillText("[None.]", 356, 80);
+		ctx.fillText("S", 273, 124);
+		ctx.fillText("Clear", 304, 124);
+		ctx.textAlign = "center";
+		for (let i = 0; i < 9; i++) ctx.fillText(this.owner.colorKeyNameMapping[i], this.holdHover[i][0] + this.holdHover[i][2] / 2, 97);
+		for (let i = 1; i < 8; i++) this.owner.renderTetrimino(this.owner.holdTetriminoMapping[i], this.holdDrawX[i], 76);
+		ctx.drawImage(sprite, 192, 0, 16, 16, 595, 68, 16, 16);
+		ctx.strokeStyle = "#FFF";
+		ctx.lineWidth = 1;
+		ctx.strokeRect(...this.holdBorders[this.owner.hold]);
+		let hoveredTetrimino = this.getHoldTetrimino(mouseX, mouseY);
+		if (hoveredTetrimino != null) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(...this.holdHover[hoveredTetrimino]);
+			ctx.globalAlpha = 1;
+		}
+
+		ctx.strokeRect(300.5, 110.5, 35, 18);
+		if (mouseX != null && mouseX > 300 && mouseX < 335 && mouseY > 108 && mouseY < 128) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(301, 109, 34, 19);
+			ctx.globalAlpha = 1;
+		}
+
+		ctx.font = "italic 12px Segoe UI";
+		ctx.textAlign = "right";
+		ctx.globalAlpha = 0.5;
+		ctx.fillText("Tetriminoes afterwards are random.", 624, 124);
+		ctx.globalAlpha = 1;
+
+		ctx.lineWidth = 2;
+		ctx.strokeRect(197, 133, 427, 224);
+		let xPos = 0;
+		let yPos = 0;
+		for (let c of this.owner.sequence) {
+			let width = c == 'I' ? 32 : 24;
+			if (xPos + width > 414) {
+				yPos++;
+				if (yPos > 8) break;
+				xPos = 0;
+			}
+			if (c == 'O') xPos -= 8;
+			this.owner.renderTetrimino(tetriminoMapping[c], 213 + xPos, 149 + yPos * 24);
+			xPos += width + 4;
+		}
+		if (mouseX != null && mouseX > 197 && mouseX < 625 && mouseY > 133 && mouseY < 359) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(198, 134, 425, 223);
+			ctx.globalAlpha = 1;
+		}
+	}
+}
 
 class EditScreen {
 	constructor(parent) {
@@ -687,19 +943,63 @@ class EditScreen {
 		this.shiftLeft = this.shiftRight = this.shift = false;
 		this.ctrlLeft = this.ctrlRight = this.ctrl = false;
 		this.altLeft = this.altRight = this.alt = false;
+
+		this.board = [];
+		let col = [];
+		for (let i = 0; i < 40; i++) col.push(undefined);
+		for (let i = 0; i < 10; i++) this.board.push([...col]);
+
+		this.sequence = "";
+		this.hold = 0;
+		this.maxTetriminoes = 0;
+		this.color = 0;
+
+		this.colorKeyMapping = { Backquote: 0, Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8 };
+		this.colorKeyNameMapping = ["`", "1", "2", "3", "4", "5", "6", "7", "8"];
+		this.holdTetriminoMapping = [null, new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoT(), new TetriminoZ(), -1];
+		this.holdCodeMapping = "NIJLOSTZX";
+
+		this.drawAndMainPane = new PaneDrawAndMain(this);
+		this.tetriminoesPane = new PaneTetriminoes(this);
+
+		this.connectMapping = {
+			"-10": [0b0001, 0b0100],
+			"-1": [0b1000, 0b0010],
+			"1": [0b0010, 0b1000],
+			"10": [0b0100, 0b0001]
+		};
+
+		this.fileInput = document.getElementById("fileSelector");
+		this.fileInputWrapper = document.getElementById("fileInputWrapper");
+
+		let code = new URL(window.location).searchParams.get('code');
+		if (code != null) try {
+			this.load(atob(code));
+		} catch (e) {
+			console.error(e);
+		}
 	}
 
 	init() {
 		mainWindow.addEventListener("mousedown", this.mouseDownListener = (event) => { this.onMouseDown(event); });
 		mainWindow.addEventListener("mousemove", this.mouseMoveListener = (event) => { this.onMouseMove(event); });
+		document.addEventListener("mouseup", this.mouseUpListener = (event) => { this.onMouseUp(event); });
+		mainWindow.addEventListener("mouseenter", this.mouseEnterListener = (event) => { this.onMouseEnter(event); });
+		mainWindow.addEventListener("mouseleave", this.mouseLeaveListener = (event) => { this.onMouseLeave(event); });
 		mainWindow.addEventListener("contextmenu", this.contextMenuListener = (event) => {
 			if (this.ctrl && this.shift)
 				this.ctrl = this.shift = this.alt = this.shiftLeft = this.shiftRight = this.ctrlLeft = this.ctrlRight = this.altLeft = this.altRight = false;
 			else event.preventDefault();
 		});
-		document.addEventListener("mouseup", this.mouseUpListener = (event) => { this.onMouseUp(event); });
 		document.addEventListener("keydown", this.keyDownListener = (event) => { this.onKeyDown(event); });
 		document.addEventListener("keyup", this.keyUpListener = (event) => { this.onKeyUp(event); });
+
+		this.mouseOn = false;
+		this.mouseX = 0;
+		this.mouseY = 0;
+		this.paneFlag = false;
+		this.currentPane = this.drawAndMainPane;
+		this.fileInputWrapper.style.display = "block";
 	}
 
 	getCell(event) {
@@ -710,32 +1010,47 @@ class EditScreen {
 	}
 
 	processAction(cell) {
-		if (cell == null) return;
+		if (this.paneFlag || cell == null) return;
 		switch (this.button) {
 			case 1: // Left
 				switch (this.modifier) {
 					case 0: // Set cell
 						if (this.performed[cell.y*10+cell.x]) return;
-						board[cell.x][cell.y] = new Mino(0, 0);
+						this.board[cell.x][cell.y] = new Mino(0, this.color * 8);
+						if (cell.x > 0 && this.board[cell.x-1][cell.y]) this.board[cell.x-1][cell.y].directions &= 0b0111;
+						if (cell.x < 9 && this.board[cell.x+1][cell.y]) this.board[cell.x+1][cell.y].directions &= 0b1101;
+						if (this.board[cell.x][cell.y-1]) this.board[cell.x][cell.y-1].directions &= 0b1110;
+						if (cell.y < 40 && this.board[cell.x][cell.y+1]) this.board[cell.x][cell.y+1].directions &= 0b1011;
 						this.performed[cell.y*10+cell.x] = true;
 						break;
 					case 1: // Set row
 						if (this.performed[cell.y]) return;
-						for (let x = 0; x < 10; x++) board[x][cell.y] = new Mino(0, 0);
+						for (let x = 0; x < 10; x++) {
+							this.board[x][cell.y] = new Mino(0, this.color * 8);
+							if (this.board[x][cell.y - 1]) this.board[x][cell.y - 1].directions &= 0b1110;
+							if (cell.y < 40 && this.board[x][cell.y+1]) this.board[x][cell.y+1].directions &= 0b1011;
+						}
 						this.performed[cell.y] = true;
 						break;
 					case 2: // Insert row
 						if (this.performed === 1) return;
 						for (let x = 0; x < 10; x++) {
-							let col = board[x];
-							board[x] = [...col.slice(1, cell.y+1), undefined, ...col.slice(cell.y+1, 40)];
+							let col = this.board[x];
+							this.board[x] = [...col.slice(1, cell.y+1), undefined, ...col.slice(cell.y+1, 40)];
+							if (this.board[x][cell.y - 1]) this.board[x][cell.y - 1].directions &= 0b1110;
+							if (cell.y < 40 && this.board[x][cell.y+1]) this.board[x][cell.y+1].directions &= 0b1011;
 						}
 						this.performed = 1;
 						break;
-					case 3: // Invert cell
-						if (this.performed[cell.y*10+cell.x]) return;
-						if (board[cell.x][cell.y]) board[cell.x][cell.y] = undefined; else board[cell.x][cell.y] = new Mino(0, 0);
-						this.performed[cell.y*10+cell.x] = true;
+					case 3: // Connect
+						if (this.oldCell) {
+							let masks = this.connectMapping[(cell.y - this.oldCell.y) * 10 + cell.x - this.oldCell.x];
+							if (masks && this.board[cell.x][cell.y] && this.board[this.oldCell.x][this.oldCell.y] && this.board[cell.x][cell.y].textureY == this.board[this.oldCell.x][this.oldCell.y].textureY) {
+								this.board[cell.x][cell.y].directions |= masks[0];
+								this.board[this.oldCell.x][this.oldCell.y].directions |= masks[1];
+							}
+						}
+						this.oldCell = cell;
 						break;
 				}
 				break;
@@ -743,44 +1058,65 @@ class EditScreen {
 				switch (this.modifier) {
 					case 0: // Unset cell
 						if (this.performed[cell.y*10+cell.x]) return;
-						board[cell.x][cell.y] = undefined;
+						this.board[cell.x][cell.y] = undefined;
+						if (cell.x > 0 && this.board[cell.x-1][cell.y]) this.board[cell.x-1][cell.y].directions &= 0b0111;
+						if (cell.x < 9 && this.board[cell.x+1][cell.y]) this.board[cell.x+1][cell.y].directions &= 0b1101;
+						if (this.board[cell.x][cell.y-1]) this.board[cell.x][cell.y-1].directions &= 0b1110;
+						if (cell.y < 40 && this.board[cell.x][cell.y+1]) this.board[cell.x][cell.y+1].directions &= 0b1011;
 						this.performed[cell.y*10+cell.x] = true;
 						break;
 					case 1: // Unset row
 						if (this.performed[cell.y]) return;
-						for (let x = 0; x < 10; x++) board[x][cell.y] = undefined;
+						for (let x = 0; x < 10; x++) {
+							this.board[x][cell.y] = undefined;
+							if (this.board[x][cell.y - 1]) this.board[x][cell.y - 1].directions &= 0b1110;
+							if (cell.y < 40 && this.board[x][cell.y + 1]) this.board[x][cell.y + 1].directions &= 0b1011;
+						}
 						this.performed[cell.y] = true;
 						break;
 					case 2: // Delete row
 						if (this.performed === 1) return;
 						for (let x = 0; x < 10; x++) {
-							let col = board[x];
-							board[x] = [undefined, ...col.slice(0, cell.y), ...col.slice(cell.y + 1, 40)];
+							if (this.board[x][cell.y - 1]) this.board[x][cell.y - 1].directions &= 0b1110;
+							if (cell.y < 40 && this.board[x][cell.y+1]) this.board[x][cell.y+1].directions &= 0b1011;
+							let col = this.board[x];
+							this.board[x] = [undefined, ...col.slice(0, cell.y), ...col.slice(cell.y + 1, 40)];
 						}
 						this.performed = 1;
 						break;
-					case 3: // Invert row
-						if (this.performed[cell.y]) return;
-						for (let x = 0; x < 10; x++)
-							if (board[x][cell.y]) board[x][cell.y] = undefined; else board[x][cell.y] = new Mino(0, 0);
-						this.performed[cell.y] = true;
+					case 3: // Copy color
+						this.color = this.board[cell.x][cell.y].textureY / 8;
 						break;
 				}
 				break;
 		}
 	}
 
-	onMouseDown(event) {
+	processDrawMouseDown(event) {
 		if (this.button || (event.button != 0 && event.button != 2)) return;
 		let cell = this.getCell(event);
 		if (cell == null) return;
 		this.button = event.button ? 2 : 1;
 		this.modifier = this.shift ? 1 : this.ctrl ? 2 : this.alt ? 3 : 0;
 		this.performed = {};
+		this.oldCell = null;
 		this.processAction(cell);
 	}
 
+	onMouseDown(event) {
+		if (!this.paneFlag) this.processDrawMouseDown(event);
+		if (event.button) return;
+		let mouseX = Math.floor(event.offsetX / scale);
+		let mouseY = Math.floor(event.offsetY / scale);
+		this.currentPane.onClick(mouseX, mouseY);
+		if (mouseX > 194 && mouseX < 322 && mouseY > 54 && mouseY < 74) {
+			this.togglePane();
+		}
+	}
+
 	onMouseMove(event) {
+		this.mouseX = Math.floor(event.offsetX / scale);
+		this.mouseY = Math.floor(event.offsetY / scale);
 		if (!this.button) return;
 		this.processAction(this.getCell(event));
 	}
@@ -788,6 +1124,14 @@ class EditScreen {
 	onMouseUp(event) {
 		if (!this.button) return;
 		this.button = 0;
+	}
+
+	onMouseEnter(event) {
+		this.mouseOn = true;
+	}
+
+	onMouseLeave(event) {
+		this.mouseOn = false;
 	}
 
 	updateModifierKey(code, down) {
@@ -804,86 +1148,119 @@ class EditScreen {
 		this.alt = this.altLeft || this.altRight;
 	}
 
+	togglePane() {
+		this.paneFlag = !this.paneFlag;
+		this.currentPane = this.paneFlag ? this.tetriminoesPane : this.drawAndMainPane;
+	}
+
 	onKeyDown(event) {
 		switch (event.code) {
-			case "KeyS":
-				buttonStatus.softDrop = false;
-				let res = prompt("Set the current tetrimino sequence (space to clear)", sequence);
-				if (!res) break;
-				sequence = "";
-				for (let c of res.toUpperCase()) if (tetriminoMapping[c]) sequence += c;
+			case "Equal":
+				if (this.button) break;
+				this.togglePane();
 				break;
 			case "Enter":
-				openGui(new PlayScreen(this, board, sequence));
+				openGui(new PlayScreen(this, this.board, this.sequence, this.holdTetriminoMapping[this.hold], this.maxTetriminoes));
+				event.preventDefault();
 				break;
 		}
 		this.updateModifierKey(event.code, true);
+		this.currentPane.onKeyPress(event.code);
 	}
 
 	onKeyUp(event) {
 		this.updateModifierKey(event.code, false);
 	}
 
+	renderTetrimino(tetrimino, x, y) {
+		for (let mino of tetrimino.states[0])
+			ctx.drawImage(sprite, mino[2] * 8, tetrimino.textureY, 8, 8, x + 8 * mino[0], y + 8 * mino[1], 8, 8);
+	}
+
 	render() {
 		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(editScreenImage, 0, 0);
 		// Render the current board.
-		for (let x = 0; x < 10; x++) for (let y = 18; y < 40; y++)
-			if (board[x][y]) ctx.drawImage(sprite, 0, 0, 8, 8, 22 + 16 * x, -284 + 16 * y, 16, 16);
-		// Render the tetrimino sequence.
-		let xPos = 0;
-		let yPos = 0;
-		for (let c of sequence) {
-			let width = c == 'I' ? 32 : 24;
-			if (xPos + width > 414) {
-				yPos++;
-				if (yPos > 6) return;
-				xPos = 0;
+		for (let x = 0; x < 10; x++) for (let y = 18; y < 40; y++) {
+			let mino = this.board[x][y];
+			if (mino) ctx.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, 22 + 16 * x, -284 + 16 * y, 16, 16);
+		}
+		ctx.fillStyle = "#FFF";
+		if (!this.paneFlag && this.mouseX != null) {
+			let cell = this.getCell({ offsetX: this.mouseX * scale, offsetY: this.mouseY * scale });
+			if (cell != null) {
+				ctx.globalAlpha = 0.3;
+				ctx.fillRect(22 + 16 * cell.x, -284 + 16 * cell.y, 16, 16);
+				ctx.globalAlpha = 1;
 			}
-			let tetrimino = tetriminoMapping[c];
-			if (c == 'O') xPos -= 8;
-			for (let mino of tetrimino.states[0])
-				ctx.drawImage(sprite, mino[2] * 8, tetrimino.textureY, 8, 8, 213 + xPos + 8 * mino[0], 200 + yPos * 24 + 8 * mino[1], 8, 8);
-			xPos += width + 4;
 		}
 		// Render text.
-		ctx.fillStyle = "#FFF";
 		ctx.font = "300 26px Segoe UI";
 		ctx.textAlign = "left";
 		ctx.fillText("Tetreml sandbox", 194, 36);
-		ctx.font = "15px Segoe UI";
-		ctx.fillText("Tools", 196, 63);
-		ctx.fillText("Tetriminoes sequence", 196, 177);
+		ctx.font = "350 15px Segoe UI";
+		ctx.fillText(this.paneFlag ? "Tetriminoes" : "Draw & main", 201, 70);
 		ctx.font = "12px Segoe UI";
-		ctx.fillText("No modifier key", 210, 94);
-		ctx.fillText("Shift", 210, 109);
-		ctx.fillText("Ctrl", 210, 124);
-		ctx.fillText("Alt", 210, 139);
-		ctx.fillText("Left mouse button", 334, 73);
-		ctx.fillText("Set cell", 334, 94);
-		ctx.fillText("Set row", 334, 109);
-		ctx.fillText("Insert row", 334, 124);
-		ctx.fillText("Invert cell", 334, 139);
-		ctx.fillText("Right mouse button", 481, 73);
-		ctx.fillText("Unset cell", 481, 94);
-		ctx.fillText("Unset row", 481, 109);
-		ctx.fillText("Delete row", 481, 124);
-		ctx.fillText("Invert row", 481, 139);
+		ctx.textAlign = "right";
+		ctx.fillText("=", 324, 68);
 		ctx.font = "italic 12px Segoe UI";
 		ctx.globalAlpha = 0.5;
-		ctx.textAlign = "right";
 		ctx.fillText("Press Enter to start.", 624, 36);
-		ctx.fillText("Press S to edit. Tetriminoes afterwards are random.", 624, 177);
 		ctx.globalAlpha = 1;
+		ctx.strokeStyle = "#FFF";
+		ctx.lineWidth = 1;
+		ctx.strokeRect(194.5, 54.5, 133, 20);
+		if (this.mouseOn && this.mouseX > 194 && this.mouseX < 322 && this.mouseY > 54 && this.mouseY < 74) {
+			ctx.globalAlpha = 0.3;
+			ctx.fillRect(195, 55, 132, 19);
+			ctx.globalAlpha = 1;
+		}
+		this.currentPane.render(this.mouseOn ? this.mouseX : null, this.mouseY);
+	}
+
+	getSaveString() {
+		let str = "";
+		for (let y = 0; y < 40; y++) for (let x = 0; x < 10; x++) {
+			let mino = this.board[x][y];
+			str += String.fromCharCode(mino ? 128 | (mino.textureY << 1) | mino.directions : 0);
+		}
+		for (let byte of new Uint8Array(new Float64Array([this.maxTetriminoes]).buffer)) str += String.fromCharCode(byte);
+		str += this.holdCodeMapping[this.hold] + this.sequence;
+		return str;
+	}
+
+	load(str) {
+		let board = [];
+		let col = [];
+		for (let i = 0; i < 40; i++) col.push(undefined);
+		for (let i = 0; i < 10; i++) board.push([...col]);
+
+		let code = 0;
+		for (let i = 0; i < 400; i++) {
+			code = str.charCodeAt(i);
+			if (code & 128) board[i % 10][Math.floor(i / 10)] = new Mino(code & 15, (code & 112) >> 1);
+		}
+		let maxTetriminoes = new Float64Array(new Uint8Array([str.charCodeAt(400), str.charCodeAt(401), str.charCodeAt(402), str.charCodeAt(403), str.charCodeAt(404), str.charCodeAt(405), str.charCodeAt(406), str.charCodeAt(407)]).buffer)[0];
+		let hold = this.holdCodeMapping.indexOf(str[408]);
+		if (hold == -1) return;
+		for (let char of str.substring(409)) if (!tetriminoMapping[char]) return;
+
+		this.board = board;
+		this.maxTetriminoes = maxTetriminoes;
+		this.hold = hold;
+		this.sequence = str.substring(409);
 	}
 
 	close() {
 		mainWindow.removeEventListener("mousedown", this.mouseDownListener);
 		mainWindow.removeEventListener("mousemove", this.mouseMoveListener);
-		mainWindow.removeEventListener("contextmenu", this.contextMenuListener);
 		document.removeEventListener("mouseup", this.mouseUpListener);
+		mainWindow.removeEventListener("mouseenter", this.mouseEnterListener);
+		mainWindow.removeEventListener("mouseleave", this.mouseLeaveListener);
+		mainWindow.removeEventListener("contextmenu", this.contextMenuListener);
 		document.removeEventListener("keydown", this.keyDownListener);
 		document.removeEventListener("keyup", this.keyUpListener);
+		this.fileInputWrapper.style.display = "none";
 	}
 }
 

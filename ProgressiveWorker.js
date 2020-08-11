@@ -1,4 +1,4 @@
-// Version: 7
+// Version: 8
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.delete("Tetreml"));

@@ -282,4 +282,8 @@ class Mino {
 		this.directions = directions;
 		this.textureY = textureY;
 	}
+
+	clone() {
+		return new Mino(this.directions, this.textureY);
+	}
 }
