@@ -749,13 +749,6 @@ class PaneDrawAndMain {
 				for (let i = 0; i < 40; i++) col.push(undefined);
 				for (let i = 0; i < 10; i++) this.owner.board.push([...col]);
 			}),
-			// Tetreml-sandbox file format:
-			// 400 bytes: Board. Each byte contains data for a cell:
-			//         0      000      0000
-			//     Has mino  Color  Directions
-			// 8 bytes: Max tetriminoes stored as 64-bit float.
-			// Hold slot: N for none, IJLOSTZ for a tetrimino, X for disabled.
-			// Tetrimino sequence. Each tetrimino is a character corresponding to its name.
 			new PaneButton(314, 274, "KeyI", () => "Import file", async () => {
 				if (this.owner.fileInput.files.length == 0) return;
 				let reader = new FileReader();
@@ -1218,37 +1211,60 @@ class EditScreen {
 		this.currentPane.render(this.mouseOn ? this.mouseX : null, this.mouseY);
 	}
 
+	/* Tetreml-sandbox file format:
+	   1 byte: Number of lines.
+	   (Number of lines . 10) bytes: Board. Each byte contains data for a cell:
+	           0      000      0000
+	       Has mino  Color  Directions
+	   8 bytes: Max tetriminoes stored as 64-bit float.
+	   Hold slot: N for none, IJLOSTZ for a tetrimino, X for disabled.
+	   Tetrimino sequence. Each tetrimino is a character corresponding to its name.
+	*/
+
 	getSaveString() {
 		let str = "";
-		for (let y = 0; y < 40; y++) for (let x = 0; x < 10; x++) {
-			let mino = this.board[x][y];
-			str += String.fromCharCode(mino ? 128 | (mino.textureY << 1) | mino.directions : 0);
+		let line = "";
+		let minY = 40;
+		for (let y = 39; y > -1; y--) {
+			line = "";
+			for (let x = 0; x < 10; x++) {
+				let mino = this.board[x][y];
+				line += String.fromCharCode(mino ? 128 | (mino.textureY << 1) | mino.directions : 0);
+				if (mino) minY = y;
+			}
+			str = line + str;
 		}
+		str = String.fromCharCode(40 - minY) + str.substring(10 * minY);
 		for (let byte of new Uint8Array(new Float64Array([this.maxTetriminoes]).buffer)) str += String.fromCharCode(byte);
 		str += this.holdCodeMapping[this.hold] + this.sequence;
 		return str;
 	}
 
 	load(str) {
+		let lines = str.charCodeAt(0);
+		let minY = 40 - lines;
+
 		let board = [];
 		let col = [];
 		for (let i = 0; i < 40; i++) col.push(undefined);
 		for (let i = 0; i < 10; i++) board.push([...col]);
 
 		let code = 0;
-		for (let i = 0; i < 400; i++) {
-			code = str.charCodeAt(i);
-			if (code & 128) board[i % 10][Math.floor(i / 10)] = new Mino(code & 15, (code & 112) >> 1);
+		for (let i = 0; i < lines; i++) for (let x = 0; x < 10; x++) {
+			code = str.charCodeAt(1 + i * 10 + x);
+			if (code & 128) board[x][minY + i] = new Mino(code & 15, (code & 112) >> 1);
 		}
-		let maxTetriminoes = new Float64Array(new Uint8Array([str.charCodeAt(400), str.charCodeAt(401), str.charCodeAt(402), str.charCodeAt(403), str.charCodeAt(404), str.charCodeAt(405), str.charCodeAt(406), str.charCodeAt(407)]).buffer)[0];
-		let hold = this.holdCodeMapping.indexOf(str[408]);
+
+		let pos = lines * 10 + 1;
+		let maxTetriminoes = new Float64Array(new Uint8Array([str.charCodeAt(pos), str.charCodeAt(pos + 1), str.charCodeAt(pos + 2), str.charCodeAt(pos + 3), str.charCodeAt(pos + 4), str.charCodeAt(pos + 5), str.charCodeAt(pos + 6), str.charCodeAt(pos + 7)]).buffer)[0];
+		let hold = this.holdCodeMapping.indexOf(str[pos + 8]);
 		if (hold == -1) return;
-		for (let char of str.substring(409)) if (!tetriminoMapping[char]) return;
+		for (let char of str.substring(pos + 9)) if (!tetriminoMapping[char]) return;
 
 		this.board = board;
 		this.maxTetriminoes = maxTetriminoes;
 		this.hold = hold;
-		this.sequence = str.substring(409);
+		this.sequence = str.substring(pos + 9);
 	}
 
 	close() {
