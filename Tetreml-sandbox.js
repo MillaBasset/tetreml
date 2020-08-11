@@ -197,8 +197,20 @@ class PlayScreen {
 				if (buttonStatus.softDrop) {
 					if (!this.softDropLock) {
 						if (this.softDropCounter == -1) {
-							this.softDrop();
-							this.softDropCounter = this.oldSoftDropCounter = 0;
+							if (buttonStatus.quitModifier) {
+								let fell = false;
+								while (this.current.canFall(this.board)) {
+									this.current.y++;
+									fell = true;
+								}
+								if (fell) {
+									sfx.softDrop.play();
+									sfx.land.play();
+								}
+							} else {
+								this.softDrop();
+								this.softDropCounter = this.oldSoftDropCounter = 0;
+							}
 						} else {
 							this.softDropCounter += timePassed;
 							for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
@@ -396,30 +408,32 @@ class PlayScreen {
 		ctx.fillText(keyNames.left, 15, 120, 60);
 		ctx.fillText(keyNames.right, 15, 135, 60);
 		ctx.fillText(keyNames.softDrop, 15, 150, 60);
-		ctx.fillText(keyNames.hardDrop, 15, 165, 60);
-		ctx.fillText(keyNames.rotateCounterClockwise, 15, 180, 60);
-		ctx.fillText(keyNames.rotateClockwise, 15, 195, 60);
-		ctx.fillText(keyNames.hold, 15, 210, 60);
-		ctx.fillText(keyNames.reset, 15, 235, 60);
-		ctx.fillText(keyNames.esc, 15, 265, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.hardDrop, 15, 280, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc, 15, 295, 60);
-		ctx.fillText(keyNames.volumeUp, 15, 310, 60);
-		ctx.fillText(keyNames.volumeDown, 15, 325, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.softDrop, 15, 165, 60);
+		ctx.fillText(keyNames.hardDrop, 15, 180, 60);
+		ctx.fillText(keyNames.rotateCounterClockwise, 15, 195, 60);
+		ctx.fillText(keyNames.rotateClockwise, 15, 210, 60);
+		ctx.fillText(keyNames.hold, 15, 235, 60);
+		ctx.fillText(keyNames.reset, 15, 250, 60);
+		ctx.fillText(keyNames.esc, 15, 280, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.hardDrop, 15, 295, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc, 15, 310, 60);
+		ctx.fillText(keyNames.volumeUp, 15, 325, 60);
+		ctx.fillText(keyNames.volumeDown, 15, 340, 60);
 		
 		ctx.fillText("Move left", 80, 120, 155);
 		ctx.fillText("Move right", 80, 135, 155);
 		ctx.fillText("Soft drop", 80, 150, 155);
-		ctx.fillText("Hard drop", 80, 165, 155);
-		ctx.fillText("Rotate counterclockwise", 80, 180, 155);
-		ctx.fillText("Rotate clockwise", 80, 195, 155);
-		ctx.fillText("Hold", 80, 210, 155);
-		ctx.fillText("Reset current tetrimino", 80, 235, 155);
-		ctx.fillText("Return to edit screen", 80, 265, 155);
-		ctx.fillText("Add intermediate Fumen frame", 80, 280, 155);
-		ctx.fillText("Get Fumen URL", 80, 295, 155);
-		ctx.fillText("Increase volume", 80, 310, 155);
-		ctx.fillText("Decrease volume", 80, 325, 155);
+		ctx.fillText("Firm drop", 80, 165, 155);
+		ctx.fillText("Hard drop", 80, 180, 155);
+		ctx.fillText("Rotate counterclockwise", 80, 195, 155);
+		ctx.fillText("Rotate clockwise", 80, 210, 155);
+		ctx.fillText("Hold", 80, 235, 155);
+		ctx.fillText("Reset current tetrimino", 80, 250, 155);
+		ctx.fillText("Return to edit screen", 80, 280, 155);
+		ctx.fillText("Add intermediate Fumen frame", 80, 295, 155);
+		ctx.fillText("Get Fumen URL", 80, 310, 155);
+		ctx.fillText("Increase volume", 80, 325, 155);
+		ctx.fillText("Decrease volume", 80, 340, 155);
 
 		if (this.volumeDisplayTime > 0) {
 			ctx.fillText(`Volume: ${volume} / 10`, 15, 350);
@@ -806,6 +820,11 @@ class PaneDrawAndMain {
 		ctx.fillText("Delete row", 481, 124);
 		ctx.fillText("Copy color", 481, 139);
 
+		ctx.globalAlpha = 0.15;
+		ctx.fillRect(205, 82 + 15 * this.owner.getModifier(), 392, 16);
+		if (this.owner.button) ctx.fillRect(this.owner.button == 1 ? 330 : 477, 61, 120, 82);
+		ctx.globalAlpha = 1;
+
 		ctx.imageSmoothingEnabled = false;
 		ctx.textAlign = "center";
 		for (let i = 0; i < 8; i++) {
@@ -1085,12 +1104,16 @@ class EditScreen {
 		}
 	}
 
+	getModifier() {
+		return this.shift ? 1 : this.ctrl ? 2 : this.alt ? 3 : 0;
+	}
+
 	processDrawMouseDown(event) {
 		if (this.button || (event.button != 0 && event.button != 2)) return;
 		let cell = this.getCell(event);
 		if (cell == null) return;
 		this.button = event.button ? 2 : 1;
-		this.modifier = this.shift ? 1 : this.ctrl ? 2 : this.alt ? 3 : 0;
+		this.modifier = this.getModifier();
 		this.performed = {};
 		this.oldCell = null;
 		this.processAction(cell);
@@ -1125,6 +1148,7 @@ class EditScreen {
 
 	onMouseLeave(event) {
 		this.mouseOn = false;
+		this.onMouseUp(event);
 	}
 
 	updateModifierKey(code, down) {
