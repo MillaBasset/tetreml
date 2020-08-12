@@ -93,7 +93,7 @@ document.addEventListener("keyup", (key) => {
 const fumenStateMapping = ["spawn", "right", "reverse", "left"];
 
 class PlayScreen {
-	constructor(parent, board, sequence, hold, maxTetriminoes) {
+	constructor(parent, board, sequence, hold, maxTetriminoes, fallPeriod, lockDelay) {
 		this.parent = parent;
 		this.fumenPages = [];
 		this.currentFumenPage = {};
@@ -115,6 +115,8 @@ class PlayScreen {
 		}
 		this.hold = hold;
 		this.maxTetriminoes = this.tetriminoesLeft = maxTetriminoes;
+		this.fallPeriod = fallPeriod;
+		this.lockDelay = lockDelay;
 		let fieldString = "";
 		let fumenColorMapping = ["X", "I", "J", "L", "O", "S", "T", "Z"]
 		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? fumenColorMapping[this.board[x][y].textureY / 8] : "_";
@@ -127,6 +129,7 @@ class PlayScreen {
 		this.softDropCounter = -1;
 		this.oldSoftDropCounter = -1;
 		this.softDropLock = false;
+		this.moveCounter = 0;
 		this.buttonMoveLeft = false;
 		this.moveLeftCounter = -1;
 		this.oldMoveLeftCounter = -1;
@@ -134,10 +137,13 @@ class PlayScreen {
 		this.moveRightCounter = -1;
 		this.oldMoveRightCounter = -1;
 		this.moveLock = 0;
-		this.autoRepeatDelay = 150;
-		this.autoRepeatPeriod = 40;
-		this.softDropPeriod = 25;
+		this.autoRepeatDelay = localStorage.tetrisAutoRepeatDelay == null ? 150 : Number.parseInt(localStorage.tetrisAutoRepeatDelay);
+		this.autoRepeatPeriod = localStorage.tetrisAutoRepeatPeriod == null ? 40 : Number.parseInt(localStorage.tetrisAutoRepeatPeriod);
+		this.softDropPeriod = localStorage.tetrisSoftDropPeriod == null ? 25 : Number.parseInt(localStorage.tetrisSoftDropPeriod);
 		this.clearTime = 0;
+		this.fallTime = 0;
+		this.lockTime = 0;
+		this.maxY = 0;
 		this.oldTime = null;
 		this.state = GameState.playing;
 		this.buttonSoftDrop = false;
@@ -194,6 +200,28 @@ class PlayScreen {
 			}
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.current != null) {
+				if (this.fallPeriod != -1) {
+					if (this.current.canFall(this.board)) {
+						let fell = false;
+						while (this.current.canFall(this.board) && this.fallTime >= this.fallPeriod) {
+							if (++this.current.y > this.maxY) {
+								this.lockTime = 0;
+								this.moveCounter = 0;
+								this.maxY = this.current.y;
+								fell = true;
+							}
+							this.fallTime -= this.fallPeriod;
+						}
+						if (!this.current.canFall(this.board)) sfx.land.play();
+						if (fell) this.lockTime = this.fallTime;
+					} else {
+						if (this.lockDelay != 0 && (this.lockTime += timePassed) >= this.lockDelay) {
+							this.lock(false);
+							sfx.lock.play();
+						}
+					}
+					this.fallTime = this.fallPeriod == 0 ? 0 : this.fallTime % this.fallPeriod;
+				}
 				if (buttonStatus.softDrop) {
 					if (!this.softDropLock) {
 						if (this.softDropCounter == -1) {
@@ -212,9 +240,15 @@ class PlayScreen {
 								this.softDropCounter = this.oldSoftDropCounter = 0;
 							}
 						} else {
-							this.softDropCounter += timePassed;
-							for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
-							this.oldSoftDropCounter = Math.max(0, Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+							if (this.fallPeriod != -1) {
+								this.softDropCounter += timePassed;
+								for (let i = 0; i < Math.floor(this.softDropCounter / this.softDropPeriod); i++) if (this.softDrop()) break;
+								this.softDropCounter %= this.softDropPeriod;
+							} else {
+								this.softDropCounter += timePassed;
+								for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
+								this.oldSoftDropCounter = Math.max(0, Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+							}
 						}
 					}
 				} else {
@@ -289,6 +323,8 @@ class PlayScreen {
 						if (this.oldHold == null) this.nextTetrimino(); else {
 							this.current = this.oldHold;
 							this.current.state = 0;
+							this.fallTime = 0;
+							this.lockTime = 0;
 							this.moveCounter = 0;
 							this.checkGameOver();
 						}
@@ -405,35 +441,35 @@ class PlayScreen {
 		
 		ctx.font = "12px Segoe UI";
 		ctx.textAlign = "left";
-		ctx.fillText(keyNames.left, 15, 120, 60);
-		ctx.fillText(keyNames.right, 15, 135, 60);
-		ctx.fillText(keyNames.softDrop, 15, 150, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.softDrop, 15, 165, 60);
-		ctx.fillText(keyNames.hardDrop, 15, 180, 60);
-		ctx.fillText(keyNames.rotateCounterClockwise, 15, 195, 60);
-		ctx.fillText(keyNames.rotateClockwise, 15, 210, 60);
-		ctx.fillText(keyNames.hold, 15, 235, 60);
-		ctx.fillText(keyNames.reset, 15, 250, 60);
-		ctx.fillText(keyNames.esc, 15, 280, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.hardDrop, 15, 295, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc, 15, 310, 60);
-		ctx.fillText(keyNames.volumeUp, 15, 325, 60);
-		ctx.fillText(keyNames.volumeDown, 15, 340, 60);
+		ctx.fillText(keyNames.left, 15, 110, 60);
+		ctx.fillText(keyNames.right, 15, 125, 60);
+		ctx.fillText(keyNames.softDrop, 15, 140, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.softDrop, 15, 155, 60);
+		ctx.fillText(keyNames.hardDrop, 15, 170, 60);
+		ctx.fillText(keyNames.rotateCounterClockwise, 15, 185, 60);
+		ctx.fillText(keyNames.rotateClockwise, 15, 200, 60);
+		ctx.fillText(keyNames.hold, 15, 225, 60);
+		ctx.fillText(keyNames.reset, 15, 240, 60);
+		ctx.fillText(keyNames.esc, 15, 270, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.hardDrop, 15, 285, 60);
+		ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc, 15, 300, 60);
+		ctx.fillText(keyNames.volumeUp, 15, 315, 60);
+		ctx.fillText(keyNames.volumeDown, 15, 330, 60);
 		
-		ctx.fillText("Move left", 80, 120, 155);
-		ctx.fillText("Move right", 80, 135, 155);
-		ctx.fillText("Soft drop", 80, 150, 155);
-		ctx.fillText("Firm drop", 80, 165, 155);
-		ctx.fillText("Hard drop", 80, 180, 155);
-		ctx.fillText("Rotate counterclockwise", 80, 195, 155);
-		ctx.fillText("Rotate clockwise", 80, 210, 155);
-		ctx.fillText("Hold", 80, 235, 155);
-		ctx.fillText("Reset current tetrimino", 80, 250, 155);
-		ctx.fillText("Return to edit screen", 80, 280, 155);
-		ctx.fillText("Add intermediate Fumen frame", 80, 295, 155);
-		ctx.fillText("Get Fumen URL", 80, 310, 155);
-		ctx.fillText("Increase volume", 80, 325, 155);
-		ctx.fillText("Decrease volume", 80, 340, 155);
+		ctx.fillText("Move left", 80, 110, 155);
+		ctx.fillText("Move right", 80, 125, 155);
+		ctx.fillText("Soft drop", 80, 140, 155);
+		ctx.fillText("Firm drop", 80, 155, 155);
+		ctx.fillText("Hard drop", 80, 170, 155);
+		ctx.fillText("Rotate counterclockwise", 80, 185, 155);
+		ctx.fillText("Rotate clockwise", 80, 200, 155);
+		ctx.fillText("Hold", 80, 225, 155);
+		ctx.fillText("Reset current tetrimino", 80, 240, 155);
+		ctx.fillText("Return to edit screen", 80, 270, 155);
+		ctx.fillText("Add intermediate Fumen frame", 80, 285, 155);
+		ctx.fillText("Get Fumen URL", 80, 300, 155);
+		ctx.fillText("Increase volume", 80, 315, 155);
+		ctx.fillText("Decrease volume", 80, 330, 155);
 
 		if (this.volumeDisplayTime > 0) {
 			ctx.fillText(`Volume: ${volume} / 10`, 15, 350);
@@ -693,6 +729,8 @@ class PlayScreen {
 		this.current = this.queue.splice(0, 1)[0];
 		if (this.queue.length < 6) this.pushToQueue();
 		this.moveCounter = 0;
+		this.fallTime = 0;
+		this.lockTime = 0;
 		this.holdSwitched = false;
 		this.checkGameOver();
 	}
@@ -753,17 +791,25 @@ class PaneDrawAndMain {
 	constructor(owner) {
 		this.owner = owner;
 		this.buttonList = [
-			new PaneButton(314, 220, "KeyM", () => `Max tetriminoes: ${this.owner.maxTetriminoes == 0 ? "\u221e" : this.owner.maxTetriminoes}`, () => {
+			new PaneButton(209, 233, "KeyM", () => `Max tetriminoes: ${this.owner.maxTetriminoes == 0 ? "\u221e" : this.owner.maxTetriminoes}`, () => {
 				let value = Number.parseInt(prompt("Enter maximum number of tetriminoes (0 for unlimited)", this.owner.maxTetriminoes));
-				if (!isNaN(value) && value > -1) this.owner.maxTetriminoes = value;
+				if (!isNaN(value) && value > -1) this.owner.maxTetriminoes = Math.min(1000000, value);
 			}),
-			new PaneButton(314, 247, "Backspace", () => "Clear board", () => {
+			new PaneButton(209, 260, "KeyS", () => `Fall period: ${this.owner.fallPeriod == -1 ? "\u221e" : this.owner.fallPeriod + " ms"}`, () => {
+				let value = Number.parseInt(prompt("Enter fall period (0 ÷ 1000 ms or -1 for no falling)", this.owner.fallPeriod));
+				if (!isNaN(value) && value > -2) this.owner.fallPeriod = Math.min(1000, value);
+			}),
+			new PaneButton(209, 287, "KeyD", () => `Lock delay: ${this.owner.lockDelay == 0 ? "\u221e" : this.owner.lockDelay + " ms"}`, () => {
+				let value = Number.parseInt(prompt("Enter lock delay (100 ÷ 1000 ms or 0 for no auto-locking)", this.owner.lockDelay));
+				if (!isNaN(value) && value > -1) this.owner.lockDelay = value == 0 ? 0 : Math.max(100, Math.min(1000, value));
+			}),
+			new PaneButton(209, 314, "Backspace", () => "Clear board", () => {
 				this.owner.board = [];
 				let col = [];
 				for (let i = 0; i < 40; i++) col.push(undefined);
 				for (let i = 0; i < 10; i++) this.owner.board.push([...col]);
 			}),
-			new PaneButton(314, 274, "KeyI", () => "Import file", async () => {
+			new PaneButton(419, 260, "KeyI", () => "Import file", async () => {
 				if (this.owner.fileInput.files.length == 0) return;
 				let reader = new FileReader();
 				reader.addEventListener("load", (event) => {
@@ -771,11 +817,11 @@ class PaneDrawAndMain {
 				});
 				reader.readAsText(this.owner.fileInput.files[0]);
 			}),
-			new PaneButton(314, 301, "KeyO", () => "Export file", () => {
+			new PaneButton(419, 287, "KeyO", () => "Export file", () => {
 				let date = new Date();
 				createAndDownloadFile(`${date.getHours()}h${date.getMinutes() < 10 ? "0" : ""}${date.getMinutes()}.${date.getSeconds() < 10 ? "0" : ""}${date.getSeconds()} ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.tetreml_sandbox`, this.owner.getSaveString());
 			}),
-			new PaneButton(314, 328, "KeyL", () => "Get link", () => {
+			new PaneButton(419, 314, "KeyL", () => "Get link", () => {
 				prompt("Copy this link to share the current sandbox preset", window.location.origin + window.location.pathname + "?code=" + encodeURIComponent(btoa(this.owner.getSaveString())));
 			})
 		];
@@ -965,6 +1011,8 @@ class EditScreen {
 		this.hold = 0;
 		this.maxTetriminoes = 0;
 		this.color = 0;
+		this.fallPeriod = -1;
+		this.lockDelay = 0;
 
 		this.colorKeyMapping = { Backquote: 0, Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8 };
 		this.colorKeyNameMapping = ["`", "1", "2", "3", "4", "5", "6", "7", "8"];
@@ -1177,7 +1225,7 @@ class EditScreen {
 				this.togglePane();
 				break;
 			case "Enter":
-				openGui(new PlayScreen(this, this.board, this.sequence, this.holdTetriminoMapping[this.hold], this.maxTetriminoes));
+				openGui(new PlayScreen(this, this.board, this.sequence, this.holdTetriminoMapping[this.hold], this.maxTetriminoes, this.fallPeriod, this.lockDelay));
 				event.preventDefault();
 				break;
 		}
@@ -1235,6 +1283,16 @@ class EditScreen {
 		this.currentPane.render(this.mouseOn ? this.mouseX : null, this.mouseY);
 	}
 
+	floatToString(f) {
+		let s = "";
+		for (let byte of new Uint8Array(new Float64Array([f]).buffer)) s += String.fromCharCode(byte);
+		return s;
+	}
+
+	stringToFloat(s) {
+		return new Float64Array(new Uint8Array([s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3), s.charCodeAt(4), s.charCodeAt(5), s.charCodeAt(6), s.charCodeAt(7)]).buffer)[0];
+	}
+
 	/* Tetreml-sandbox file format:
 	   1 byte: Number of lines.
 	   (Number of lines . 10) bytes: Board. Each byte contains data for a cell:
@@ -1242,6 +1300,8 @@ class EditScreen {
 	       Has mino  Color  Directions
 	   8 bytes: Max tetriminoes stored as 64-bit float.
 	   Hold slot: N for none, IJLOSTZ for a tetrimino, X for disabled.
+	   8 bytes: Fall period as 64-bit float.
+	   8 bytes: Lock delay as 64-bit float.
 	   Tetrimino sequence. Each tetrimino is a character corresponding to its name.
 	*/
 
@@ -1259,8 +1319,11 @@ class EditScreen {
 			str = line + str;
 		}
 		str = String.fromCharCode(40 - minY) + str.substring(10 * minY);
-		for (let byte of new Uint8Array(new Float64Array([this.maxTetriminoes]).buffer)) str += String.fromCharCode(byte);
-		str += this.holdCodeMapping[this.hold] + this.sequence;
+		str += this.floatToString(this.maxTetriminoes);
+		str += this.holdCodeMapping[this.hold];
+		str += this.floatToString(this.fallPeriod);
+		str += this.floatToString(this.lockDelay);
+		str += this.sequence;
 		return str;
 	}
 
@@ -1280,15 +1343,19 @@ class EditScreen {
 		}
 
 		let pos = lines * 10 + 1;
-		let maxTetriminoes = new Float64Array(new Uint8Array([str.charCodeAt(pos), str.charCodeAt(pos + 1), str.charCodeAt(pos + 2), str.charCodeAt(pos + 3), str.charCodeAt(pos + 4), str.charCodeAt(pos + 5), str.charCodeAt(pos + 6), str.charCodeAt(pos + 7)]).buffer)[0];
+		let maxTetriminoes = this.stringToFloat(str.substring(pos, pos + 8));
 		let hold = this.holdCodeMapping.indexOf(str[pos + 8]);
 		if (hold == -1) return;
-		for (let char of str.substring(pos + 9)) if (!tetriminoMapping[char]) return;
+		let fallPeriod = this.stringToFloat(str.substring(pos + 9, pos + 17));
+		let lockDelay = this.stringToFloat(str.substring(pos + 17, pos + 25));
+		for (let char of str.substring(pos + 25)) if (!tetriminoMapping[char]) return;
 
 		this.board = board;
 		this.maxTetriminoes = maxTetriminoes;
 		this.hold = hold;
-		this.sequence = str.substring(pos + 9);
+		this.fallPeriod = fallPeriod;
+		this.lockDelay = lockDelay;
+		this.sequence = str.substring(pos + 25);
 	}
 
 	close() {

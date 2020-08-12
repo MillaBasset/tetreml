@@ -733,7 +733,7 @@ class Playfield {
 						this.sfx.lock.play();
 					}
 				}
-				this.fallTime %= this.parent.getFallInterval();
+				this.fallTime = this.parent.getFallInterval() == 0 ? 0 : this.fallTime % this.parent.getFallInterval();
 				if (this.buttonStatus.softDrop) {
 					if (this.softDropCounter == -1) {
 						this.softDrop();
