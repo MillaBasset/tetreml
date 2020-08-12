@@ -113,7 +113,7 @@ class PlayScreen {
 			this.minos[y]++;
 			this.stackMinY = y;
 		}
-		this.hold = hold;
+		this.hold = [null, new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoT(), new TetriminoZ(), -1][hold];
 		this.maxTetriminoes = this.tetriminoesLeft = maxTetriminoes;
 		this.fallPeriod = fallPeriod;
 		this.lockDelay = lockDelay;
@@ -903,6 +903,7 @@ class PaneTetriminoes {
 		this.holdHover = [[354, 67, 42, 18], [398, 67, 34, 18], [434, 67, 26, 18], [462, 67, 26, 18], [490, 67, 18, 18], [510, 67, 26, 18], [538, 67, 26, 18], [566, 67, 26, 18], [594, 67, 18, 18]];
 		this.holdBounds = [[353, 66, 396, 85], [397, 66, 432, 85], [433, 66, 460, 85], [461, 66, 488, 85], [489, 66, 508, 85], [509, 66, 536, 85], [537, 66, 564, 85], [565, 66, 592, 85], [593, 66, 612, 85]];
 		this.holdDrawX = [0, 407, 443, 471, 491, 519, 547, 575];
+		this.holdTetriminoMapping = [null, new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoT(), new TetriminoZ(), -1];
 	}
 
 	setSequence() {
@@ -946,7 +947,7 @@ class PaneTetriminoes {
 		ctx.fillText("Clear", 304, 124);
 		ctx.textAlign = "center";
 		for (let i = 0; i < 9; i++) ctx.fillText(this.owner.colorKeyNameMapping[i], this.holdHover[i][0] + this.holdHover[i][2] / 2, 97);
-		for (let i = 1; i < 8; i++) this.owner.renderTetrimino(this.owner.holdTetriminoMapping[i], this.holdDrawX[i], 76);
+		for (let i = 1; i < 8; i++) this.owner.renderTetrimino(this.holdTetriminoMapping[i], this.holdDrawX[i], 76);
 		ctx.drawImage(sprite, 192, 0, 16, 16, 595, 68, 16, 16);
 		ctx.strokeStyle = "#FFF";
 		ctx.lineWidth = 1;
@@ -1016,7 +1017,6 @@ class EditScreen {
 
 		this.colorKeyMapping = { Backquote: 0, Digit1: 1, Digit2: 2, Digit3: 3, Digit4: 4, Digit5: 5, Digit6: 6, Digit7: 7, Digit8: 8 };
 		this.colorKeyNameMapping = ["`", "1", "2", "3", "4", "5", "6", "7", "8"];
-		this.holdTetriminoMapping = [null, new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoT(), new TetriminoZ(), -1];
 		this.holdCodeMapping = "NIJLOSTZX";
 
 		this.drawAndMainPane = new PaneDrawAndMain(this);
@@ -1225,7 +1225,7 @@ class EditScreen {
 				this.togglePane();
 				break;
 			case "Enter":
-				openGui(new PlayScreen(this, this.board, this.sequence, this.holdTetriminoMapping[this.hold], this.maxTetriminoes, this.fallPeriod, this.lockDelay));
+				openGui(new PlayScreen(this, this.board, this.sequence, this.hold, this.maxTetriminoes, this.fallPeriod, this.lockDelay));
 				event.preventDefault();
 				break;
 		}
