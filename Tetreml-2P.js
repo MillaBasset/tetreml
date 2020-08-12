@@ -808,7 +808,7 @@ class Playfield {
 						this.moveLock = 1;
 					} else {
 						this.moveLeftCounter += timePassed;
-						for (let i = this.oldMoveLeftCounter; i <= Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(-1)) break;
+						for (let i = this.oldMoveLeftCounter; i < Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(-1)) break;
 						this.oldMoveLeftCounter = Math.max(0, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
 					}
 					this.buttonMoveLeft = true;
@@ -827,7 +827,7 @@ class Playfield {
 						this.moveLock = 2;
 					} else {
 						this.moveRightCounter += timePassed;
-						for (let i = this.oldMoveRightCounter; i <= Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(1)) break;
+						for (let i = this.oldMoveRightCounter; i < Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(1)) break;
 						this.oldMoveRightCounter = Math.max(0, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
 					}
 					this.buttonMoveRight = true;

@@ -188,9 +188,7 @@ class ReplayScreen {
 		this.playScreen.loadModeParameters(replay.modeParameters);
 		this.playScreen.handleReplayEpoch = (playTime) => {
 			if (this.playScreen.isSeeking) return;
-			while (this.actionsPointer < this.actions.length && playTime >= this.actions[this.actionsPointer][0]) {
-				this.actionsMapping[this.actions[this.actionsPointer++][1]]();
-			}
+			if (!this.processing) this.processEvents(playTime);
 		}
 		this.beginning = false;
 		this.playPause = false;
@@ -198,6 +196,7 @@ class ReplayScreen {
 		this.plus5s = false;
 		this.volumeDown = false;
 		this.volumeUp = false;
+		this.processing = false;
 	}
 
 	init() {
@@ -329,12 +328,9 @@ class ReplayScreen {
 		mainWindow.removeEventListener('click', this.clickHandler);
 	}
 
-	seek(epoch) {
-		isBusyRendering = true;
-		this.playScreen.isSeeking = true;
-		this.actionsPointer = this.playScreen.loadState(epoch);
-		let oldState = this.playScreen.state;
-		this.playScreen.state = GameState.playing;
+	processEvents(epoch) {
+		this.processing = true;
+		epoch = Math.min(this.length, epoch);
 		let oldEpoch = this.playScreen.playTime;
 		while (this.actionsPointer < this.actions.length && epoch >= this.actions[this.actionsPointer][0]) {
 			this.playScreen.processGameLogic(this.actions[this.actionsPointer][0] - oldEpoch);
@@ -342,6 +338,16 @@ class ReplayScreen {
 			this.actionsMapping[this.actions[this.actionsPointer++][1]]();
 		}
 		this.playScreen.processGameLogic(epoch - oldEpoch);
+		this.processing = false;
+	}
+
+	seek(epoch) {
+		isBusyRendering = true;
+		this.playScreen.isSeeking = true;
+		this.actionsPointer = this.playScreen.loadState(epoch);
+		let oldState = this.playScreen.state;
+		this.playScreen.state = GameState.playing;
+		this.processEvents(epoch);
 		this.playScreen.isSeeking = false;
 		this.playScreen.finalizeSeek();
 		if (this.playScreen.state != GameState.over) {

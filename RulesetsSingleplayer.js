@@ -127,10 +127,10 @@ class PlayScreenBase {
 	}
 
 	processGameLogic(timePassed) {
-		let latestTime = this.playTime + timePassed;
+		let latestTime = this.latestTime = this.playTime + timePassed;
 		if (this.state == GameState.playing) {
 			this.clearTime -= timePassed;
-			if (!this.isReplay && this.clearTime < 1 && this.current == null) this.afterClear();
+			if (!this.isReplay && this.clearTime < 1 && this.current == null) this.afterClear(latestTime + this.clearTime);
 			let fallInterval = this.getFallInterval();
 			let iStart = fallInterval == 0 ? this.playTime : this.playTime + fallInterval - (this.fallTime %= fallInterval);
 			this.fallTime -= Math.min(0, this.clearTime);
@@ -193,9 +193,10 @@ class PlayScreenBase {
 						this.moveLeftCounter = this.oldMoveLeftCounter = 0;
 						this.moveLock = 1;
 					} else {
-						let time = this.autoRepeatPeriod == 0 ? latestTime : this.playTime + this.autoRepeatPeriod - (this.moveLeftCounter - this.autoRepeatDelay) % this.autoRepeatPeriod;
 						this.moveLeftCounter += timePassed;
-						for (let i = 0; i <= Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveLeftCounter && i < 9; i++) {
+						let times = Math.min(9, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveLeftCounter);
+						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveLeftCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - times * this.autoRepeatPeriod;
+						for (let i = 0; i < times; i++) {
 							moveEvents.push([7, "moveLeft", time]);
 							time += this.autoRepeatPeriod;
 						}
@@ -218,9 +219,10 @@ class PlayScreenBase {
 						this.moveRightCounter = this.oldMoveRightCounter = 0;
 						this.moveLock = 2;
 					} else {
-						let time = this.autoRepeatPeriod == 0 ? latestTime : this.playTime + this.autoRepeatPeriod - (this.moveRightCounter - this.autoRepeatDelay) % this.autoRepeatPeriod;
 						this.moveRightCounter += timePassed;
-						for (let i = 0; i <= Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveRightCounter && i < 9; i++) {
+						let times = Math.min(9, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveRightCounter);
+						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveRightCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - times * this.autoRepeatPeriod;
+						for (let i = 0; i < times; i++) {
 							moveEvents.push([9, "moveRight", time]);
 							time += this.autoRepeatPeriod;
 						}
@@ -237,8 +239,8 @@ class PlayScreenBase {
 			}
 			this.actionQueue.push(...moveEvents);
 			
-			let old = 0;
 			for (let action of this.actionQueue.sort(this.actionCompareFunc)) this.actionMapping[action[0]](action[2]);
+
 			this.actionQueue = [];
 			this.fallTime = fallInterval == 0 ? 0 : this.fallTime % fallInterval;
 
@@ -506,7 +508,7 @@ class PlayScreenBase {
 		}
 	}
 
-	afterClear() {
+	afterClear(time) {
 		if (!this.isSeeking && this.clearedLines.length != 0) sfx.afterClear.play();
 		for (let line of this.clearedLines) {
 			for (let i = 0; i < 10; i++) {
@@ -518,7 +520,7 @@ class PlayScreenBase {
 		}
 		this.nextTetrimino();
 		this.isClearing = false;
-		this.recordAction("afterClear");
+		this.recordAction("afterClear", time);
 	}
 
 	fall(timestamp) {
@@ -781,7 +783,7 @@ class PlayScreenBase {
 	}
 
 	gameOver() {
-		if (this.doSaveReplay) this.replay.length = this.playTime;
+		if (this.doSaveReplay) this.replay.length = this.latestTime;
 		this.state = GameState.over;
 	}
 
@@ -1239,16 +1241,16 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		}
 	}
 
-	softDrop() {
-		let res = super.softDrop();
+	softDrop(timestamp) {
+		let res = super.softDrop(timestamp);
 		if (!res) this.score++;
 		return res;
 	}
 
-	hardDrop() {
+	hardDrop(timestamp) {
 		if (this.current == null) return;
 		this.lockScoreStartLine = this.getBaseline();
-		let res = super.hardDrop();
+		let res = super.hardDrop(timestamp);
 		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;
 		this.lockScore = 2 * res;
 		this.score += this.lockScore;
@@ -2173,7 +2175,10 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	}
 
 	processGameLogic(timePassed) {
-		if (this.state == GameState.playing && !this.isClearing) this.actionTime += timePassed;
+		if (this.state == GameState.playing)
+			if (this.isReplay) {
+				if (!this.isClearing) this.actionTime += timePassed;
+			} else this.actionTime -= Math.min(0, this.clearTime - timePassed);
 		super.processGameLogic(timePassed);
 	}
 
@@ -2315,9 +2320,10 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 	}
 
 	processGameLogic(timePassed) {
-		super.processGameLogic(timePassed);
-		if (this.state == GameState.playing && !this.isClearing) {
-			this.timeLeft -= timePassed;
+		if (this.state == GameState.playing) {
+			if (this.isReplay) {
+				if (!this.isClearing) this.timeLeft -= timePassed;
+			} else this.timeLeft += Math.min(0, this.clearTime - timePassed);
 			if (this.timeLeft < 1) {
 				this.timeLeft = 0;
 				this.gameOverMessage = "2' has passed.";
@@ -2330,6 +2336,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 				if (!this.isSeeking) sfx.complete.play();
 			}
 		}
+		super.processGameLogic(timePassed);
 	}
 
 	renderBehind(timePassed) {
