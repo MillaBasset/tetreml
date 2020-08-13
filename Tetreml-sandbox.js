@@ -7,6 +7,10 @@ playScreenImage.src = "Textures/Play screen singleplayer.png";
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
 
+var imageRenderer = document.getElementById('imageRenderer');
+var imageRendererContext = imageRenderer.getContext('2d');
+imageRendererContext.imageSmoothingEnabled = false;
+
 const sfx = {
 	single: new SFX("SFX/Single.wav", gainNode),
 	double: new SFX("SFX/Double.wav", gainNode),
@@ -810,6 +814,14 @@ class PaneDrawAndMain {
 				let col = [];
 				for (let i = 0; i < 40; i++) col.push(undefined);
 				for (let i = 0; i < 10; i++) this.owner.board.push([...col]);
+			}),
+			new PaneButton(419, 233, "KeyP", () => "Render image", () => {
+				imageRendererContext.clearRect(0, 0, 160, 352);
+				for (let y = 18; y < 40; y++) for (let x = 0; x < 10; x++) {
+					let mino = this.owner.board[x][y];
+					if (mino) imageRendererContext.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, x * 16, (y - 18) * 16, 16, 16);
+				}
+				window.open().document.write(`<iframe src="${imageRenderer.toDataURL()}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
 			}),
 			new PaneButton(419, 260, "KeyI", () => "Import file", async () => {
 				if (this.owner.fileInput.files.length == 0) return;
