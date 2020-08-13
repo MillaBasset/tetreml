@@ -725,12 +725,15 @@ class Playfield {
 							this.lockTime = 0;
 							this.moveCounter = 0;
 							this.maxY = this.current.y;
-							fell = true;
 						}
+						fell = true;
 						this.fallTime -= this.parent.getFallInterval();
 					}
 					if (!this.current.canFall(this.board)) this.sfx.land.play();
-					if (fell) this.lockTime = this.fallTime;
+					if (fell) {
+						this.current.onMove();
+						this.lockTime = this.fallTime;
+					}
 				} else {
 					if ((this.lockTime += timePassed) >= this.parent.getLockDelay()) {
 						this.lock(false);

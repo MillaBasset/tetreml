@@ -212,12 +212,15 @@ class PlayScreen {
 								this.lockTime = 0;
 								this.moveCounter = 0;
 								this.maxY = this.current.y;
-								fell = true;
 							}
+							fell = true;
 							this.fallTime -= this.fallPeriod;
 						}
 						if (!this.current.canFall(this.board)) sfx.land.play();
-						if (fell) this.lockTime = this.fallTime;
+						if (fell) {
+							this.current.onMove();
+							this.lockTime = this.fallTime;
+						}
 					} else {
 						if (this.lockDelay != 0 && (this.lockTime += timePassed) >= this.lockDelay) {
 							this.lock(false);

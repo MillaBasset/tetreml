@@ -544,6 +544,7 @@ class PlayScreenBase {
 
 	fall(timestamp) {
 		if (this.current == null || !this.current.canFall(this.board)) return;
+		this.current.onMove();
 		if (++this.current.y > this.maxY) {
 			this.lockTime = 0;
 			this.moveCounter = 0;
