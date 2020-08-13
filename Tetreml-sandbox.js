@@ -117,6 +117,7 @@ class PlayScreen {
 			this.minos[y]++;
 			this.stackMinY = y;
 		}
+		for (let x = 0; x < 10; x++) if (this.board[x][20]) this.board[x][20].directions &= 0b1011;
 		this.hold = [null, new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoT(), new TetriminoZ(), -1][hold];
 		this.maxTetriminoes = this.tetriminoesLeft = maxTetriminoes;
 		this.fallPeriod = fallPeriod;
