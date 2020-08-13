@@ -246,7 +246,6 @@ class PlayScreenBase {
 
 			this.playTime = latestTime;
 			if (this.doSaveReplay && Math.floor(this.playTime / 120000) >= this.replay.states.length) this.saveState();
-			this.handleReplayEpoch(this.playTime);
 		} else if (this.state == GameState.warmup) {
 			this.warmupSecond -= timePassed;
 			if (this.warmupSecond < 1) {
@@ -320,7 +319,11 @@ class PlayScreenBase {
 			timePassed = currentTime - this.oldTime;
 			this.oldTime = currentTime;
 		}
-		this.processGameLogic(Math.floor(timePassed * (this.isReplay ? this.replaySpeed : 1)));
+
+		if (this.isReplay) {
+			if (this.state == GameState.playing) this.handleReplayEpoch(this.playTime + Math.floor(timePassed * this.replaySpeed));
+		}
+		else this.processGameLogic(timePassed);
 		
 		// Actually render things on the screen.
 
@@ -2325,6 +2328,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 				if (!this.isClearing) this.timeLeft -= timePassed;
 			} else this.timeLeft += Math.min(0, this.clearTime - timePassed);
 			if (this.timeLeft < 1) {
+				this.playTime = this.latestTime = this.playTime + timePassed + this.timeLeft;
 				this.timeLeft = 0;
 				this.gameOverMessage = "2' has passed.";
 				super.gameOver();

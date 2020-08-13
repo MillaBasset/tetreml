@@ -188,7 +188,7 @@ class ReplayScreen {
 		this.playScreen.loadModeParameters(replay.modeParameters);
 		this.playScreen.handleReplayEpoch = (playTime) => {
 			if (this.playScreen.isSeeking) return;
-			if (!this.processing) this.processEvents(playTime);
+			this.processEvents(playTime);
 		}
 		this.beginning = false;
 		this.playPause = false;
@@ -279,15 +279,21 @@ class ReplayScreen {
 		ctx.textAlign = "left";
 		switch (this.playScreen.state) {
 			case GameState.playing:
-				ctx.fillText("\u25B6 " + formatDuration(Math.floor(this.playScreen.playTime / 1000)), 20, 340);
+				ctx.beginPath();
+				ctx.moveTo(20, 340);
+				ctx.lineTo(29, 335.5);
+				ctx.lineTo(20, 331);
+				ctx.fill();
 				break;
 			case GameState.paused:
-				ctx.fillText("\u2016 " + formatDurationWithMilliseconds(this.playScreen.playTime / 1000), 20, 340);
+				ctx.fillRect(20, 331, 3.5, 9);
+				ctx.fillRect(26, 331, 3.5, 9);
 				break;
 			case GameState.over:
-				ctx.fillText("\u25A0 " + formatDurationWithMilliseconds(this.playScreen.playTime / 1000), 20, 340);
+				ctx.fillRect(20, 331, 9, 9);
 				break;
 		}
+		ctx.fillText(this.playScreen.state == GameState.playing ? formatDuration(Math.floor(this.playScreen.playTime / 1000)) : formatDurationWithMilliseconds(this.playScreen.playTime / 1000), 33, 340);
 
 		ctx.fillText("REPLAY CONTROLS", 468, 202);
 		
@@ -318,7 +324,7 @@ class ReplayScreen {
 			ctx.fillText("\u2190", 473, 252);
 			ctx.fillText("\u2192", 473, 267);
 		}
-		ctx.fillText((Math.round((this.playScreen.replaySpeed + Number.EPSILON) * 100) / 100 + "").replace(".", ",") + ".", 114, 340);
+		ctx.fillText((Math.round(this.playScreen.replaySpeed * 100) / 100 + "").replace(".", ",") + ".", 114, 340);
 
 		ctx.textAlign = "right";
 		ctx.fillText(formatDuration(Math.floor(this.length / 1000)), 208, 340);
@@ -329,7 +335,6 @@ class ReplayScreen {
 	}
 
 	processEvents(epoch) {
-		this.processing = true;
 		epoch = Math.min(this.length, epoch);
 		let oldEpoch = this.playScreen.playTime;
 		while (this.actionsPointer < this.actions.length && epoch >= this.actions[this.actionsPointer][0]) {
@@ -337,8 +342,7 @@ class ReplayScreen {
 			oldEpoch = this.actions[this.actionsPointer][0];
 			this.actionsMapping[this.actions[this.actionsPointer++][1]]();
 		}
-		this.playScreen.processGameLogic(epoch - oldEpoch);
-		this.processing = false;
+		this.playScreen.processGameLogic(Math.max(0, epoch - oldEpoch));
 	}
 
 	seek(epoch) {
