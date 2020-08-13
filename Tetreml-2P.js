@@ -84,14 +84,18 @@ const rewardNames = [
 	"Double",
 	"Triple",
 	"Tetris",
+	"T-spin mini",
+	"T-spin mini single",
+	"T-spin mini double",
 	"T-spin",
 	"T-spin single",
 	"T-spin double",
 	"T-spin triple"
 ];
+const rewardIndexMapping = [-1, 4, 7];
+const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, true, true, true, true];
 
-const rewardAmounts = [100, 400, 900, 2500, 50, 150, 600, 1250];
-const garbageAmounts = [0, 1, 2, 4, 1, 2, 4, 6];
+const garbageAmounts = [0, 1, 2, 4, 0, 0, 1, 1, 2, 4, 6];
 
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
@@ -653,7 +657,7 @@ class Playfield {
 		// Stats
 		this.tetriminoes = 0;
 		this.lines = 0;
-		this.linesByType = [[null, 0, null], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, null, null]]; // First level: number of lines cleared; Second level: normal, by T-spin, total.
+		this.linesByType = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		this.maxCombo = -1;
 		this.backToBacks = 0;
 		this.attacks = 0;
@@ -755,6 +759,7 @@ class Playfield {
 						}
 						let end = this.current.y + this.current.baseY[this.current.state];
 						this.score += this.scoring.getHardDropScore(start, end);
+						if (start != end) this.current.onMove();
 						((start != end)? this.sfx.hardDrop : this.sfx.softLock).play();
 						for (let i = 0; i < 3; i++) this.spawnParticle();
 						this.lock(true);
@@ -785,9 +790,7 @@ class Playfield {
 						this.hold = this.current;
 						if (this.oldHold == null) this.nextTetrimino(); else {
 							this.current = this.oldHold;
-							this.current.state = 0;
-							this.current.x = 4;
-							this.current.y = 19;
+							this.current.reset();
 							this.fallTime = 0;
 							this.lockTime = 0;
 							this.moveCounter = 0;
@@ -956,13 +959,14 @@ class Playfield {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Segoe UI";
 		ctx.textAlign = "right";
-		if (this.rewardTime != 0) ctx.fillText("" + this.rewardAmount, this.xPos + 122, this.yPos + 311);
 		if (this.combo > 0) ctx.fillText("" + this.combo, this.xPos + 122, this.yPos + 326);
 		ctx.textAlign = "left";
 		if (this.combo > 0) ctx.fillText("COMBO", this.xPos - 13, this.yPos + 326);
 		if (this.rewardTime != 0) {
 			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
-			ctx.fillText(this.rewardName, this.xPos - 13, this.yPos + 311);
+			ctx.fillText(this.rewardName, this.xPos - 13, this.yPos + 311, 130 - ctx.measureText(this.rewardAmount).width);
+			ctx.textAlign = "right";
+			if (this.rewardTime != 0) ctx.fillText(this.rewardAmount, this.xPos + 122, this.yPos + 311);
 		}
 
 		ctx.font = "20px Segoe UI";
@@ -1004,6 +1008,7 @@ class Playfield {
 		let newX = this.current.x + offset;
 		if (!this.current.checkCollision(this.board, newX, this.current.y)) {
 			this.current.x = newX;
+			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			this.sfx.move.play();
 			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) this.sfx.land.play();
@@ -1019,6 +1024,7 @@ class Playfield {
 				this.moveCounter = 0;
 				this.maxY = this.current.y;
 			}
+			this.current.onMove();
 			this.score += this.scoring.getSoftDropScore();
 			this.sfx.softDrop.play();
 			this.fallTime = 0;
@@ -1044,7 +1050,7 @@ class Playfield {
 		this.attackProcessed = false;
 		this.tetriminoes++;
 		let toClear = [];
-		let isTSpin = this.current instanceof TetriminoT && this.current.isImmobile(this.board);
+		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {
 			this.board[mino[0]][mino[1]] = new Mino(mino[2], this.current.textureY);
 			if (++this.minos[mino[1]] == 10) toClear.push(mino[1]);
@@ -1057,22 +1063,10 @@ class Playfield {
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		this.score += this.scoring.getLockScore(baseline, this.parent.level, isDrop);
-		if (isTSpin) {
-			this.addReward(4 + toClear.length);
-			this.sfx.tSpin.play();
-			if (toClear.length != 0) {
-				this.clearLines(toClear);
-			} else {
-				this.combo = -1;
-				this.nextTetrimino();
-			}
-			this.linesByType[toClear.length][1]++;
-			if (this.linesByType[toClear.length][2] != null) this.linesByType[toClear.length][2]++;
-		} else if (toClear.length != 0) {
-			this.addReward(toClear.length - 1);
-			this.linesByType[toClear.length][0]++;
-			if (this.linesByType[toClear.length][2] != null) this.linesByType[toClear.length][2]++;
-			this.clearLines(toClear)
+		if (tSpinType) this.sfx.tSpin.play();
+		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
+		if (toClear.length != 0) {
+			this.clearLines(toClear);
 		} else {
 			this.combo = -1;
 			this.nextTetrimino();
@@ -1129,20 +1123,22 @@ class Playfield {
 	}
 
 	addReward(reward) {
+		if (reward == -1) return;
+		this.linesByType[reward]++;
 		this.rewardAmount = this.scoring.getRewardAmount(reward, this.parent.level);
 		this.rewardName = rewardNames[reward];
 		this.rewardTime = 1500;
 		this.garbageLines += garbageAmounts[reward];
-		if (reward > 2 && reward != 4) {
+		if (doesRewardTriggerBackToBack[reward]) {
 			if (this.backToBack) {
 				this.rewardAmount *= 1.5;
 				this.rewardName += " BTB";
 				this.garbageLines += 1;
 				this.backToBacks++;
 			} else this.backToBack = true;
-		} else this.backToBack = this.backToBack && this.reward == 4;
+		} else this.backToBack = this.backToBack && this.reward > 2;
 		this.maxCombo = Math.max(this.maxCombo, ++this.combo);
-		if (reward != 4 && this.combo > 0) {
+		if (reward != 4 && this.reward != 7 && this.combo > 0) {
 			this.rewardAmount += this.scoring.getComboAmount(this.combo, this.parent.level);
 			this.garbageLines += this.combo > 11 ? 5 : comboAmounts[this.combo];
 		}
@@ -1241,14 +1237,17 @@ class Playfield {
 			["Garbage sent", this.attacks],
 			["Garbage received", this.received],
 			["Garbage negated", this.defenses],
-			["Singles", this.linesByType[1][0]],
-			["Doubles", this.linesByType[2][0]],
-			["Triples", this.linesByType[3][0]],
-			["Tetrises", this.linesByType[4][0]],
-			["T-spin zeroes", this.linesByType[0][1]],
-			["T-spin singles", this.linesByType[1][1]],
-			["T-spin doubles", this.linesByType[2][1]],
-			["T-spin triples", this.linesByType[3][1]]
+			["Singles", this.linesByType[0]],
+			["Doubles", this.linesByType[1]],
+			["Triples", this.linesByType[2]],
+			["Tetrises", this.linesByType[3]],
+			["T-spin mini zeroes", this.linesByType[4]],
+			["T-spin mini singles", this.linesByType[5]],
+			["T-spin mini doubles", this.linesByType[6]],
+			["T-spin zeroes", this.linesByType[7]],
+			["T-spin singles", this.linesByType[8]],
+			["T-spin doubles", this.linesByType[9]],
+			["T-spin triples", this.linesByType[10]]
 		];
 	}
 }
@@ -1256,7 +1255,7 @@ class Playfield {
 class ScoringTengen {
 	constructor() {
 		this.lockScoreTime = 0;
-		this.rewardAmounts = [100, 400, 900, 2500, 50, 150, 600, 1250];
+		this.rewardAmounts = [100, 400, 900, 2500, 25, 50, 75, 50, 150, 600, 1250];
 	}
 
 	renderLockScore(timePassed, rootX, rootY) {
@@ -1295,7 +1294,7 @@ class ScoringTengen {
 class ScoringGuideline {
 	constructor() {
 		this.lockScoreTime = 0;
-		this.rewardAmounts = [100, 300, 500, 800, 400, 800, 1200, 1600];
+		this.rewardAmounts = [100, 300, 500, 800, 100, 200, 400, 400, 800, 1200, 1600];
 	}
 
 	renderLockScore(timePassed, rootX, rootY) {

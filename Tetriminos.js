@@ -38,11 +38,7 @@ class Tetrimino {
 		for (let mino of this.states[state]) {
 			let minoX = x + mino[0];
 			let minoY = y + mino[1];
-			if (
-				minoX < 0 || minoX > 9 ||
-				minoY < 0 || minoY > 39 ||
-				board[minoX][minoY] != undefined
-			) return true;
+			if (this.isCellFilled(board, minoX, minoY)) return true;
 		}
 		return false;
 	}
@@ -54,17 +50,19 @@ class Tetrimino {
 	}
 
 	tryChangeState(board, newState) {
+		let i = 0;
 		for (let kickPos of this.kickData[this.state][newState]) {
+			i++;
 			let newX = this.x + kickPos[0];
 			let newY = this.y + kickPos[1];
 			if (!this.checkCollision(board, newX, newY, newState)) {
 				this.state = newState;
 				this.x = newX;
 				this.y = newY;
-				return true;
+				return i;
 			}
 		}
-		return false;
+		return 0;
 	}
 
 	rotateClockwise(board) {
@@ -86,6 +84,24 @@ class Tetrimino {
 
 	canFall(board) {
 		return !this.checkCollision(board, this.x, this.y + 1);
+	}
+
+	reset() {
+		this.x = 4;
+		this.y = 19;
+		this.state = 0;
+	}
+
+	getTSpinType(board) {
+		return 0;
+	}
+
+	isCellFilled(board, x, y) {
+		return x < 0 || x > 9 || y < 0 || y > 39 || board[x][y] != undefined;
+	}
+
+	onMove() {
+
 	}
 }
 
@@ -117,20 +133,20 @@ class TetriminoI extends Tetrimino {
 		this.width = [4, 1, 4, 1];
 		this.kickData = {
 			0: {
-				1: [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
-				3: [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]]
+				1: [[0, 0], [-2, 0], [1, 0], [1, -2], [-2, 1]],
+				3: [[0, 0], [2, 0], [-1, 0], [-1, -2], [2, 1]]
 			},
 			1: {
 				2: [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
 				0: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]]
 			},
 			2: {
-				3: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
-				1: [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]]
+				3: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 1]],
+				1: [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 1]]
 			},
 			3: {
-				0: [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
-				2: [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]]
+				0: [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+				2: [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]
 			}
 		}
 		this.textureY = 8;
@@ -236,14 +252,56 @@ class TetriminoT extends Tetrimino {
 		this.textureY = 48;
 		this.outlineColor = "#692398";
 		this.code = "T";
+
+		// For detecting T-spins.
+		this.corners = [[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
+		this.back = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+		this.alreadyTSpin = false;
+		this.lastWasRotation = false;
 	}
 
-	// For detecting T-spins.
-	isImmobile(board) {
-		return this.checkCollision(board, this.x - 1, this.y) &&
-			this.checkCollision(board, this.x + 1, this.y) &&
-			this.checkCollision(board, this.x, this.y - 1) &&
-			this.checkCollision(board, this.x, this.y + 1);
+	// The methods below are for detecting T-spins.
+
+	tryChangeState(board, newState) {
+		let point = super.tryChangeState(board, newState);
+		if (point == 5) this.alreadyTSpin = true;
+		else if (point) this.alreadyTSpin = false;
+		this.lastWasRotation = true;
+		return point;
+	}
+
+	// abcd: 0A 1B 2C 3D
+	getCorners(board) {
+		let res = [];
+		for (let i = 0; i < 4; i++) {
+			let corner = this.corners[this.state + i];
+			res.push(this.isCellFilled(board, this.x + corner[0], this.y + corner[1]));
+		}
+		return res;
+	}
+
+	/* 0: No T-spin.
+	   1: T-spin mini.
+	   2: T-spin.
+	*/
+	getTSpinType(board) {
+		if (!this.lastWasRotation) return 0;
+		let corners = this.getCorners(board);
+		if (this.alreadyTSpin) return 2;
+		if (corners[0] && corners[1] && (corners[2] || corners[3])) return 2;
+		if (corners[2] && corners[3] && (corners[0] || corners[1])) return 1;
+		return 0;
+	}
+
+	reset() {
+		super.reset();
+		this.alreadyTSpin = false;
+		this.lastWasRotation = false;
+	}
+
+	onMove() {
+		this.lastWasRotation = false;
+		this.alreadyTSpin = false;
 	}
 }
 

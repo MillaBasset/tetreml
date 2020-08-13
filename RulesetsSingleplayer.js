@@ -1,4 +1,19 @@
 const buttonList = ["left", "right", "softDrop", "hardDrop", "rotateCounterClockwise", "rotateClockwise"];
+const rewardNames = [
+	"Single",
+	"Double",
+	"Triple",
+	"Tetris",
+	"T-spin mini",
+	"T-spin mini single",
+	"T-spin mini double",
+	"T-spin",
+	"T-spin single",
+	"T-spin double",
+	"T-spin triple"
+];
+const rewardIndexMapping = [-1, 4, 7];
+const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, true, true, true, true];
 
 class PlayScreenBase {
 	constructor(parent, gridX, gridY, nextX, nextY, holdX, holdY, minoSize, showKeystrokes, doSaveReplay) {
@@ -59,20 +74,10 @@ class PlayScreenBase {
 		this.holdSwitched = false;
 		this.playTime = 0;
 		this.stats = [[null, 0, null], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, null, null]]; // First level: number of lines cleared; Second level: normal, by T-spin, total.
+		this.rewardAmounts = [100, 400, 900, 2500, 25, 50, 75, 50, 150, 600, 1250];
 		this.clearedLines = [];
 		this.clearEffectTime = 1000;
 		this.tetriminoes = 0;
-		this.rewardNames = [
-			"Single",
-			"Double",
-			"Triple",
-			"Tetris",
-			"T-spin",
-			"T-spin single",
-			"T-spin double",
-			"T-spin triple"
-		];
-		this.rewardAmounts = [100, 400, 900, 2500, 50, 150, 600, 1250];
 		this.warmupLeft = 5;
 		this.warmupSecond = 0;
 		this.showKeystrokes = showKeystrokes;
@@ -429,6 +434,17 @@ class PlayScreenBase {
 		}
 
 		ctx.fillStyle = "#FFF";
+		ctx.font = "20px Segoe UI";
+		ctx.textAlign = "right";
+		if (this.rewardTime != 0) ctx.fillText(this.rewardAmount, 632, 348);
+		if (this.combo > 0) ctx.fillText("" + this.combo, 632, 323);
+		ctx.textAlign = "left";
+		if (this.combo > 0) ctx.fillText("COMBO", 406, 323);
+		if (this.rewardTime != 0) {
+			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
+			ctx.fillText(this.rewardName, 406, 348, 221 - ctx.measureText(this.rewardAmount).width);
+		}
+
 		ctx.font = "9px Segoe UI";
 		ctx.textAlign = "left";
 		if (this.volumeDisplayTime > 0) {
@@ -551,6 +567,7 @@ class PlayScreenBase {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
 				this.current.x = newX;
+				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
 				if (!this.isSeeking) {
 					sfx.move.play();
@@ -591,6 +608,7 @@ class PlayScreenBase {
 				this.moveCounter = 0;
 				this.maxY = this.current.y;
 			}
+			this.current.onMove();
 			this.fallTime = 0;
 			if (!this.isSeeking) {
 				sfx.softDrop.play();
@@ -621,6 +639,7 @@ class PlayScreenBase {
 			this.current.y++;
 			count++;
 		}
+		if (count) this.current.onMove();
 		if (!this.isSeeking) {
 			for (let i = 0; i < 3; i++) this.spawnParticle();
 			(count ? sfx.hardDrop : sfx.softLock).play();
@@ -636,9 +655,7 @@ class PlayScreenBase {
 			this.hold = this.current;
 			if (this.oldHold == null) this.nextTetrimino(); else {
 				this.current = this.oldHold;
-				this.current.state = 0;
-				this.current.x = 4;
-				this.current.y = 19;
+				this.current.reset();
 				this.fallTime = 0;
 				this.lockTime = 0;
 				this.moveCounter = 0;
@@ -660,7 +677,7 @@ class PlayScreenBase {
 		if (this.current == null) return;
 		let toClear = [];
 		this.tetriminoes++;
-		let isTSpin = this.current instanceof TetriminoT && this.current.isImmobile(this.board);
+		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {
 			this.board[mino[0]][mino[1]] = new Mino(mino[2], this.current.textureY);
 			if (++this.minos[mino[1]] == 10) toClear.push(mino[1]);
@@ -672,26 +689,18 @@ class PlayScreenBase {
 			return -1;
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
-		if (isTSpin) {
-			this.addReward(4 + toClear.length);
-			if (!this.isSeeking) sfx.tSpin.play();
-			if (toClear.length != 0) {
-				this.clearLines(toClear);
-			} else {
-				this.combo = -1;
-				this.nextTetrimino();
-			}
-			this.stats[toClear.length][1]++;
+		if (tSpinType) sfx.tSpin.play();
+		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
+		if (toClear.length != 0) {
+			this.clearLines(toClear);
+			this.stats[toClear.length][tSpinType ? 1 : 0]++;
 			if (this.stats[toClear.length][2] != null) this.stats[toClear.length][2]++;
-		} else if (toClear.length != 0) {
-			this.addReward(toClear.length - 1);
-			this.stats[toClear.length][0]++;
-			if (this.stats[toClear.length][2] != null) this.stats[toClear.length][2]++;
-			this.clearLines(toClear)
 		} else {
+			if (tSpinType) this.stats[0][1]++;
 			this.combo = -1;
 			this.nextTetrimino();
 		}
+		
 		return baseline;
 	}
 
@@ -724,23 +733,24 @@ class PlayScreenBase {
 	}
 
 	addReward(reward) {
+		if (reward == -1) return;
 		if (!this.isSeeking) {
 			this.rewardName = this.getRewardName(reward);
 			this.rewardTime = 1500;
 		}
 		this.rewardAmount = this.getRewardAmount(reward);
-		if (reward > 2 && reward != 4) {
+		if (doesRewardTriggerBackToBack[reward]) {
 			if (this.backToBack) {
 				this.rewardAmount *= 1.5;
 				this.rewardName += " BTB";
 			} else this.backToBack = true;
 		} else this.backToBack = this.backToBack && this.reward == 4;
-		if (reward != 4 && ++this.combo > 0) this.rewardAmount += this.getComboBonus();
+		if (reward != 4 && this.reward != 7 && ++this.combo > 0) this.rewardAmount += this.getComboBonus();
 		this.score += this.rewardAmount;
 	}
 
 	getRewardName(reward) {
-		return this.rewardNames[reward];
+		return rewardNames[reward];
 	}
 
 	getRewardAmount(reward) {
@@ -1006,14 +1016,6 @@ class GameScreenTengen extends PlayScreenBase {
 
 		ctx.font = "20px Segoe UI";
 		ctx.fillText("" + this.score, 632, 30);
-		if (this.rewardTime != 0) ctx.fillText("" + this.rewardAmount, 632, 348);
-		if (this.combo > 0) ctx.fillText("" + this.combo, 632, 323);
-		ctx.textAlign = "left";
-		if (this.combo > 0) ctx.fillText("COMBO", 406, 323);
-		if (this.rewardTime != 0) {
-			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
-			ctx.fillText(this.rewardName, 406, 348);
-		}
 
 		if (this.state != GameState.paused && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
 			ctx.font = "12px Segoe UI";
@@ -1178,7 +1180,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		this.lockScoreStartLine = 0;
 		this.lockScoreEndLine = 0;
 		this.lockScoreTime = 0;
-		this.rewardAmounts = [100, 300, 500, 800, 400, 800, 1200, 1600];
+		this.rewardAmounts = [100, 300, 500, 800, 100, 200, 400, 400, 800, 1200, 1600];
 		this.singleSaveableFields.push("lockScore", "lockScoreStartLine", "lockScoreEndLine", "lockScoreTime");
 	}
 
@@ -1205,16 +1207,6 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		ctx.fillText("" + this.tetriminoes, 208, 295);
 		ctx.fillText("" + this.holds, 208, 315);
 		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
-
-		ctx.font = "20px Segoe UI";
-		if (this.rewardTime != 0) ctx.fillText("" + this.rewardAmount, 632, 348);
-		if (this.combo > 0) ctx.fillText("" + this.combo, 632, 323);
-		ctx.textAlign = "left";
-		if (this.combo > 0) ctx.fillText("COMBO", 406, 323);
-		if (this.rewardTime != 0) {
-			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
-			ctx.fillText(this.rewardName, 406, 348);
-		}
 
 		if (this.state != GameState.paused && this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
 			ctx.font = "12px Segoe UI";
@@ -1361,7 +1353,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.linesOfCurrentLevel >= this.linesToNextLevel) {
 			if (this.level == 15) {
-				this.gameOverMessage = "You have completed level 15.";
+				this.gameOverMessage = "Level 15 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonHighScore = this.score;
 				this.currentSong.pause();
@@ -1403,7 +1395,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "You topped out.";
+		this.gameOverMessage = "The stack got too high";
 		this.currentSong.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
@@ -1590,7 +1582,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 		this.linesOfCurrentLevel += lines;
 		while (this.linesOfCurrentLevel >= this.linesToNextLevel) {
 			if (this.level == 15) {
-				this.gameOverMessage = "You have completed level 15.";
+				this.gameOverMessage = "Level 15 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonVariableHighScore = this.score;
 				this.currentSong.pause();
@@ -1632,7 +1624,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "You topped out.";
+		this.gameOverMessage = "The stack got too high";
 		this.currentSong.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
@@ -1811,7 +1803,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.linesOfCurrentLevel >= this.linesToNextLevel) {
 			if (this.level == 30) {
-				this.gameOverMessage = "You have completed level 30.";
+				this.gameOverMessage = "Level 30 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonTetrisDotComHighScore = this.score;
 				this.currentSong.pause();
@@ -1853,7 +1845,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "You topped out.";
+		this.gameOverMessage = "The stack got too high.";
 		this.currentSong.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonTetrisDotComHighScore = this.score;
@@ -2244,7 +2236,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	clearLines(toClear) {
 		super.clearLines(toClear);
 		if (this.lines > 39) {
-			this.gameOverMessage = "You have cleared 40 lines.";
+			this.gameOverMessage = "40 lines have been cleared.";
 			super.gameOver();
 			if (!this.isReplay) {
 				if (this.score > this.highScore) localStorage.tetris40LineHighScore = this.score;
@@ -2269,7 +2261,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	gameOver() {
 		super.gameOver();
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetris40LineHighScore = this.score;
-		this.gameOverMessage = "You topped out.";
+		this.gameOverMessage = "The stack got too high.";
 		music.level6.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
@@ -2409,7 +2401,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "You topped out.";
+		this.gameOverMessage = "The stack got too high.";
 		music.level6.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}

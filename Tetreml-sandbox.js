@@ -36,11 +36,15 @@ const rewardNames = [
 	"Double",
 	"Triple",
 	"Tetris",
+	"T-spin mini",
+	"T-spin mini single",
+	"T-spin mini double",
 	"T-spin",
 	"T-spin single",
 	"T-spin double",
 	"T-spin triple"
 ];
+const rewardIndexMapping = [-1, 4, 7];
 
 var configuredControls = undefined;
 if ('tetrisSingleplayerControlsMapping' in localStorage) configuredControls = JSON.parse(localStorage.tetrisSingleplayerControlsMapping); else {
@@ -278,6 +282,7 @@ class PlayScreen {
 								this.current.y++;
 								fell = true;
 							}
+							if (fell) this.current.onMove();
 							(fell ? sfx.hardDrop : sfx.softLock).play();
 							for (let i = 0; i < 3; i++) this.spawnParticle();
 							this.lock(2);
@@ -305,8 +310,7 @@ class PlayScreen {
 				} else this.buttonRotateCounterClockwise = false;
 				if (buttonStatus.hold) {
 					if (!this.buttonHold && this.hold != -1 && !this.holdSwitched) {
-						this.current.x = 4;
-						this.current.y = 19;
+						this.current.reset();
 						this.currentFumenPageDataCart.operation = {
 							type: this.current.code,
 							rotation: fumenStateMapping[this.current.state],
@@ -334,9 +338,7 @@ class PlayScreen {
 				} else this.buttonHold = false;
 				if (buttonStatus.reset) {
 					if (!this.buttonReset) {
-						this.current.state = 0;
-						this.current.x = 4;
-						this.current.y = 19;
+						this.current.reset();
 						this.fumenPagesForCurrent = [];
 						this.checkGameOver();
 						sfx.hold.play();
@@ -613,6 +615,7 @@ class PlayScreen {
 		let newX = this.current.x + offset;
 		if (!this.current.checkCollision(this.board, newX, this.current.y)) {
 			this.current.x = newX;
+			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			sfx.move.play();
 			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
@@ -639,6 +642,7 @@ class PlayScreen {
 				this.moveCounter = 0;
 				this.maxY = this.current.y;
 			}
+			this.current.onMove();
 			sfx.softDrop.play();
 			this.fallTime = 0;
 			if (!this.current.canFall(this.board)) sfx.land.play();
@@ -663,7 +667,7 @@ class PlayScreen {
 		this.prepareFumenPageDataCart();
 		this.fumenPagesForCurrent = [];
 		let toClear = [];
-		let isTSpin = this.current instanceof TetriminoT && this.current.isImmobile(this.board);
+		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {
 			this.board[mino[0]][mino[1]] = new Mino(mino[2], this.current.textureY);
 			if (++this.minos[mino[1]] == 10) toClear.push(mino[1]);
@@ -674,16 +678,9 @@ class PlayScreen {
 			return;
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
-		if (isTSpin) {
-			this.addReward(4 + toClear.length);
-			sfx.tSpin.play();
-			if (toClear.length != 0) {
-				this.clearLines(toClear);
-			} else {
-				this.nextTetrimino();
-			}
-		} else if (toClear.length != 0) {
-			this.addReward(toClear.length - 1);
+		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
+		if (tSpinType) sfx.tSpin.play();
+		if (toClear.length != 0) {
 			this.clearLines(toClear)
 		} else {
 			this.nextTetrimino();
@@ -714,6 +711,7 @@ class PlayScreen {
 	}
 
 	addReward(reward) {
+		if (reward == -1) return;
 		this.rewardName = rewardNames[reward];
 		this.rewardTime = 1500;
 	}
