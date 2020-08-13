@@ -6,14 +6,15 @@
 		<link rel="manifest" href="manifest.json">
 		<link rel="stylesheet" href="Font/font.css">
 	</head>
-	<body>
-		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 1; image-rendering: pixelated;"></canvas>
+	<body style="display: flex; flex-direction: column; margin: 0px; height: -webkit-fill-available; overflow: hidden;">
 		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
 			<option value="Tetreml.html">Singleplayer</option>
 			<option value="Tetreml-2P.html" selected>Two-player</option>
 			<option value="Tetreml-sandbox.html">Sandbox</option>
 			<option value="ReplayerSingleplayer.html">Replay</option>
 		</select>
+		<div style="flex: 1; max-height: 10px;"></div>
+		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: 0 auto; z-index: 10; image-rendering: pixelated;"></canvas>
 		<script src="HTMLHandler.js"></script>
 		<script src="MersenneTwister.js"></script>
 		<script src="Tetriminos.js"></script>

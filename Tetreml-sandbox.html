@@ -6,17 +6,20 @@
 		<link rel="manifest" href="manifest.json">
 		<link rel="stylesheet" href="Font/font.css">
 	</head>
-	<body>
-		<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; margin: auto; z-index: 10; image-rendering: pixelated;"></canvas>
-		<div id=fileInputWrapper style="text-align: center; width: 100%; margin-top: 20px; display: none;"><span style="display: inline; position: relative; margin: auto; z-index: 10;">
-			<input type=file id=fileSelector accept=".tetreml_sandbox"/>
-		</span></div>
+	<body style="display: flex; flex-direction: column; margin: 0px; height: -webkit-fill-available; overflow: hidden;">
 		<select id=selector style="text-align:center; background-color: rgba(0, 0, 0, 0.1); width: 100px; height: 25px; position: absolute; z-index: 0; left: 10px; top: 10px; font: 14px Segoe UI; color: black;">
 			<option value="Tetreml.html">Singleplayer</option>
 			<option value="Tetreml-2P.html">Two-player</option>
 			<option value="Tetreml-sandbox.html" selected>Sandbox</option>
 			<option value="ReplayerSingleplayer.html">Replay</option>
 		</select>
+		<div style="flex: 1; max-height: 10px;"></div>
+		<div style="margin: 0 auto;">
+			<canvas id=mainWindow width=640 height=360 style="display: block; position: relative; z-index: 10; image-rendering: pixelated;" data-padding="33"></canvas>
+			<div id=fileInputWrapper style="text-align: center; width: 100%; margin-top: 10px; display: none;"><span style="display: inline; position: relative; margin: auto; z-index: 10;">
+				<input type=file id=fileSelector accept=".tetreml_sandbox" style="width: 100%; background-color: rgba(0, 0, 0, 0.15);"/>
+			</span></div>
+		</div>
 		<script src="HTMLHandler.js"></script>
 		<script src="Tetriminos.js"></script>
 		<script src="SoundHandler.js"></script>

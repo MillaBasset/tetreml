@@ -3,6 +3,7 @@ var ctx = mainWindow.getContext("2d");
 
 var adaptiveSizing = true;
 var scale = 1;
+var adaptiveSizingPadding = mainWindow.dataset.padding ?? 0;
 
 function setAdaptiveSizing(enabled) {
 	localStorage.tetrisAdaptiveSizing = adaptiveSizing = enabled;
@@ -15,8 +16,8 @@ function setAdaptiveSizing(enabled) {
 }
 
 function fitScreen() {
-	let width = innerWidth - 20;
-	let height = innerHeight - 20;
+	let width = innerWidth;
+	let height = innerHeight - adaptiveSizingPadding;
 	scale = width / height > 16 / 9 ? height / 360 : width / 640;
 	scale = scale >= 1 ? Math.floor(scale) : 1/Math.ceil(1/scale);
 	mainWindow.width = Math.floor(640 * scale);
