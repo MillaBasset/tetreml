@@ -1578,7 +1578,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 
 	addReward(reward) {
 		if (reward == -1) return;
-		let lines = this.rewardAmounts[reward] / 100 * (reward > 2 && reward != 4 && this.backToBack ? 1.5 : 1);
+		let lines = this.rewardAmounts[reward] / 100 * (doesRewardTriggerBackToBack[reward] && this.backToBack ? 1.5 : 1);
 		super.addReward(reward);
 		this.lines += lines;
 		this.linesOfCurrentLevel += lines;
