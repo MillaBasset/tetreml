@@ -784,6 +784,7 @@ class PlayScreenBase {
 	}
 
 	nextTetrimino() {
+		if (this.clearTime > 0) return;
 		this.current = this.queue.splice(0, 1)[0];
 		if (this.queue.length < 6) this.pushToQueue();
 		this.fallTime = 0;
@@ -1024,10 +1025,10 @@ class GameScreenTengen extends PlayScreenBase {
 		ctx.font = "20px Segoe UI";
 		ctx.fillText("" + this.score, 632, 30);
 
-		if (this.state != GameState.paused && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
+		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
 			ctx.font = "12px Segoe UI";
 			ctx.textAlign = "right";
-			this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
+			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillText(this.lockScore == 1000 ? "1k" : "" + this.lockScore, 233, 16 + 16 * (this.lockScoreLine - 17));
 		}
 	}
@@ -1208,10 +1209,10 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		ctx.fillText("" + this.holds, 208, 315);
 		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
 
-		if (this.state != GameState.paused && this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
+		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
 			ctx.font = "12px Segoe UI";
 			ctx.textAlign = "right";
-			this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
+			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillRect(235, 4 + 16 * (this.lockScoreStartLine - 17), 1, (this.lockScoreEndLine - this.lockScoreStartLine + 1) * 16);
 			ctx.fillText(this.lockScore + "", 231, 16 + 16 * (this.lockScoreEndLine - 17));
 		}
@@ -1381,7 +1382,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "The stack got too high";
+		this.gameOverMessage = "The stack got too high.";
 		this.currentSong.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
@@ -1574,6 +1575,8 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 				this.totalLinesToNextLevel += this.linesToNextLevel;
 				this.isNewLevel = true;
 				this.clearTime = 1000;
+				this.current = null;
+				this.clearedLines = [];
 				if (!this.isSeeking) switch (this.level) {
 					case 6:
 						this.currentSong.pause();
@@ -1604,7 +1607,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 
 	gameOver() {
 		super.gameOver();
-		this.gameOverMessage = "The stack got too high";
+		this.gameOverMessage = "The stack got too high.";
 		this.currentSong.pause();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
