@@ -287,9 +287,8 @@ class TetriminoT extends Tetrimino {
 	getTSpinType(board) {
 		if (!this.lastWasRotation) return 0;
 		let corners = this.getCorners(board);
-		if (this.alreadyTSpin) return 2;
 		if (corners[0] && corners[1] && (corners[2] || corners[3])) return 2;
-		if (corners[2] && corners[3] && (corners[0] || corners[1])) return 1;
+		if (corners[2] && corners[3] && (corners[0] || corners[1])) return this.alreadyTSpin ? 2 : 1;
 		return 0;
 	}
 
