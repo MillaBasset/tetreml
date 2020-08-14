@@ -13,7 +13,7 @@ const rewardNames = [
 	"T-spin triple"
 ];
 const rewardIndexMapping = [-1, 4, 7];
-const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, true, true, true, true];
+const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, false, true, true, true];
 
 class PlayScreenBase {
 	constructor(parent, gridX, gridY, nextX, nextY, holdX, holdY, minoSize, showKeystrokes, doSaveReplay) {

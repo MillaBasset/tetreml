@@ -93,7 +93,7 @@ const rewardNames = [
 	"T-spin triple"
 ];
 const rewardIndexMapping = [-1, 4, 7];
-const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, true, true, true, true];
+const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, false, true, true, true];
 
 const garbageAmounts = [0, 1, 2, 4, 0, 0, 1, 1, 2, 4, 6];
 
