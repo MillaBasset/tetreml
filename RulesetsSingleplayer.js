@@ -763,7 +763,7 @@ class PlayScreenBase {
 	}
 
 	getFallInterval() {
-		return 500;
+		return 1000;
 	}
 
 	getLockDelay() {
