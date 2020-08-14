@@ -218,6 +218,7 @@ class ReplayScreen {
 			}
 		} else this.volumeUp = false;
 		this.playScreen.render();
+		ctx.fillStyle = "#FFF";
 		ctx.strokeStyle = "#FFF";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(20.5, 345.5, 187, 9);

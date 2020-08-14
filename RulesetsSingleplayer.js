@@ -445,6 +445,12 @@ class PlayScreenBase {
 			ctx.fillText(this.rewardName, 406, 348, 221 - ctx.measureText(this.rewardAmount).width);
 		}
 
+		if (this.totalMinos == 0 && this.clearTime > 0 && (this.isReplay || this.state == GameState.playing)) {
+			ctx.textAlign = "center";
+			ctx.fillText("ALL CLEAR", 320, 40);
+			ctx.fillText("1000 points", 320, 65);
+		}
+
 		ctx.font = "9px Segoe UI";
 		ctx.textAlign = "left";
 		if (this.volumeDisplayTime > 0) {
@@ -1038,13 +1044,6 @@ class GameScreenTengen extends PlayScreenBase {
 					ctx.font = "30px Segoe UI Light";
 					ctx.fillText("" + this.level, 320, 160);
 				}
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
-				}
 				break;
 			case GameState.paused:
 				break;
@@ -1222,13 +1221,6 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		super.renderInFront(timePassed);
 		switch (this.state) {
 			case GameState.playing:
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
-				}
 				break;
 			case GameState.paused:
 				break;
@@ -1330,13 +1322,6 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 					ctx.fillText("LEVEL UP", 320, 130);
 					ctx.font = "30px Segoe UI Light";
 					ctx.fillText("" + this.level, 320, 160);
-				}
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
 				}
 				break;
 			case GameState.paused:
@@ -1550,13 +1535,6 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 					ctx.fillText("LEVEL UP", 320, 130);
 					ctx.font = "30px Segoe UI Light";
 					ctx.fillText("" + this.level, 320, 160);
-				}
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
 				}
 				break;
 			case GameState.paused:
@@ -1781,13 +1759,6 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 					ctx.fillText("LEVEL UP", 320, 130);
 					ctx.font = "30px Segoe UI Light";
 					ctx.fillText("" + this.level, 320, 160);
-				}
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
 				}
 				break;
 			case GameState.paused:
@@ -2014,13 +1985,6 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 					ctx.font = "30px Segoe UI Light";
 					ctx.fillText("" + this.level, 320, 160);
 				}
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
-				}
 				break;
 			case GameState.paused:
 				break;
@@ -2217,13 +2181,6 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 		super.renderInFront(timePassed);
 		switch (this.state) {
 			case GameState.playing:
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
-				}
 				break;
 			case GameState.paused:
 				break;
@@ -2372,13 +2329,6 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 		super.renderInFront(timePassed);
 		switch (this.state) {
 			case GameState.playing:
-				if (this.totalMinos == 0 && this.clearTime > 0) {
-					ctx.fillStyle = "#FFF";
-					ctx.textAlign = "center";
-					ctx.font = "20px Segoe UI";
-					ctx.fillText("ALL CLEAR", 320, 40);
-					ctx.fillText("1000 points", 320, 65);
-				}
 				break;
 			case GameState.paused:
 				break;
