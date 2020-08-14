@@ -11,6 +11,10 @@ var imageRenderer = document.getElementById('imageRenderer');
 var imageRendererContext = imageRenderer.getContext('2d');
 imageRendererContext.imageSmoothingEnabled = false;
 
+function openRenderedImage() {
+	window.open().document.write(`<iframe src="${imageRenderer.toDataURL()}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+}
+
 const sfx = {
 	single: new SFX("SFX/Single.wav", gainNode),
 	double: new SFX("SFX/Double.wav", gainNode),
@@ -300,7 +304,9 @@ class PlayScreen {
 				} else this.buttonHardDrop = false;
 				if (buttonStatus.rotateClockwise) {
 					if (!this.buttonRotateClockwise) {
-						if (this.current.rotateClockwise(this.board)) {
+						if (buttonStatus.quitModifier) {
+							this.getFumenURL();
+						} else if (this.current.rotateClockwise(this.board)) {
 							sfx.rotate.play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
@@ -309,7 +315,9 @@ class PlayScreen {
 				} else this.buttonRotateClockwise = false;
 				if (buttonStatus.rotateCounterClockwise) {
 					if (!this.buttonRotateCounterClockwise) {
-						if (this.current.rotateCounterClockwise(this.board)) {
+						if (buttonStatus.quitModifier) {
+							this.renderImage();
+						} else if (this.current.rotateCounterClockwise(this.board)) {
 							sfx.rotate.play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
@@ -392,15 +400,48 @@ class PlayScreen {
 				this.moveLock = 0;
 				this.buttonMoveRight = true;
 			}
+		} else {
+			if (buttonStatus.rotateClockwise) {
+				if (!this.buttonRotateClockwise) {
+					if (buttonStatus.quitModifier) {
+						this.getFumenURL();
+					}
+					this.buttonRotateClockwise = true;
+				}
+			} else this.buttonRotateClockwise = false;
+			if (buttonStatus.rotateCounterClockwise) {
+				if (!this.buttonRotateCounterClockwise) {
+					if (buttonStatus.quitModifier) {
+						this.renderImage();
+					}
+					this.buttonRotateCounterClockwise = true;
+				}
+			} else this.buttonRotateCounterClockwise = false;
 		}
 
 		if (buttonStatus.esc) {
-			if (buttonStatus.quitModifier) {
-				prompt("Fumen URL:", "https://harddrop.com/fumen?" + tetrisFumen.encoder.encode(this.fumenPages));
-				buttonStatus.quitModifier = false;
-			} else {
-				music.pause();
-				goBack();
+			switch (this.state) {
+				case GameState.playing:
+					if (buttonStatus.quitModifier) {
+						music.pause();
+						goBack();
+					} else {
+						music.pause();
+						sfx.pause.play();
+						this.state = GameState.paused;
+					}
+					break;
+				case GameState.paused:
+					if (buttonStatus.quitModifier) {
+						goBack();
+					} else {
+						music.play();
+						this.state = GameState.playing;
+					}
+					break;
+				case GameState.over:
+					goBack();
+					break;
 			}
 			buttonStatus.esc = false;
 		}
@@ -451,35 +492,23 @@ class PlayScreen {
 		
 		ctx.font = "12px Segoe UI";
 		ctx.textAlign = "left";
-		ctx.fillText(keyNames.left, 15, 110, 60);
-		ctx.fillText(keyNames.right, 15, 125, 60);
-		ctx.fillText(keyNames.softDrop, 15, 140, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.softDrop, 15, 155, 60);
-		ctx.fillText(keyNames.hardDrop, 15, 170, 60);
-		ctx.fillText(keyNames.rotateCounterClockwise, 15, 185, 60);
-		ctx.fillText(keyNames.rotateClockwise, 15, 200, 60);
-		ctx.fillText(keyNames.hold, 15, 225, 60);
-		ctx.fillText(keyNames.reset, 15, 240, 60);
-		ctx.fillText(keyNames.esc, 15, 270, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.hardDrop, 15, 285, 60);
-		ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc, 15, 300, 60);
-		ctx.fillText(keyNames.volumeUp, 15, 315, 60);
-		ctx.fillText(keyNames.volumeDown, 15, 330, 60);
-		
-		ctx.fillText("Move left", 80, 110, 155);
-		ctx.fillText("Move right", 80, 125, 155);
-		ctx.fillText("Soft drop", 80, 140, 155);
-		ctx.fillText("Firm drop", 80, 155, 155);
-		ctx.fillText("Hard drop", 80, 170, 155);
-		ctx.fillText("Rotate counterclockwise", 80, 185, 155);
-		ctx.fillText("Rotate clockwise", 80, 200, 155);
-		ctx.fillText("Hold", 80, 225, 155);
-		ctx.fillText("Reset current tetrimino", 80, 240, 155);
-		ctx.fillText("Return to edit screen", 80, 270, 155);
-		ctx.fillText("Add intermediate Fumen frame", 80, 285, 155);
-		ctx.fillText("Get Fumen URL", 80, 300, 155);
-		ctx.fillText("Increase volume", 80, 315, 155);
-		ctx.fillText("Decrease volume", 80, 330, 155);
+		this.keyY = 110;
+		this.renderKeyLine(keyNames.left, "Move left");
+		this.renderKeyLine(keyNames.right, "Move right");
+		this.renderKeyLine(keyNames.softDrop, "Soft drop");
+		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.softDrop, "Firm drop");
+		this.renderKeyLine(keyNames.hardDrop, "Hard drop");
+		this.renderKeyLine(keyNames.rotateCounterClockwise, "Rotate counterclockwise");
+		this.renderKeyLine(keyNames.rotateClockwise, "Rotate clockwise");
+		this.renderKeyLine(keyNames.hold, "Hold");
+		this.renderKeyLine(keyNames.reset, "Reset current tetrimino");
+		this.renderKeyLine(keyNames.esc, this.state == GameState.over ? "Return to edit screen" : this.state == GameState.playing ? "Pause" : "Continue");
+		if (this.state != GameState.over) this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.esc, "Return to edit screen"); else this.keyY += 15;
+		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate Fumen frame");
+		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateCounterClockwise, "Render image");
+		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateClockwise, "Get Fumen URL");
+		this.renderKeyLine(keyNames.volumeUp, "Volume up");
+		this.renderKeyLine(keyNames.volumeDown, "Volume down");
 
 		if (this.volumeDisplayTime > 0) {
 			ctx.fillText(`Volume: ${volume} / 10`, 15, 350);
@@ -575,14 +604,43 @@ class PlayScreen {
 			case GameState.paused:
 				ctx.textAlign = "center";
 				ctx.font = "20px Segoe UI";
-				ctx.fillText("PAUSED", 512, 230);
+				ctx.fillText("PAUSED", 521, 230);
 				break;
 			case GameState.over:
 				ctx.textAlign = "center";
 				ctx.font = "20px Segoe UI";
-				ctx.fillText("OVER", 512, 230);
+				ctx.fillText("OVER", 521, 230);
 				break;
 		}
+	}
+
+	renderKeyLine(text1, text2) {
+		ctx.fillText(text1, 15, this.keyY, 60);
+		ctx.fillText(text2, 80, this.keyY, 155);
+		this.keyY += 15;
+	}
+
+	resetKeys() {
+		for (let key in buttonStatus) buttonStatus[key] = false;
+	}
+
+	getFumenURL() {
+		prompt("Fumen URL:", "https://harddrop.com/fumen?" + tetrisFumen.encoder.encode(this.fumenPages));
+		this.resetKeys();
+	}
+
+	renderImage() {
+		imageRendererContext.clearRect(0, 0, 160, 352);
+		imageRendererContext.globalAlpha = 0.7;
+		for (let y = 18; y < 40; y++) for (let x = 0; x < 10; x++) {
+			let mino = this.board[x][y];
+			if (mino) imageRendererContext.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, x * 16, (y - 18) * 16, 16, 16);
+		}
+		imageRendererContext.globalAlpha = 1;
+		if (this.state != GameState.over && this.current != null) for (let mino of this.current.states[this.current.state])
+			imageRendererContext.drawImage(sprite, mino[2] * 8, this.current.textureY, 8, 8, (this.current.x + mino[0]) * 16, (this.current.y + mino[1] - 18) * 16, 16, 16);
+		this.resetKeys();
+		openRenderedImage();
 	}
 
 	pushFumenPage() {
@@ -821,7 +879,7 @@ class PaneDrawAndMain {
 					let mino = this.owner.board[x][y];
 					if (mino) imageRendererContext.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, x * 16, (y - 18) * 16, 16, 16);
 				}
-				window.open().document.write(`<iframe src="${imageRenderer.toDataURL()}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+				openRenderedImage();
 			}),
 			new PaneButton(419, 260, "KeyI", () => "Import file", async () => {
 				if (this.owner.fileInput.files.length == 0) return;
