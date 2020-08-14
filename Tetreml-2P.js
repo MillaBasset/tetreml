@@ -483,7 +483,7 @@ class PlayScreen {
 				ctx.font = "20px Segoe UI";
 				ctx.fillText("PAUSED", 320, 75);
 				ctx.font = "12px Segoe UI";
-				ctx.fillText("Esc to continue.", 320, 90);
+				ctx.fillText(keyNamesPlayer1.esc + " to continue.", 320, 90);
 				if (this.volumeDisplayTime > 0) {
 					ctx.fillText(`Volume: ${volume} / 10`, 320, 17);
 					this.volumeDisplayTime -= timePassed;
