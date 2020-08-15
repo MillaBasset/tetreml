@@ -113,6 +113,7 @@ class ReplayScreen {
 			"Endless guideline": GameScreenGuidelineEndless,
 			"Marathon": GameScreenGuidelineMarathon,
 			"Marathon variable": GameScreenGuidelineMarathonVariable,
+			"Marathon tetris.com": GameScreenGuidelineMarathonTetrisDotCom,
 			"40-line": GameScreenGuideline40Line,
 			"2-minute": GameScreenGuideline2Minute
 		}[replay.mode](null, false, false);

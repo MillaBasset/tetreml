@@ -710,7 +710,6 @@ class PlayScreen {
 			}
 			this.current.onMove();
 			sfx.softDrop.play();
-			this.fallTime = 0;
 			if (!this.current.canFall(this.board)) sfx.land.play();
 			return false;
 		}

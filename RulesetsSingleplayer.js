@@ -145,6 +145,7 @@ class PlayScreenBase {
 				if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
 						this.actionQueue.push([0, "fall", i]);
+						console.log("Fall.");
 					}
 				} else {
 					if ((this.lockTime += timePassed) >= this.getLockDelay()) {
@@ -158,8 +159,10 @@ class PlayScreenBase {
 						this.addKeypress();
 					} else {
 						this.softDropCounter += timePassed;
-						for (let i = this.softDropPeriod, count = 0; this.softDropPeriod < this.softDropCounter && count < 21; i += this.softDropPeriod, this.softDropCounter -= this.softDropPeriod, count++)
-							this.actionQueue.push([2, "softDrop", this.playTime + i]);
+						let times = Math.min(21, Math.floor(this.softDropCounter / this.softDropPeriod));
+						let time = latestTime - (this.softDropCounter %= this.softDropPeriod) - (times) * this.softDropPeriod;
+						for (let i = 0; i < times; i++)
+							this.actionQueue.push([2, "softDrop", time += this.softDropPeriod]);
 					}
 				} else {
 					this.softDropCounter = -1;
@@ -244,7 +247,10 @@ class PlayScreenBase {
 			}
 			this.actionQueue.push(...moveEvents);
 			
-			for (let action of this.actionQueue.sort(this.actionCompareFunc)) this.actionMapping[action[0]](action[2]);
+			for (let action of this.actionQueue.sort(this.actionCompareFunc)) {
+				this.actionMapping[action[0]](action[2]);
+				console.log(action);
+			}
 
 			this.actionQueue = [];
 			this.fallTime = fallInterval == 0 ? 0 : this.fallTime % fallInterval;
@@ -616,7 +622,6 @@ class PlayScreenBase {
 				this.maxY = this.current.y;
 			}
 			this.current.onMove();
-			this.fallTime = 0;
 			if (!this.isSeeking) {
 				sfx.softDrop.play();
 				if (!this.current.canFall(this.board)) sfx.land.play();

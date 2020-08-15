@@ -1030,7 +1030,6 @@ class Playfield {
 			this.current.onMove();
 			this.score += this.scoring.getSoftDropScore();
 			this.sfx.softDrop.play();
-			this.fallTime = 0;
 			if (!this.current.canFall(this.board)) this.sfx.land.play();
 			return false;
 		}
