@@ -145,7 +145,6 @@ class PlayScreenBase {
 				if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
 						this.actionQueue.push([0, "fall", i]);
-						console.log("Fall.");
 					}
 				} else {
 					if ((this.lockTime += timePassed) >= this.getLockDelay()) {
@@ -249,7 +248,6 @@ class PlayScreenBase {
 			
 			for (let action of this.actionQueue.sort(this.actionCompareFunc)) {
 				this.actionMapping[action[0]](action[2]);
-				console.log(action);
 			}
 
 			this.actionQueue = [];
