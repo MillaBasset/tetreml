@@ -209,7 +209,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		if (this.level < 900 && oldLevel < 70 && newLevel >= 70) {
 			let coolSectionTime = this.playTime - this.lastCoolMarkTime;
 			this.lastCoolMarkTime = this.playTime;
-			if (this.lastWasCool = (coolSectionTime < (this.lastWasCool ? this.oldCoolSectionTime - 1999 : this.coolTimes[Math.floor(this.level / 100)])))
+			if (this.lastWasCool = (coolSectionTime < (this.lastWasCool ? this.oldCoolSectionTime + 2001 : this.coolTimes[Math.floor(this.level / 100)])))
 				this.coolDisplayLevel = 82 + Math.floor(Math.random() * 17);
 			else this.invisibleRollEligible = false;
 			this.oldCoolSectionTime = coolSectionTime;
@@ -328,7 +328,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			}
 			music.level999.pause();
 		} else this.currentSong.pause();
-		(victory ? sfx.complete : sfx.gameOver).play();
+		if (!this.isSeeking) (victory ? sfx.complete : sfx.gameOver).play();
 		this.gradeText = this.gradeNames[Math.max(0, this.internalGrades[Math.min(31, this.internalGrade)][0] + this.coolRegretBoost + Math.floor(this.level999Score / 100))];
 	}
 
