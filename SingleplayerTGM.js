@@ -307,7 +307,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 
 	pause() {
 		super.pause();
-		sfx.pause.play();
+		if (!this.isReplay) sfx.pause.play();
 		if (this.level999Time > -1) music.level999.pause(); else this.currentSong.pause();
 	}
 
