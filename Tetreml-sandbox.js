@@ -16,21 +16,21 @@ function openRenderedImage() {
 }
 
 const sfx = {
-	single: new SFX("SFX/Single.wav", gainNode),
-	double: new SFX("SFX/Double.wav", gainNode),
-	triple: new SFX("SFX/Triple.wav", gainNode),
-	tetris: new SFX("SFX/Tetris.wav", gainNode),
-	tSpin: new SFX("SFX/T spin.wav", gainNode),
-	move: new SFX("SFX/Move.wav", gainNode),
-	rotate: new SFX("SFX/Rotate.wav", gainNode),
-	softDrop: new SFX("SFX/Soft drop.wav", gainNode),
-	hardDrop: new SFX("SFX/Hard drop.wav", gainNode),
-	lock: new SFX("SFX/Lock.wav", gainNode),
-	land: new SFX("SFX/Land.wav", gainNode),
-	hold: new SFX("SFX/Hold.wav", gainNode),
-	pause: new SFX("SFX/Pause.wav", gainNode),
-	afterClear: new SFX("SFX/After clear.wav", gainNode),
-	softLock: new SFX("SFX/Soft lock.wav", gainNode)
+	single: new SFX("SFX/Single.mp3", gainNode),
+	double: new SFX("SFX/Double.mp3", gainNode),
+	triple: new SFX("SFX/Triple.mp3", gainNode),
+	tetris: new SFX("SFX/Tetris.mp3", gainNode),
+	tSpin: new SFX("SFX/T spin.mp3", gainNode),
+	move: new SFX("SFX/Move.mp3", gainNode),
+	rotate: new SFX("SFX/Rotate.mp3", gainNode),
+	softDrop: new SFX("SFX/Soft drop.mp3", gainNode),
+	hardDrop: new SFX("SFX/Hard drop.mp3", gainNode),
+	lock: new SFX("SFX/Lock.mp3", gainNode),
+	land: new SFX("SFX/Land.mp3", gainNode),
+	hold: new SFX("SFX/Hold.mp3", gainNode),
+	pause: new SFX("SFX/Pause.mp3", gainNode),
+	afterClear: new SFX("SFX/After clear.mp3", gainNode),
+	softLock: new SFX("SFX/Soft lock.mp3", gainNode)
 };
 
 music = new Audio("Music/Sandbox.mp3");

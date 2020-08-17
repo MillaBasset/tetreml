@@ -54,6 +54,7 @@ class PlayScreenBase {
 		this.autoRepeatDelay = 150;
 		this.autoRepeatPeriod = 40;
 		this.softDropPeriod = 25;
+		this.shouldHintTetrimino = false;
 		this.fallTime = 0;
 		this.lockTime = 0;
 		this.maxY = 0;
@@ -135,16 +136,20 @@ class PlayScreenBase {
 		let latestTime = this.latestTime = this.playTime + timePassed;
 		if (this.state == GameState.playing) {
 			this.clearTime -= timePassed;
-			if (!this.isReplay && this.clearTime < 1 && this.current == null) this.afterClear(latestTime + this.clearTime);
+			let afterClearTime = this.playTime;
+			if (!this.isReplay && this.clearTime < 1 && this.current == null) {
+				afterClearTime = latestTime + this.clearTime;
+				this.afterClear(afterClearTime);
+			}
 			let fallInterval = this.getFallInterval();
-			let iStart = fallInterval == 0 ? this.playTime : this.playTime + fallInterval - (this.fallTime %= fallInterval);
+			let iStart = fallInterval == 0 ? this.playTime : this.playTime + (fallInterval - this.fallTime) % fallInterval;
 			this.fallTime -= Math.min(0, this.clearTime);
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.isNewLevel && this.clearTime == 0) this.isNewLevel = false;
 			if (!this.isReplay && this.current != null) {
 				if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
-						this.actionQueue.push([0, "fall", i]);
+						if (i >= afterClearTime) this.actionQueue.push([0, "fall", i]);
 					}
 				} else {
 					if ((this.lockTime += timePassed) >= this.getLockDelay()) {
@@ -158,10 +163,13 @@ class PlayScreenBase {
 						this.addKeypress();
 					} else {
 						this.softDropCounter += timePassed;
-						let times = Math.min(21, Math.floor(this.softDropCounter / this.softDropPeriod));
-						let time = latestTime - (this.softDropCounter %= this.softDropPeriod) - (times) * this.softDropPeriod;
-						for (let i = 0; i < times; i++)
-							this.actionQueue.push([2, "softDrop", time += this.softDropPeriod]);
+						let times = Math.floor(this.softDropCounter / this.softDropPeriod);
+						let time = this.softDropPeriod == 0 ? latestTime : latestTime - (this.softDropCounter %= this.softDropPeriod) - (times - 1) * this.softDropPeriod;
+						times = Math.min(21, times);
+						for (let i = 0; i < times; i++) {
+							if (time >= afterClearTime) this.actionQueue.push([2, "softDrop", time]);
+							time += this.softDropPeriod;
+						}
 					}
 				} else {
 					this.softDropCounter = -1;
@@ -201,10 +209,11 @@ class PlayScreenBase {
 						this.moveLock = 1;
 					} else {
 						this.moveLeftCounter += timePassed;
-						let times = Math.min(9, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveLeftCounter);
-						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveLeftCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - times * this.autoRepeatPeriod;
+						let times = Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveLeftCounter;
+						times = Math.min(9, times);
+						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveLeftCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - (times - 1) * this.autoRepeatPeriod;
 						for (let i = 0; i < times; i++) {
-							moveEvents.push([7, "moveLeft", time]);
+							if (time >= afterClearTime) moveEvents.push([7, "moveLeft", time]);
 							time += this.autoRepeatPeriod;
 						}
 						this.oldMoveLeftCounter = this.autoRepeatPeriod == 0 ? 0 : Math.max(0, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
@@ -227,10 +236,11 @@ class PlayScreenBase {
 						this.moveLock = 2;
 					} else {
 						this.moveRightCounter += timePassed;
-						let times = Math.min(9, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveRightCounter);
-						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveRightCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - times * this.autoRepeatPeriod;
+						let times = Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveRightCounter;
+						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveRightCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - (times - 1) * this.autoRepeatPeriod;
+						times = Math.min(9, times);
 						for (let i = 0; i < times; i++) {
-							moveEvents.push([9, "moveRight", time]);
+							if (time >= afterClearTime) moveEvents.push([9, "moveRight", time]);
 							time += this.autoRepeatPeriod;
 						}
 						this.oldMoveRightCounter = this.autoRepeatPeriod == 0 ? 0 : Math.max(0, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
@@ -365,11 +375,17 @@ class PlayScreenBase {
 			ctx.globalAlpha = 0.7;
 			for (let x = 0; x < 10; x++) {
 				for (let y = 18; y < 40; y++) {
-					if (this.board[x][y] != undefined) this.renderMino(x, y, this.board[x][y].directions, this.board[x][y].textureY);
+					let mino = this.board[x][y];
+					let shouldRender = mino == undefined ? false : mino.shouldRender(this.playTime);
+					if (mino != undefined && (this.isReplay || shouldRender)) {
+						if (!shouldRender) ctx.globalAlpha = 0.2;
+						this.renderMino(x, y, mino.directions, mino.textureY);
+						ctx.globalAlpha = 0.7;
+					}
 				}
 			}
 			ctx.globalAlpha = 1;
-			if (this.current != null && this.state != GameState.over) for (let ghostY = this.current.y; true; ghostY++) {
+			if (this.shouldDrawGhostTetrimino() && this.current != null && this.state != GameState.over) for (let ghostY = this.current.y; true; ghostY++) {
 				if (this.current.checkCollision(this.board, null, ghostY)) {
 					ctx.fillStyle = this.current.outlineColor;
 					let tetriminoX = this.gridX + this.current.x * this.minoSize;
@@ -549,6 +565,7 @@ class PlayScreenBase {
 		}
 		this.nextTetrimino();
 		this.isClearing = false;
+		this.clearedLines = [];
 		this.recordAction("afterClear", time);
 	}
 
@@ -689,7 +706,7 @@ class PlayScreenBase {
 		this.tetriminoes++;
 		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {
-			this.board[mino[0]][mino[1]] = new Mino(mino[2], this.current.textureY);
+			this.board[mino[0]][mino[1]] = new Mino(mino[2], this.current.textureY, this.getMinoDisappearanceTime());
 			if (++this.minos[mino[1]] == 10) toClear.push(mino[1]);
 		}
 		this.totalMinos += 4;
@@ -701,8 +718,8 @@ class PlayScreenBase {
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		if (!this.isSeeking && tSpinType) sfx.tSpin.play();
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
+		this.clearLines(toClear);
 		if (toClear.length != 0) {
-			this.clearLines(toClear);
 			this.stats[toClear.length][tSpinType ? 1 : 0]++;
 			if (this.stats[toClear.length][2] != null) this.stats[toClear.length][2]++;
 		} else {
@@ -715,6 +732,7 @@ class PlayScreenBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		this.clearedLines = toClear.sort((a, b) => a - b);
 		this.stackMinY += this.clearedLines.length;
 		this.clearEffectTime = 0;
@@ -779,6 +797,14 @@ class PlayScreenBase {
 		return 500;
 	}
 
+	getMinoDisappearanceTime() {
+		return -1;
+	}
+
+	shouldDrawGhostTetrimino() {
+		return true;
+	}
+
 	pushToQueue() {
 		let bag = [new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoZ(), new TetriminoT()];
 		for (let i = 0; i < 7; i++) {
@@ -787,7 +813,10 @@ class PlayScreenBase {
 	}
 
 	nextTetrimino() {
-		if (this.clearTime > 0) return;
+		if (this.clearTime > 0) {
+			this.current = null;
+			return;
+		}
 		this.current = this.queue.splice(0, 1)[0];
 		if (this.queue.length < 6) this.pushToQueue();
 		this.fallTime = 0;
@@ -804,6 +833,7 @@ class PlayScreenBase {
 		}
 		if (this.current.canFall(this.board)) this.current.y++;
 		this.maxY = this.current.Y;
+		if (!this.isSeeking && this.shouldHintTetrimino) sfx["tetrimino" + this.queue[0].code].play();
 	}
 
 	gameOver() {
@@ -824,7 +854,11 @@ class PlayScreenBase {
 	}
 
 	recordAction(action, timestamp = this.playTime) {
-		if (this.doSaveReplay) this.replay.actions.push([timestamp, action]);
+		if (this.doSaveReplay) {
+			if (timestamp > this.latestTime || (this.oldTimestamp != undefined && timestamp < this.oldTimestamp)) console.warn(`${timestamp} | ${this.playTime} | ${this.latestTime} | ${action}`);
+			this.replay.actions.push([timestamp, action]);
+			this.oldTimestamp = timestamp;
+		}
 	}
 
 	saveState() {
@@ -839,7 +873,7 @@ class PlayScreenBase {
 		let board = [];
 		for (let x = 0; x < 10; x++) for (let y = 0; y < 40; y++) {
 			let mino = this.board[x][y];
-			board.push(mino ? mino.textureY << 4 | mino.directions : -1);
+			board.push(mino ? [mino.directions, mino.textureY, mino.disappearTime] : -1);
 		}
 		state.board = board;
 		if (this.current == null) state.current = null;
@@ -887,10 +921,10 @@ class PlayScreenBase {
 				if (mino == -1) {
 					this.board[x][y] = undefined;
 				} else {
-					this.board[x][y] = new Mino(mino & 0b1111, mino >> 4);
-					this.stackMinY = y;
+					this.board[x][y] = new Mino(mino[0], mino[1], mino[2]);
 					minos++;
 					this.totalMinos++;
+					this.stackMinY = y;
 				}
 			}
 			this.minos[y] = minos;
@@ -902,7 +936,7 @@ class PlayScreenBase {
 			this.current.y = state.current.y;
 			this.current.state = state.current.state;
 		}
-		this.random.mt = state.randommt;
+		this.random.mt = [...state.randommt];
 		this.random.mti = state.randommti;
 		this.queue = [];
 		for (let char of state.queue) this.queue.push(new tetriminoTypeMapping[char]());
@@ -1065,6 +1099,7 @@ class GameScreenTengen extends PlayScreenBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.level < this.levels.length && this.linesOfCurrentLevel >= this.levels[this.level][0]) {
@@ -1339,6 +1374,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.linesOfCurrentLevel >= this.linesToNextLevel) {
@@ -1552,6 +1588,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		this.lines -= toClear.length; // Awarding line clears here requires custom handling, so we cancel the default behavior.
 		// Awarding lines is now handled in addReward.
@@ -1578,8 +1615,6 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 				this.totalLinesToNextLevel += this.linesToNextLevel;
 				this.isNewLevel = true;
 				this.clearTime = 1000;
-				this.current = null;
-				this.clearedLines = [];
 				if (!this.isSeeking) switch (this.level) {
 					case 6:
 						this.currentSong.pause();
@@ -1778,6 +1813,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.linesOfCurrentLevel >= this.linesToNextLevel) {
@@ -2000,6 +2036,7 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		this.linesOfCurrentLevel += toClear.length;
 		if (this.level < this.levels.length && this.linesOfCurrentLevel >= this.levels[this.level][0]) {
@@ -2199,6 +2236,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	}
 
 	clearLines(toClear) {
+		if (toClear.length == 0) return;
 		super.clearLines(toClear);
 		if (this.lines > 39) {
 			this.gameOverMessage = "40 lines have been cleared.";

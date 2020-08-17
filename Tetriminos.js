@@ -335,12 +335,18 @@ const tetriminoTypeMapping = {
 };
 
 class Mino {
-	constructor(directions, textureY) {
+	constructor(directions, textureY, disappearTime = -1) {
 		this.directions = directions;
 		this.textureY = textureY;
+		// Used in TGM Master mode's level 999. -1: Always visible; Other: If the play time is not smaller, it is invisible.
+		this.disappearTime = disappearTime;
+	}
+
+	shouldRender(playTime) {
+		return this.disappearTime == -1 || playTime < this.disappearTime;
 	}
 
 	clone() {
-		return new Mino(this.directions, this.textureY);
+		return new Mino(this.directions, this.textureY, this.visibilityCounter);
 	}
 }

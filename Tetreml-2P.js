@@ -4,9 +4,9 @@ playScreenImage.src = "Textures/Play screen two-player.png";
 const music = {
 	level1Opening: new Audio("Music/Level 1 opening.mp3"),
 	level1: new Audio("Music/Level 1 main.mp3"),
-	level6Start: new Audio("SFX/Level 6.wav"),
+	level6Start: new Audio("SFX/Level 6.mp3"),
 	level6: new Audio("Music/Level 6.mp3"),
-	level11Start: new Audio("SFX/Level 11.wav"),
+	level11Start: new Audio("SFX/Level 11.mp3"),
 	level11Opening: new Audio("Music/Level 11 opening.mp3"),
 	level11: new Audio("Music/Level 11 main.mp3"),
 	gameOverOpening: new Audio("Music/Two-player game over opening.mp3"),
@@ -100,18 +100,18 @@ const garbageAmounts = [0, 1, 2, 4, 0, 0, 1, 1, 2, 4, 6];
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
 const sfx = {
-	ready: new Audio("SFX/Ready.wav", 1),
-	countdown: new Audio("SFX/Countdown.wav", 1),
-	pause: new Audio("SFX/Pause.wav"),
-	gameOver: new Audio("SFX/Game over.wav"),
-	win: new Audio("SFX/Win.wav")
+	ready: new Audio("SFX/Ready.mp3", 1),
+	countdown: new Audio("SFX/Countdown.mp3", 1),
+	pause: new Audio("SFX/Pause.mp3"),
+	gameOver: new Audio("SFX/Game over.mp3"),
+	win: new Audio("SFX/Win.mp3")
 };
 for (let s of Object.values(sfx)) {
 	s.preload = "auto";
 	s.load();
 	audioContext.createMediaElementSource(s).connect(gainNode);
 }
-sfx.warning = new Audio("SFX/Warning.wav");
+sfx.warning = new Audio("SFX/Warning.mp3");
 sfx.warning.loop = true;
 var warningPanNode = audioContext.createStereoPanner();
 warningPanNode.connect(audioContext.destination);
@@ -126,26 +126,26 @@ for (let i = 0; i < 2; i++) {
 
 function getSFXes(panNode) {
 	return {
-		single: new SFX("SFX/Single.wav", panNode),
-		double: new SFX("SFX/Double.wav", panNode),
-		triple: new SFX("SFX/Triple.wav", panNode),
-		tetris: new SFX("SFX/Tetris.wav", panNode),
-		tSpin: new SFX("SFX/T spin.wav", panNode),
-		move: new SFX("SFX/Move.wav", panNode),
-		rotate: new SFX("SFX/Rotate.wav", panNode),
-		softDrop: new SFX("SFX/Soft drop.wav", panNode),
-		hardDrop: new SFX("SFX/Hard drop.wav", panNode),
-		lock: new SFX("SFX/Lock.wav", panNode),
-		softLock: new SFX("SFX/Soft lock.wav", panNode),
-		land: new SFX("SFX/Land.wav", panNode),
-		hold: new SFX("SFX/Hold.wav", panNode),
-		allClear: new SFX("SFX/All clear.wav", panNode),
-		afterClear: new SFX("SFX/After clear.wav", panNode),
-		attack1: new SFX("SFX/Attack 1.wav", panNode),
-		attack2: new SFX("SFX/Attack 2.wav", panNode),
-		attackNear: new SFX("SFX/Attack near.wav", panNode),
-		attackDetonating: new SFX("SFX/Attack detonating.wav", panNode),
-		defend: new SFX("SFX/Defend.wav", panNode)
+		single: new SFX("SFX/Single.mp3", panNode),
+		double: new SFX("SFX/Double.mp3", panNode),
+		triple: new SFX("SFX/Triple.mp3", panNode),
+		tetris: new SFX("SFX/Tetris.mp3", panNode),
+		tSpin: new SFX("SFX/T spin.mp3", panNode),
+		move: new SFX("SFX/Move.mp3", panNode),
+		rotate: new SFX("SFX/Rotate.mp3", panNode),
+		softDrop: new SFX("SFX/Soft drop.mp3", panNode),
+		hardDrop: new SFX("SFX/Hard drop.mp3", panNode),
+		lock: new SFX("SFX/Lock.mp3", panNode),
+		softLock: new SFX("SFX/Soft lock.mp3", panNode),
+		land: new SFX("SFX/Land.mp3", panNode),
+		hold: new SFX("SFX/Hold.mp3", panNode),
+		allClear: new SFX("SFX/All clear.mp3", panNode),
+		afterClear: new SFX("SFX/After clear.mp3", panNode),
+		attack1: new SFX("SFX/Attack 1.mp3", panNode),
+		attack2: new SFX("SFX/Attack 2.mp3", panNode),
+		attackNear: new SFX("SFX/Attack near.mp3", panNode),
+		attackDetonating: new SFX("SFX/Attack detonating.mp3", panNode),
+		defend: new SFX("SFX/Defend.mp3", panNode)
 	}
 }
 

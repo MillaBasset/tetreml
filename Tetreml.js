@@ -2,36 +2,46 @@ var playScreenImage = new Image();
 playScreenImage.src = "Textures/Play screen singleplayer.png";
 
 const sfx = {
-	ready: new SFX("SFX/Ready.wav", gainNode),
-	countdown: new SFX("SFX/Countdown.wav", gainNode),
-	single: new SFX("SFX/Single.wav", gainNode),
-	double: new SFX("SFX/Double.wav", gainNode),
-	triple: new SFX("SFX/Triple.wav", gainNode),
-	tetris: new SFX("SFX/Tetris.wav", gainNode),
-	tSpin: new SFX("SFX/T spin.wav", gainNode),
-	move: new SFX("SFX/Move.wav", gainNode),
-	rotate: new SFX("SFX/Rotate.wav", gainNode),
-	softDrop: new SFX("SFX/Soft drop.wav", gainNode),
-	hardDrop: new SFX("SFX/Hard drop.wav", gainNode),
-	lock: new SFX("SFX/Lock.wav", gainNode),
-	land: new SFX("SFX/Land.wav", gainNode),
-	hold: new SFX("SFX/Hold.wav", gainNode),
-	pause: new SFX("SFX/Pause.wav", gainNode),
-	gameOver: new SFX("SFX/Game over.wav", gainNode),
-	complete: new SFX("SFX/Win.wav", gainNode),
-	allClear: new SFX("SFX/All clear.wav", gainNode),
-	afterClear: new SFX("SFX/After clear.wav", gainNode),
-	softLock: new SFX("SFX/Soft lock.wav", gainNode)
+	ready: new SFX("SFX/Ready.mp3", gainNode),
+	countdown: new SFX("SFX/Countdown.mp3", gainNode),
+	single: new SFX("SFX/Single.mp3", gainNode),
+	double: new SFX("SFX/Double.mp3", gainNode),
+	triple: new SFX("SFX/Triple.mp3", gainNode),
+	tetris: new SFX("SFX/Tetris.mp3", gainNode),
+	tSpin: new SFX("SFX/T spin.mp3", gainNode),
+	move: new SFX("SFX/Move.mp3", gainNode),
+	rotate: new SFX("SFX/Rotate.mp3", gainNode),
+	softDrop: new SFX("SFX/Soft drop.mp3", gainNode),
+	hardDrop: new SFX("SFX/Hard drop.mp3", gainNode),
+	lock: new SFX("SFX/Lock.mp3", gainNode),
+	land: new SFX("SFX/Land.mp3", gainNode),
+	hold: new SFX("SFX/Hold.mp3", gainNode),
+	pause: new SFX("SFX/Pause.mp3", gainNode),
+	gameOver: new SFX("SFX/Game over.mp3", gainNode),
+	complete: new SFX("SFX/Win.mp3", gainNode),
+	allClear: new SFX("SFX/All clear.mp3", gainNode),
+	afterClear: new SFX("SFX/After clear.mp3", gainNode),
+	softLock: new SFX("SFX/Soft lock.mp3", gainNode),
+	tetriminoO: new SFX("SFX/Tetrimino O.mp3", gainNode),
+	tetriminoJ: new SFX("SFX/Tetrimino J.mp3", gainNode),
+	tetriminoL: new SFX("SFX/Tetrimino L.mp3", gainNode),
+	tetriminoZ: new SFX("SFX/Tetrimino Z.mp3", gainNode),
+	tetriminoS: new SFX("SFX/Tetrimino S.mp3", gainNode),
+	tetriminoT: new SFX("SFX/Tetrimino T.mp3", gainNode),
+	tetriminoI: new SFX("SFX/Tetrimino I.mp3", gainNode),
+	bell: new SFX("SFX/Bell.mp3", gainNode),
+	level999Trigger: new SFX("SFX/Level 999 trigger.mp3", gainNode)
 };
 
 const music = {
 	level1Opening: new Audio("Music/Level 1 opening.mp3"),
 	level1: new Audio("Music/Level 1 main.mp3"),
-	level6Start: new Audio("SFX/Level 6.wav"),
+	level6Start: new Audio("SFX/Level 6.mp3"),
 	level6: new Audio("Music/Level 6.mp3"),
-	level11Start: new Audio("SFX/Level 11.wav"),
+	level11Start: new Audio("SFX/Level 11.mp3"),
 	level11Opening: new Audio("Music/Level 11 opening.mp3"),
 	level11: new Audio("Music/Level 11 main.mp3"),
+	level999: new Audio("Music/Level 999.mp3")
 };
 
 for (let m of Object.values(music)) {
@@ -111,8 +121,18 @@ const zeroToNine = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // For generating handicapped
 class OptionsScreen {
 	constructor(parent) {
 		this.parent = parent;
-		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Endless (Tengen-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)"];
-		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTengen, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute];
+		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Endless (Tengen-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)"];
+		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenTengen, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute];
+		this.optionEnablingMap = [
+			[true, false, true, false, true, true, true, true],
+			[true, false, true, false, true, true, true, true],
+			[true, false, true, false, true, true, true, true],
+			[true, false, false, false, false, false, true, true],
+			[true, true, true, true, true, true, true, true],
+			[true, true, true, true, true, true, true, true],
+			[true, false, false, false, true, true, true, true],
+			[true, false, false, false, true, true, true, true]
+		];
 		this.speedCurveNames = ["Normal", "Moderate", "Speedy", "tetris.com"];
 		this.speedCurves = [
 			[[0, 550, 1000], [30, 467, 1000], [30, 400, 1000], [30, 333, 1000], [30, 283, 1000], [30, 233, 1000], [50, 183, 1000], [50, 150, 1000], [50, 117, 1000], [50, 100, 1000], [50, 92, 1000], [50, 83, 1000], [50, 75, 1000], [50, 67, 1000], [50, 63, 1000], [50, 58, 1000], [50, 54, 1000], [50, 50, 1000], [50, 46, 1000], [50, 42, 1000], [50, 39, 1000], [50, 36, 1000], [50, 33, 1000], [50, 30, 1000], [50, 27, 1000], [50, 24, 1000], [50, 22, 1000], [50, 20, 1000]],
@@ -153,21 +173,19 @@ class OptionsScreen {
 	onKeyDown(key) {
 		switch (key.code) {
 			case "ArrowDown":
-				this.selectedProperty = (this.selectedProperty + 1) % 8;
-				if (this.selectedProperty == 1 && (this.mode < 3 || this.mode > 4)) this.selectedProperty = this.mode < 3 ? 2 : 4;
-				if (this.selectedProperty == 3 && this.mode < 3) this.selectedProperty = 4;
+				do this.selectedProperty = (this.selectedProperty + 1) % 8;
+				while (!this.optionEnablingMap[this.mode][this.selectedProperty]);
 				break;
 			case "ArrowUp":
-				this.selectedProperty = (this.selectedProperty + 7) % 8;
-				if (this.selectedProperty == 3 && (this.mode < 3 || this.mode > 4)) this.selectedProperty = this.mode < 3 ? 2 : 0;
-				if (this.selectedProperty == 1 && this.mode < 3) this.selectedProperty = 0;
+				do this.selectedProperty = (this.selectedProperty + 7) % 8;
+				while (!this.optionEnablingMap[this.mode][this.selectedProperty]);
 				break;
 			case "Enter":
 				let gui = new (this.modeClasses[localStorage.tetrisMode = this.mode])(this.parent, localStorage.tetrisShowKeystrokes = this.showKeystrokes, true);
 				if (this.mode < 3) {
 					gui.level = gui.replay.modeParameters.startingLevel = localStorage.tetrisStartingLevel = this.startingLevel;
 				}
-				else if (this.mode < 5) {
+				else if (this.mode == 4 || this.mode == 5) {
 					gui.levels = gui.replay.modeParameters.levels = this.speedCurves[localStorage.tetrisSpeedCurve = this.speedCurve];
 					gui.level = gui.replay.modeParameters.startingLevel = localStorage.tetrisStartingLevel = this.startingLevel;
 					gui.speedCurve = localStorage.tetrisSpeedCurve = this.speedCurve;
@@ -182,8 +200,10 @@ class OptionsScreen {
 					}
 					gui.stackMinY = 40 - this.handicappedLines;
 				}
-				gui.autoRepeatDelay = localStorage.tetrisAutoRepeatDelay = this.autoRepeatDelay;
-				gui.autoRepeatPeriod = localStorage.tetrisAutoRepeatPeriod = this.autoRepeatPeriod;
+				if (this.mode != 3) {
+					gui.autoRepeatDelay = localStorage.tetrisAutoRepeatDelay = this.autoRepeatDelay;
+					gui.autoRepeatPeriod = localStorage.tetrisAutoRepeatPeriod = this.autoRepeatPeriod;
+				}
 				gui.softDropPeriod = localStorage.tetrisSoftDropPeriod = this.softDropPeriod;
 				openGui(gui);
 				break;
@@ -211,17 +231,17 @@ class OptionsScreen {
 	}
 
 	setMode(mode) {
-		this.mode = Math.max(0, Math.min(6, mode));
+		this.mode = Math.max(0, Math.min(7, mode));
 		this.setStartingLevel(this.startingLevel);
 	}
 
 	handleModeChange(keycode) {
 		switch (keycode) {
 			case "ArrowLeft":
-				this.setMode((this.mode + 6) % 7);
+				this.setMode((this.mode + 7) % 8);
 				break;
 			case "ArrowRight":
-				this.setMode((this.mode + 1) % 7);
+				this.setMode((this.mode + 1) % 8);
 				break;
 		}
 	}
@@ -315,6 +335,15 @@ class OptionsScreen {
 		if (keycode == "ArrowLeft" || keycode == "ArrowRight") this.setShowKeystrokes(!this.showKeystrokes);
 	}
 
+	renderOption(index, name, value, y) {
+		if (!this.optionEnablingMap[this.mode][index]) ctx.globalAlpha = 0.5;
+		ctx.textAlign = "left";
+		ctx.fillText(name, 30, y);
+		ctx.textAlign = "center";
+		ctx.fillText(value, 340, y);
+		ctx.globalAlpha = 1;
+	}
+
 	render() {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Segoe UI";
@@ -322,56 +351,27 @@ class OptionsScreen {
 		ctx.fillText("Game options", 15, 50);
 
 		ctx.font = "12px Segoe UI";
-		ctx.fillText("Mode", 30, 100);
-		if (this.mode < 3 || this.mode > 4) {
-			ctx.globalAlpha = 0.5;
-			ctx.fillText("Speed curve", 30, 128);
-			ctx.fillText("Handicapped lines", 30, 184)
-			ctx.globalAlpha = 1;
-		} else {
-			ctx.fillText("Speed curve", 30, 128);
-			ctx.fillText("Handicapped lines", 30, 184)	
-		}
-		if (this.mode > 4) {
-			ctx.globalAlpha = 0.5;
-			ctx.fillText("Starting level", 30, 156);
-			ctx.globalAlpha = 1;
-		} else ctx.fillText("Starting level", 30, 156);
-		ctx.fillText("Auto repeat delay", 30, 212);
-		ctx.fillText("Auto repeat period", 30, 240);
-		ctx.fillText("Soft drop period", 30, 268);
-		ctx.fillText("Show keystrokes", 30, 296);
-
 		ctx.fillText("\u25c4", 220, 100 + 28 * this.selectedProperty);
 		ctx.fillText("\u25ba", 455, 100 + 28 * this.selectedProperty);
-		
-		ctx.textAlign = "center";
-		ctx.fillText(this.modeNames[this.mode], 340, 100);
-		if (this.mode < 3 || this.mode > 4) {
-			ctx.globalAlpha = 0.5;
-			ctx.fillText(this.speedCurveNames[this.speedCurve], 340, 128);
-			ctx.fillText(this.handicappedLines + "", 340, 184);
-			ctx.globalAlpha = 1;
-		} else {
-			ctx.fillText(this.speedCurveNames[this.speedCurve], 340, 128);
-			ctx.fillText(this.handicappedLines + "", 340, 184);
-		}
-		if (this.mode > 4) {
-			ctx.globalAlpha = 0.5;
-			ctx.fillText(this.startingLevel + "", 340, 156);
-			ctx.globalAlpha = 1;
-		} else ctx.fillText(this.startingLevel + "", 340, 156);
-		ctx.fillText(this.autoRepeatDelay + " ms", 340, 212);
-		ctx.fillText(this.autoRepeatPeriod + " ms", 340, 240);
-		ctx.fillText(this.softDropPeriod + " ms", 340, 268);
-		ctx.fillText(this.showKeystrokes ? "On" : "Off", 340, 296);
-
-		if (this.selectedProperty > 3 && this.selectedProperty < 7) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 320, 320);
-		ctx.fillText("Press Enter to start or Esc to cancel.", 320, 340);
+		this.renderOption(0, "Mode", this.modeNames[this.mode], 100);
+		this.renderOption(1, "Speed curve", this.speedCurveNames[this.speedCurve], 128);
+		this.renderOption(2, "Starting level", this.startingLevel, 156);
+		this.renderOption(3, "Handicapped lines", this.handicappedLines, 184);
+		this.renderOption(4, "Auto repeat delay", this.autoRepeatDelay + " ms", 212);
+		this.renderOption(5, "Auto repeat period", this.autoRepeatPeriod + " ms", 240);
+		this.renderOption(6, "Soft drop period", this.softDropPeriod + " ms", 268);
+		this.renderOption(7, "Show keystrokes", this.showKeystrokes ? "On" : "Off", 296);
 
 		ctx.textAlign = "right";
-		ctx.fillText((this.autoRepeatPeriod == 0 ? "\u221e" : Math.floor(1000/this.autoRepeatPeriod)) + " blocks/second", 610, 240);
+		if (!this.optionEnablingMap[this.mode][5]) ctx.globalAlpha = 0.5;
+		ctx.fillText((this.autoRepeatPeriod == 0 ? "\u221e" : Math.floor(1000 / this.autoRepeatPeriod)) + " blocks/second", 610, 240);
+		ctx.globalAlpha = 1;
 		ctx.fillText((this.softDropPeriod == 0 ? "\u221e" : Math.floor(1000/this.softDropPeriod)) + " blocks/second", 610, 268);
+		ctx.textAlign = "left";
+		
+		ctx.textAlign = "center";
+		if (this.selectedProperty > 3 && this.selectedProperty < 7) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 320, 320);
+		ctx.fillText("Press Enter to start or Esc to cancel.", 320, 340);
 	}
 
 	close() {

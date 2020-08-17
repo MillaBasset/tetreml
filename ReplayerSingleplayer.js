@@ -4,36 +4,46 @@ var playScreenImage = new Image();
 playScreenImage.src = "Textures/Play screen singleplayer.png";
 
 const sfx = {
-	ready: new SFX("SFX/Ready.wav", gainNode),
-	countdown: new SFX("SFX/Countdown.wav", gainNode),
-	single: new SFX("SFX/Single.wav", gainNode),
-	double: new SFX("SFX/Double.wav", gainNode),
-	triple: new SFX("SFX/Triple.wav", gainNode),
-	tetris: new SFX("SFX/Tetris.wav", gainNode),
-	tSpin: new SFX("SFX/T spin.wav", gainNode),
-	move: new SFX("SFX/Move.wav", gainNode),
-	rotate: new SFX("SFX/Rotate.wav", gainNode),
-	softDrop: new SFX("SFX/Soft drop.wav", gainNode),
-	hardDrop: new SFX("SFX/Hard drop.wav", gainNode),
-	lock: new SFX("SFX/Lock.wav", gainNode),
-	land: new SFX("SFX/Land.wav", gainNode),
-	hold: new SFX("SFX/Hold.wav", gainNode),
-	pause: new SFX("SFX/Pause.wav", gainNode),
-	gameOver: new SFX("SFX/Game over.wav", gainNode),
-	complete: new SFX("SFX/Win.wav", gainNode),
-	allClear: new SFX("SFX/All clear.wav", gainNode),
-	afterClear: new SFX("SFX/After clear.wav", gainNode),
-	softLock: new SFX("SFX/Soft lock.wav", gainNode)
+	ready: new SFX("SFX/Ready.mp3", gainNode),
+	countdown: new SFX("SFX/Countdown.mp3", gainNode),
+	single: new SFX("SFX/Single.mp3", gainNode),
+	double: new SFX("SFX/Double.mp3", gainNode),
+	triple: new SFX("SFX/Triple.mp3", gainNode),
+	tetris: new SFX("SFX/Tetris.mp3", gainNode),
+	tSpin: new SFX("SFX/T spin.mp3", gainNode),
+	move: new SFX("SFX/Move.mp3", gainNode),
+	rotate: new SFX("SFX/Rotate.mp3", gainNode),
+	softDrop: new SFX("SFX/Soft drop.mp3", gainNode),
+	hardDrop: new SFX("SFX/Hard drop.mp3", gainNode),
+	lock: new SFX("SFX/Lock.mp3", gainNode),
+	land: new SFX("SFX/Land.mp3", gainNode),
+	hold: new SFX("SFX/Hold.mp3", gainNode),
+	pause: new SFX("SFX/Pause.mp3", gainNode),
+	gameOver: new SFX("SFX/Game over.mp3", gainNode),
+	complete: new SFX("SFX/Win.mp3", gainNode),
+	allClear: new SFX("SFX/All clear.mp3", gainNode),
+	afterClear: new SFX("SFX/After clear.mp3", gainNode),
+	softLock: new SFX("SFX/Soft lock.mp3", gainNode),
+	tetriminoO: new SFX("SFX/Tetrimino O.mp3", gainNode),
+	tetriminoJ: new SFX("SFX/Tetrimino J.mp3", gainNode),
+	tetriminoL: new SFX("SFX/Tetrimino L.mp3", gainNode),
+	tetriminoZ: new SFX("SFX/Tetrimino Z.mp3", gainNode),
+	tetriminoS: new SFX("SFX/Tetrimino S.mp3", gainNode),
+	tetriminoT: new SFX("SFX/Tetrimino T.mp3", gainNode),
+	tetriminoI: new SFX("SFX/Tetrimino I.mp3", gainNode),
+	bell: new SFX("SFX/Bell.mp3", gainNode),
+	level999Trigger: new SFX("SFX/Level 999 trigger.mp3", gainNode)
 };
 
 const music = {
 	level1Opening: new Audio("Music/Level 1 opening.mp3"),
 	level1: new Audio("Music/Level 1 main.mp3"),
-	level6Start: new Audio("SFX/Level 6.wav"),
+	level6Start: new Audio("SFX/Level 6.mp3"),
 	level6: new Audio("Music/Level 6.mp3"),
-	level11Start: new Audio("SFX/Level 11.wav"),
+	level11Start: new Audio("SFX/Level 11.mp3"),
 	level11Opening: new Audio("Music/Level 11 opening.mp3"),
 	level11: new Audio("Music/Level 11 main.mp3"),
+	level999: new Audio("Music/Level 999.mp3")
 };
 
 for (let m of Object.values(music)) {
@@ -114,20 +124,21 @@ class ReplayScreen {
 			"Marathon": GameScreenGuidelineMarathon,
 			"Marathon variable": GameScreenGuidelineMarathonVariable,
 			"Marathon tetris.com": GameScreenGuidelineMarathonTetrisDotCom,
+			"Grand master": GameScreenTGM,
 			"40-line": GameScreenGuideline40Line,
 			"2-minute": GameScreenGuideline2Minute
 		}[replay.mode](null, false, false);
 		this.actionsMapping = {
-			"moveLeft": () => { this.playScreen.move(-1); },
-			"moveRight": () => { this.playScreen.move(1); },
-			"softDrop": () => { this.playScreen.softDrop(); },
-			"hardDrop": () => { this.playScreen.hardDrop(); },
-			"rotateClockwise": () => { this.playScreen.rotateClockwise(); },
-			"rotateCounterClockwise": () => { this.playScreen.rotateCounterClockwise(); },
-			"hold": () => { this.playScreen.doHold(); },
-			"afterClear": () => { this.playScreen.afterClear(); },
-			"fall": () => { this.playScreen.fall(); },
-			"lockDown": () => { this.playScreen.lockDown(); }
+			"moveLeft": () => { this.playScreen.move(-1, false, this.playScreen.playTime); },
+			"moveRight": () => { this.playScreen.move(1, false, this.playScreen.playTime); },
+			"softDrop": () => { this.playScreen.softDrop(this.playScreen.playTime); },
+			"hardDrop": () => { this.playScreen.hardDrop(this.playScreen.playTime); },
+			"rotateClockwise": () => { this.playScreen.rotateClockwise(this.playScreen.playTime); },
+			"rotateCounterClockwise": () => { this.playScreen.rotateCounterClockwise(this.playScreen.playTime); },
+			"hold": () => { this.playScreen.doHold(this.playScreen.playTime); },
+			"afterClear": () => { this.playScreen.afterClear(this.playScreen.playTime); },
+			"fall": () => { this.playScreen.fall(this.playScreen.playTime); },
+			"lockDown": () => { this.playScreen.lockDown(this.playScreen.playTime); }
 		};
 		this.length = replay.length;
 		this.actions = replay.actions;
