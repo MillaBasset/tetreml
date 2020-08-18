@@ -111,7 +111,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 
 	getMusicIndex() {
 		let res = 0;
-		while (this.level >= this.musicSegments[res][0]) res++;
+		while (this.speedLevel >= this.musicSegments[res][0]) res++;
 		return res;
 	}
 
@@ -329,7 +329,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			music.level999.pause();
 		} else this.currentSong.pause();
 		if (!this.isSeeking) (victory ? sfx.complete : sfx.gameOver).play();
-		this.gradeText = this.gradeNames[Math.max(0, this.internalGrades[Math.min(31, this.internalGrade)][0] + this.coolRegretBoost + Math.floor(this.level999Score / 100))];
+		this.gradeText = this.gradeNames[Math.min(32, Math.max(0, this.internalGrades[Math.min(31, this.internalGrade)][0] + this.coolRegretBoost + Math.floor(this.level999Score / 100)))];
 	}
 
 	getFallInterval() {
