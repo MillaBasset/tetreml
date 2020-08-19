@@ -361,17 +361,17 @@ class PlayScreenBase {
 
 		this.renderBehind(timePassed);
 
-		if (this.state != GameState.paused && this.stackMinY < 24) {
-			ctx.fillStyle = "#F00";
-			ctx.globalAlpha = 0.4;
-			ctx.fillRect(this.gridX, this.gridY + this.minoSize * 2 - 1, this.minoSize * 10, 2);
-			if (this.state != GameState.over) {
-				ctx.globalAlpha = 0.6;
-				for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 192, 0, 16, 16, this.gridX + this.minoSize * (4 + mino[0]), this.gridY + this.minoSize * (1 + mino[1]), this.minoSize, this.minoSize);
-			}
-		}
-
 		if (this.isReplay || this.state != GameState.paused) {
+			if (this.stackMinY < 24) {
+				ctx.fillStyle = "#F00";
+				ctx.globalAlpha = 0.4;
+				ctx.fillRect(this.gridX, this.gridY + this.minoSize * 2 - 1, this.minoSize * 10, 2);
+				if (this.state != GameState.over) {
+					ctx.globalAlpha = 0.6;
+					for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 192, 0, 16, 16, this.gridX + this.minoSize * (4 + mino[0]), this.gridY + this.minoSize * (1 + mino[1]), this.minoSize, this.minoSize);
+				}
+			}
+
 			ctx.globalAlpha = 0.7;
 			for (let x = 0; x < 10; x++) {
 				for (let y = 18; y < 40; y++) {
