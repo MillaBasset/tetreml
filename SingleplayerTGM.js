@@ -257,6 +257,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			this.tetriminoDelay = this.timingSteps[this.timingStepPointer][1];
 			this.clearDelay = this.timingSteps[this.timingStepPointer][2];
 			this.autoRepeatDelay = this.timingSteps[this.timingStepPointer][3];
+			this.lockDelay = this.timingSteps[this.timingStepPointer][4];
 		}
 	}
 
