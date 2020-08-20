@@ -1,6 +1,7 @@
-// Version: 7
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
+	event.waitUntil(caches.open("TetremlCustomAssets"));
 	event.waitUntil(caches.delete("Tetreml"));
 	event.waitUntil(caches.open("Tetreml").then(function(cache) { return cache.addAll([
 		'Font/font.css',
@@ -81,6 +82,7 @@ self.addEventListener('install', function (event) {
 		'Textures/Sprite two-player.png',
 
 		'Controls.js',
+		'Customizer.html',
 		'/favicon.ico',
 		'Fumen.js',
 		'HTMLHandler.js',
@@ -110,10 +112,8 @@ self.addEventListener('activate', function (event) {
 });
 
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
 	event.respondWith(
-		caches.match(event.request).then(function (response) {
-			return response || fetch(event.request);
-		})
+		(async () => { return (new URL(event.request.url).searchParams.get("state") != "original" && (await caches.match(event.request, { cacheName: "TetremlCustomAssets" }))) || (await caches.match(event.request, { cacheName: "Tetreml" })) || fetch(event.request); })()
 	);
 });

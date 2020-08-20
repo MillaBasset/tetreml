@@ -542,7 +542,7 @@ class PlayScreen {
 			ctx.fillRect(240, 35, 160, 2);
 			if (this.state != GameState.over) {
 				ctx.globalAlpha = 0.6;
-				for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 192, 0, 16, 16, 240 + 16 * (4 + mino[0]), 4 + 16 * (1 + mino[1]), 16, 16);
+				for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 64, 128, 16, 16, 240 + 16 * (4 + mino[0]), 4 + 16 * (1 + mino[1]), 16, 16);
 			}
 		}
 
@@ -585,7 +585,7 @@ class PlayScreen {
 		let newParticles = [];
 		for (let particle of this.particles) {
 			let ratio = particle.time / particle.lifetime;
-			ctx.drawImage(sprite, 208, 0, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1-Math.pow((1-ratio), 4)) - 4.5 * ratio, 9 * (1-ratio), 9 * (1-ratio));
+			ctx.drawImage(sprite, 80, 128, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1-Math.pow((1-ratio), 4)) - 4.5 * ratio, 9 * (1-ratio), 9 * (1-ratio));
 			if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 		}
 		this.particles = newParticles;
@@ -634,11 +634,11 @@ class PlayScreen {
 		imageRendererContext.globalAlpha = 0.7;
 		for (let y = 18; y < 40; y++) for (let x = 0; x < 10; x++) {
 			let mino = this.board[x][y];
-			if (mino) imageRendererContext.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, x * 16, (y - 18) * 16, 16, 16);
+			if (mino) imageRendererContext.drawImage(sprite, mino.directions * 16, mino.textureY * 16, 16, 16, x * 16, (y - 18) * 16, 16, 16);
 		}
 		imageRendererContext.globalAlpha = 1;
 		if (this.state != GameState.over && this.current != null) for (let mino of this.current.states[this.current.state])
-			imageRendererContext.drawImage(sprite, mino[2] * 8, this.current.textureY, 8, 8, (this.current.x + mino[0]) * 16, (this.current.y + mino[1] - 18) * 16, 16, 16);
+			imageRendererContext.drawImage(sprite, mino[2] * 16, this.current.textureY * 16, 16, 16, (this.current.x + mino[0]) * 16, (this.current.y + mino[1] - 18) * 16, 16, 16);
 		this.resetKeys();
 		openRenderedImage();
 	}
@@ -665,14 +665,14 @@ class PlayScreen {
 
 	renderMino(x, y, directions, textureY) {
 		if (y < 18 || y > 39) return;
-		ctx.drawImage(sprite, 8 * directions, textureY, 8, 8, 240 + x * 16, 4 + 16*(y-18), 16, 16);
+		ctx.drawImage(sprite, 16 * directions, textureY * 16, 16, 16, 240 + x * 16, 4 + 16*(y-18), 16, 16);
 	}
 
 	renderTetrimino(tetrimino, x, y, gray = false) {
 		if (!(tetrimino instanceof TetriminoI) && !(tetrimino instanceof TetriminoO)) x += 8;
 		if (tetrimino instanceof TetriminoI) y -= 8;
 		for (let mino of tetrimino.states[0]) {
-			ctx.drawImage(sprite, 8 * mino[2], gray ? 0 : tetrimino.textureY, 8, 8, x + 16 * mino[0], y + 16 * mino[1], 16, 16);
+			ctx.drawImage(sprite, 16 * mino[2], gray ? 0 : tetrimino.textureY * 16, 16, 16, x + 16 * mino[0], y + 16 * mino[1], 16, 16);
 		}
 	}
 
@@ -876,7 +876,7 @@ class PaneDrawAndMain {
 				imageRendererContext.clearRect(0, 0, 160, 352);
 				for (let y = 18; y < 40; y++) for (let x = 0; x < 10; x++) {
 					let mino = this.owner.board[x][y];
-					if (mino) imageRendererContext.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, x * 16, (y - 18) * 16, 16, 16);
+					if (mino) imageRendererContext.drawImage(sprite, mino.directions * 16, mino.textureY * 16, 16, 16, x * 16, (y - 18) * 16, 16, 16);
 				}
 				openRenderedImage();
 			}),
@@ -945,7 +945,7 @@ class PaneDrawAndMain {
 		ctx.imageSmoothingEnabled = false;
 		ctx.textAlign = "center";
 		for (let i = 0; i < 8; i++) {
-			ctx.drawImage(sprite, 0, i * 8, 8, 8, 270 + 37 * i, 162, 32, 32);
+			ctx.drawImage(sprite, 0, i * 16, 16, 16, 270 + 37 * i, 162, 32, 32);
 			ctx.fillText(this.owner.colorKeyNameMapping[i], 286 + 37 * i, 208);
 		}
 
@@ -1019,7 +1019,7 @@ class PaneTetriminoes {
 		ctx.textAlign = "center";
 		for (let i = 0; i < 9; i++) ctx.fillText(this.owner.colorKeyNameMapping[i], this.holdHover[i][0] + this.holdHover[i][2] / 2, 97);
 		for (let i = 1; i < 8; i++) this.owner.renderTetrimino(this.holdTetriminoMapping[i], this.holdDrawX[i], 76);
-		ctx.drawImage(sprite, 192, 0, 16, 16, 595, 68, 16, 16);
+		ctx.drawImage(sprite, 64, 128, 16, 16, 595, 68, 16, 16);
 		ctx.strokeStyle = "#FFF";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(...this.holdBorders[this.owner.hold]);
@@ -1147,7 +1147,7 @@ class EditScreen {
 				switch (this.modifier) {
 					case 0: // Set cell
 						if (this.performed[cell.y*10+cell.x]) return;
-						this.board[cell.x][cell.y] = new Mino(0, this.color * 8);
+						this.board[cell.x][cell.y] = new Mino(0, this.color);
 						if (cell.x > 0 && this.board[cell.x-1][cell.y]) this.board[cell.x-1][cell.y].directions &= 0b0111;
 						if (cell.x < 9 && this.board[cell.x+1][cell.y]) this.board[cell.x+1][cell.y].directions &= 0b1101;
 						if (this.board[cell.x][cell.y-1]) this.board[cell.x][cell.y-1].directions &= 0b1110;
@@ -1157,7 +1157,7 @@ class EditScreen {
 					case 1: // Set row
 						if (this.performed[cell.y]) return;
 						for (let x = 0; x < 10; x++) {
-							this.board[x][cell.y] = new Mino(0, this.color * 8);
+							this.board[x][cell.y] = new Mino(0, this.color);
 							if (this.board[x][cell.y - 1]) this.board[x][cell.y - 1].directions &= 0b1110;
 							if (cell.y < 40 && this.board[x][cell.y+1]) this.board[x][cell.y+1].directions &= 0b1011;
 						}
@@ -1216,7 +1216,7 @@ class EditScreen {
 						this.performed = 1;
 						break;
 					case 3: // Copy color
-						this.color = this.board[cell.x][cell.y].textureY / 8;
+						this.color = this.board[cell.x][cell.y].textureY;
 						break;
 				}
 				break;
@@ -1310,7 +1310,7 @@ class EditScreen {
 
 	renderTetrimino(tetrimino, x, y) {
 		for (let mino of tetrimino.states[0])
-			ctx.drawImage(sprite, mino[2] * 8, tetrimino.textureY, 8, 8, x + 8 * mino[0], y + 8 * mino[1], 8, 8);
+			ctx.drawImage(sprite, mino[2] * 16, tetrimino.textureY * 16, 16, 16, x + 8 * mino[0], y + 8 * mino[1], 8, 8);
 	}
 
 	render() {
@@ -1319,7 +1319,7 @@ class EditScreen {
 		// Render the current board.
 		for (let x = 0; x < 10; x++) for (let y = 18; y < 40; y++) {
 			let mino = this.board[x][y];
-			if (mino) ctx.drawImage(sprite, mino.directions * 8, mino.textureY, 8, 8, 22 + 16 * x, -284 + 16 * y, 16, 16);
+			if (mino) ctx.drawImage(sprite, mino.directions * 16, mino.textureY * 16, 16, 16, 22 + 16 * x, -284 + 16 * y, 16, 16);
 		}
 		ctx.fillStyle = "#FFF";
 		if (!this.paneFlag && this.mouseX != null) {
@@ -1384,7 +1384,7 @@ class EditScreen {
 			line = "";
 			for (let x = 0; x < 10; x++) {
 				let mino = this.board[x][y];
-				line += String.fromCharCode(mino ? 128 | (mino.textureY << 1) | mino.directions : 0);
+				line += String.fromCharCode(mino ? 128 | (mino.textureY << 4) | mino.directions : 0);
 				if (mino) minY = y;
 			}
 			str = line + str;
@@ -1410,7 +1410,7 @@ class EditScreen {
 		let code = 0;
 		for (let i = 0; i < lines; i++) for (let x = 0; x < 10; x++) {
 			code = str.charCodeAt(1 + i * 10 + x);
-			if (code & 128) board[x][minY + i] = new Mino(code & 15, (code & 112) >> 1);
+			if (code & 128) board[x][minY + i] = new Mino(code & 15, (code & 112) >> 4);
 		}
 
 		let pos = lines * 10 + 1;

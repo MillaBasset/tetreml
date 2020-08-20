@@ -149,7 +149,7 @@ class TetriminoI extends Tetrimino {
 				2: [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]
 			}
 		}
-		this.textureY = 8;
+		this.textureY = 1;
 		this.outlineColor = "#009898"; // Used for drawing ghost pieces.
 		this.code = "I"; // Used for saving replays.
 		this.fumenOffsetX = [0, 1, 1, 0];
@@ -171,7 +171,7 @@ class TetriminoJ extends Tetrimino {
 		this.leftX = [-1, 0, -1, -1];
 		this.width = [3, 2, 3, 2];
 		this.kickData = kickJSLTZ;
-		this.textureY = 16;
+		this.textureY = 2;
 		this.outlineColor = "#333398";
 		this.code = "J";
 	}
@@ -191,7 +191,7 @@ class TetriminoL extends Tetrimino {
 		this.leftX = [-1, 0, -1, -1];
 		this.width = [3, 2, 3, 2];
 		this.kickData = kickJSLTZ;
-		this.textureY = 24;
+		this.textureY = 3;
 		this.outlineColor = "#986500";
 		this.code = "L";
 	}
@@ -207,7 +207,7 @@ class TetriminoO extends Tetrimino {
 		this.topY = [-1];
 		this.leftX = [0];
 		this.width = [2];
-		this.textureY = 32;
+		this.textureY = 4;
 		this.outlineColor = "#989800";
 		this.code = "O";
 	}
@@ -229,7 +229,7 @@ class TetriminoS extends Tetrimino {
 		this.leftX = [-1, 0, -1, -1];
 		this.width = [3, 2, 3, 2];
 		this.kickData = kickJSLTZ;
-		this.textureY = 40;
+		this.textureY = 5;
 		this.outlineColor = "#009800";
 		this.code = "S";
 	}
@@ -249,7 +249,7 @@ class TetriminoT extends Tetrimino {
 		this.leftX = [-1, 0, -1, -1];
 		this.width = [3, 2, 3, 2];
 		this.kickData = kickJSLTZ;
-		this.textureY = 48;
+		this.textureY = 6;
 		this.outlineColor = "#692398";
 		this.code = "T";
 
@@ -318,7 +318,7 @@ class TetriminoZ extends Tetrimino {
 		this.leftX = [-1, 0, -1, -1];
 		this.width = [3, 2, 3, 2];
 		this.kickData = kickJSLTZ;
-		this.textureY = 56;
+		this.textureY = 7;
 		this.outlineColor = "#983030";
 		this.code = "Z";
 	}

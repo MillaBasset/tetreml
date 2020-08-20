@@ -868,7 +868,7 @@ class Playfield {
 			ctx.fillRect(this.xPos, this.yPos + 23, 120, 2);
 			if (this.parent.state != GameState.over || this.parent.loser != this.player) {
 				ctx.globalAlpha = 0.6;
-				for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 96, 24, 12, 12, this.xPos + 12 * (4 + mino[0]), this.yPos + 12 * (1 + mino[1]), 12, 12);
+				for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 19, 144, 12, 12, this.xPos + 12 * (4 + mino[0]), this.yPos + 12 * (1 + mino[1]), 12, 12);
 			}
 		}
 		ctx.globalAlpha = this.warningTime / 2500;
@@ -913,14 +913,14 @@ class Playfield {
 			if (this.garbageQueue.length != 0) {
 				let x = this.xPos - 15;
 				let y = this.yPos + 263;
-				let textureY = (this.garbagePhase == 2) && (this.parent.state == GameState.playing) && (Math.floor(this.garbageTime / 250) % 2 == 1) ? 0 : 6 + 6 * this.garbagePhase;
+				let textureY = (this.garbagePhase == 2) && (this.parent.state == GameState.playing) && (Math.floor(this.garbageTime / 250) % 2 == 1) ? 128 : 140 + 12 * this.garbagePhase;
 				for (let i = 0; i < this.garbageQueue[0]; i++) {
-					ctx.drawImage(sprite, 96, textureY, 6, 6, x, y -= 12, 12, 12);
+					ctx.drawImage(sprite, 0, textureY, 12, 12, x, y -= 12, 12, 12);
 				}
 				for (let j = 1; j < this.garbageQueue.length; j++) {
 					y -= 4;
 					for (let i = 0; i < this.garbageQueue[j]; i++) {
-						ctx.drawImage(sprite, 96, 0, 6, 6, x, y -= 12, 12, 12);
+						ctx.drawImage(sprite, 0, 128, 12, 12, x, y -= 12, 12, 12);
 					}
 				}
 			}
@@ -933,20 +933,20 @@ class Playfield {
 		ctx.imageSmoothingEnabled = true;
 
 		if (this.showKeystrokes) {
-			ctx.drawImage(sprite, this.buttonStatus.hardDrop ? 118 : 102, 0, 16, 16, this.keystrokesX + 18, this.keystrokesY, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.left ? 118 : 102, 0, 16, 16, this.keystrokesX, this.keystrokesY + 18, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.softDrop ? 118 : 102, 0, 16, 16, this.keystrokesX + 18, this.keystrokesY + 18, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.right ? 118 : 102, 0, 16, 16, this.keystrokesX + 36, this.keystrokesY + 18, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.rotateCounterClockwise ? 118 : 102, 0, 16, 16, this.keystrokesX + 59, this.keystrokesY, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.rotateClockwise ? 118 : 102, 0, 16, 16, this.keystrokesX + 77, this.keystrokesY, 16, 16);
-			ctx.drawImage(sprite, this.buttonStatus.hold ? 168 : 134, 0, 34, 16, this.keystrokesX + 59, this.keystrokesY + 18, 34, 16);
+			ctx.drawImage(sprite, this.buttonStatus.hardDrop ? 28 : 12, 128, 16, 16, this.keystrokesX + 18, this.keystrokesY, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.left ? 28 : 12, 128, 16, 16, this.keystrokesX, this.keystrokesY + 18, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.softDrop ? 28 : 12, 128, 16, 16, this.keystrokesX + 18, this.keystrokesY + 18, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.right ? 28 : 12, 128, 16, 16, this.keystrokesX + 36, this.keystrokesY + 18, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.rotateCounterClockwise ? 28 : 12, 128, 16, 16, this.keystrokesX + 59, this.keystrokesY, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.rotateClockwise ? 28 : 12, 128, 16, 16, this.keystrokesX + 77, this.keystrokesY, 16, 16);
+			ctx.drawImage(sprite, this.buttonStatus.hold ? 78 : 44, 128, 34, 16, this.keystrokesX + 59, this.keystrokesY + 18, 34, 16);
 		}
 
 		if (this.parent.state != GameState.paused) {
 			let newParticles = [];
 			for (let particle of this.particles) {
 				let ratio = particle.time / particle.lifetime;
-				ctx.drawImage(sprite, 102, 16, 7, 7, particle.x + 3.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 3.5 * ratio, 7 * (1 - ratio), 7 * (1 - ratio));
+				ctx.drawImage(sprite, 12, 144, 7, 7, particle.x + 3.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 3.5 * ratio, 7 * (1 - ratio), 7 * (1 - ratio));
 				if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 			}
 			this.particles = newParticles;
@@ -995,14 +995,14 @@ class Playfield {
 
 	renderMino(x, y, directions, textureY) {
 		if (y < 18 || y > 39) return;
-		ctx.drawImage(sprite, 6 * directions, textureY, 6, 6, this.xPos + x * 12, this.yPos + 12*(y-18), 12, 12);
+		ctx.drawImage(sprite, 12 * directions, textureY * 12, 12, 12, this.xPos + x * 12, this.yPos + 12*(y-18), 12, 12);
 	}
 
 	renderTetrimino(tetrimino, x, y, gray = false) {
 		if (!(tetrimino instanceof TetriminoI) && !(tetrimino instanceof TetriminoO)) x += 6;
 		if (tetrimino instanceof TetriminoI) y -= 6;
 		for (let mino of tetrimino.states[0]) {
-			ctx.drawImage(sprite, 6 * mino[2], gray ? 0 : tetrimino.textureY, 6, 6, x + 12 * mino[0], y + 12 * mino[1], 12, 12);
+			ctx.drawImage(sprite, 12 * mino[2], gray ? 0 : tetrimino.textureY * 12, 12, 12, x + 12 * mino[0], y + 12 * mino[1], 12, 12);
 		}
 	}
 

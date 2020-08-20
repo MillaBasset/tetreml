@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Tetreml – Customize appearance</title>
+		<link rel="manifest" href="manifest.json">
+		<script src="ProgressiveInstaller.js"></script><style>
+			body, input, select, button {
+				font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+				font-size: 12px;
+			}
+
+			body {
+				margin: 15px;
+			}
+
+			h1, h2, h3 {
+				font-family: 'Segoe UI Light', Helvetica, Arial, sans-serif;
+				font-weight: normal;
+			}
+
+			h1 {
+				font-size: 40px;
+				margin-top: 5px;
+				margin-bottom: 3px;
+			}
+
+			p {
+				text-align: justify;
+			}
+
+			ul {
+				list-style-type: "– ";
+			}
+		</style>
+	</head>
+	<body>
+		<p><a href="index.html">Back to home</a></p>
+		<h1>Customize appearance</h1>
+		<p>Here you can apply your own textures for use in <i>Tetreml</i>.</p>
+		<br>
+		<label for=selector>Texture type: </label>
+		<select id=selector onchange="updateInfo()">
+			<option selected>Play screen – Singleplayer & sandbox</option>
+			<option>Play screen – Two-player</option>
+			<option>Edit screen – Sandbox</option>
+			<option>Sprite – Singleplayer & Sandbox</option>
+			<option>Sprite – Two-player</option>
+		</select>
+		<p>
+			<b>Description: </b><span id=description></span><br>
+			<b>Texture size: </b><span id=size></span>
+		</p>
+		<label for=fileInput>File to apply: </label>
+		<input type=file id=fileInput accept="image/*" oninput="fileInputChange()">
+		<br>
+		<p>Before applying, please make sure your texture has the size matching the above.</p>
+		<button id=buttonApply disabled=true onclick="apply()">Apply</button><br>
+		<button onclick="reset()">Reset</button><br>
+		<button onclick="viewCurrent()">View current</button><br>
+		<button onclick="viewDefault()">View default</button><br>
+		<br>
+		<button onclick="resetAll()">Reset all textures</button>
+
+		<script>
+			const fileNames = [
+				"Play screen singleplayer.png",
+				"Play screen two player.png",
+				"Sandbox edit screen.png",
+				"Sprite singleplayer.png",
+				"Sprite two-player.png"
+			];
+			const fileDescriptions = [
+				"The in-game background texture in singleplayer and sandbox.",
+				"The in-game background texture in two-player.",
+				"The background of edit mode in sandbox.",
+				"The sprite for singleplayer and sandbox. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle and keystroke shapes.",
+				"The sprite for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
+			];
+			const fileSizes = [
+				"640 . 360",
+				"640 . 360",
+				"640 . 360",
+				"256 . 256",
+				"256 . 256"
+			];
+
+			var theCache = null;
+			(async () => { theCache = await caches.open("TetremlCustomAssets"); })();
+
+			function getIndex() {
+				return document.getElementById("selector").selectedIndex;
+			}
+
+			function updateInfo() {
+				let index = getIndex();
+				document.getElementById("description").innerHTML = fileDescriptions[index];
+				document.getElementById("size").innerHTML = fileSizes[index];
+			}
+
+			function getPath(index = getIndex()) {
+				return "Textures/" + fileNames[index];
+			}
+
+			function fileInputChange() {
+				document.getElementById("buttonApply").disabled = document.getElementById("fileInput").files.length == 0;
+			}
+
+			function apply() {
+				if (theCache == null) return;
+				let files = document.getElementById("fileInput").files;
+				if (files.length == 0) return;
+				theCache.put(getPath(), new Response(files[0]));
+				alert("The texture has been applied.");
+			}
+
+			function reset() {
+				if (theCache == null) return;
+				theCache.delete(getPath());
+				alert("The texture has been reset to default.");
+			}
+
+			function openURL(url) {
+				let element = document.createElement("a");
+				element.href = url;
+				element.target = "_blank";
+				element.click();
+			}
+
+			function viewCurrent() {
+				openURL(getPath());
+			}
+
+			function viewDefault() {
+				openURL(getPath() + "?state=original");
+			}
+
+			function resetAll() {
+				if (theCache == null) return;
+				if (!confirm("Are you sure you want to reset all textures? This will revert all of them to default.")) return;
+				for (let i = 0; i < 5; i++) theCache.delete(getPath(i));
+				alert("All textures have been reset to default.");
+			}
+
+			updateInfo();
+		</script>
+	</body>
+</html>

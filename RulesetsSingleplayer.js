@@ -368,7 +368,7 @@ class PlayScreenBase {
 				ctx.fillRect(this.gridX, this.gridY + this.minoSize * 2 - 1, this.minoSize * 10, 2);
 				if (this.state != GameState.over) {
 					ctx.globalAlpha = 0.6;
-					for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 192, 0, 16, 16, this.gridX + this.minoSize * (4 + mino[0]), this.gridY + this.minoSize * (1 + mino[1]), this.minoSize, this.minoSize);
+					for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 64, 128, 16, 16, this.gridX + this.minoSize * (4 + mino[0]), this.gridY + this.minoSize * (1 + mino[1]), this.minoSize, this.minoSize);
 				}
 			}
 
@@ -414,13 +414,13 @@ class PlayScreenBase {
 		}
 
 		if (this.showKeystrokes) {
-			ctx.drawImage(sprite, buttonStatus.hardDrop ? 160 : 128, 0, 32, 32, this.gridX + 223, this.gridY + 203, 32, 32);
-			ctx.drawImage(sprite, buttonStatus.left ? 160 : 128, 0, 32, 32, this.gridX + 189, this.gridY + 237, 32, 32);
-			ctx.drawImage(sprite, buttonStatus.softDrop ? 160 : 128, 0, 32, 32, this.gridX + 223, this.gridY + 237, 32, 32);
-			ctx.drawImage(sprite, buttonStatus.right ? 160 : 128, 0, 32, 32, this.gridX + 257, this.gridY + 237, 32, 32);
-			ctx.drawImage(sprite, buttonStatus.rotateCounterClockwise ? 160 : 128, 0, 32, 32, this.gridX + 307, this.gridY + 203, 32, 32);
-			ctx.drawImage(sprite, buttonStatus.rotateClockwise ? 160 : 128, 0, 32, 32, this.gridX + 341, this.gridY + 203, 32, 32);
-			ctx.drawImage(sprite, 128, buttonStatus.hold ? 64 : 32, 66, 32, this.gridX + 307, this.gridY + 237, 66, 32);
+			ctx.drawImage(sprite, buttonStatus.hardDrop ? 32 : 0, 128, 32, 32, this.gridX + 223, this.gridY + 203, 32, 32);
+			ctx.drawImage(sprite, buttonStatus.left ? 32 : 0, 128, 32, 32, this.gridX + 189, this.gridY + 237, 32, 32);
+			ctx.drawImage(sprite, buttonStatus.softDrop ? 32 : 0, 128, 32, 32, this.gridX + 223, this.gridY + 237, 32, 32);
+			ctx.drawImage(sprite, buttonStatus.right ? 32 : 0, 128, 32, 32, this.gridX + 257, this.gridY + 237, 32, 32);
+			ctx.drawImage(sprite, buttonStatus.rotateCounterClockwise ? 32 : 0, 128, 32, 32, this.gridX + 307, this.gridY + 203, 32, 32);
+			ctx.drawImage(sprite, buttonStatus.rotateClockwise ? 32 : 0, 128, 32, 32, this.gridX + 341, this.gridY + 203, 32, 32);
+			ctx.drawImage(sprite, 0, buttonStatus.hold ? 192 : 160, 66, 32, this.gridX + 307, this.gridY + 237, 66, 32);
 
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#FFF";
@@ -440,7 +440,7 @@ class PlayScreenBase {
 			let newParticles = [];
 			for (let particle of this.particles) {
 				let ratio = particle.time / particle.lifetime;
-				ctx.drawImage(sprite, 208, 0, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 4.5 * ratio, 9 * (1 - ratio), 9 * (1 - ratio));
+				ctx.drawImage(sprite, 80, 128, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 4.5 * ratio, 9 * (1 - ratio), 9 * (1 - ratio));
 				if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 			}
 			this.particles = newParticles;
@@ -542,14 +542,14 @@ class PlayScreenBase {
 
 	renderMino(x, y, directions, textureY) {
 		if (y < 18 || y > 39) return;
-		ctx.drawImage(sprite, 8 * directions, textureY, 8, 8, this.gridX + x * this.minoSize, this.gridY + this.minoSize*(y-18), this.minoSize, this.minoSize);
+		ctx.drawImage(sprite, 16 * directions, textureY * 16, 16, 16, this.gridX + x * this.minoSize, this.gridY + this.minoSize*(y-18), this.minoSize, this.minoSize);
 	}
 
 	renderTetrimino(tetrimino, x, y, gray = false) {
 		if (!(tetrimino instanceof TetriminoI) && !(tetrimino instanceof TetriminoO)) x += this.minoSize/2;
 		if (tetrimino instanceof TetriminoI) y -= this.minoSize/2;
 		for (let mino of tetrimino.states[0]) {
-			ctx.drawImage(sprite, 8 * mino[2], gray ? 0 : tetrimino.textureY, 8, 8, x + this.minoSize * mino[0], y + this.minoSize * mino[1], this.minoSize, this.minoSize);
+			ctx.drawImage(sprite, 16 * mino[2], gray ? 0 : tetrimino.textureY * 16, 16, 16, x + this.minoSize * mino[0], y + this.minoSize * mino[1], this.minoSize, this.minoSize);
 		}
 	}
 
