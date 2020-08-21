@@ -7,6 +7,9 @@ playScreenImage.src = "Textures/Play screen singleplayer.png";
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
 
+var outlineSprite = new Image();
+outlineSprite.src = "Textures/Outline sprite singleplayer.png";
+
 var imageRenderer = document.getElementById('imageRenderer');
 var imageRendererContext = imageRenderer.getContext('2d');
 imageRendererContext.imageSmoothingEnabled = false;
@@ -183,6 +186,10 @@ class PlayScreen {
 		this.nextTetrimino();
 		music.currentTime = 0;
 		music.play();
+	}
+
+	isMinoVisible(x, y) {
+		return x > -1 && x < 10 && y > -1 && y < 40 && this.board[x][y] != undefined;
 	}
 
 	render() {
@@ -549,28 +556,27 @@ class PlayScreen {
 		ctx.globalAlpha = 0.7;
 		for (let x = 0; x < 10; x++) {
 			for (let y = 18; y < 40; y++) {
-				if (this.board[x][y] != undefined) this.renderMino(x, y, this.board[x][y].directions, this.board[x][y].textureY);
+				let mino = this.board[x][y];
+				if (mino != undefined) {
+					this.renderMino(x, y, mino.directions, mino.textureY);
+					let minoX = 240 + x * 16;
+					let minoY = 4 + 16 * (y - 18);
+					let uldr = this.isMinoVisible(x + 1, y) << 3 | this.isMinoVisible(x, y - 1) << 2 | this.isMinoVisible(x - 1, y) << 1 | this.isMinoVisible(x, y + 1); // Up left down right.
+					ctx.drawImage(outlineSprite, 16 * uldr, 128, 16, 16, minoX, minoY, 16, 16);
+					if (!this.isMinoVisible(x-1, y-1) && (uldr & 0b0110) == 0b0110) ctx.drawImage(outlineSprite, 0, 144, 16, 16, minoX, minoY, 16, 16);
+					if (!this.isMinoVisible(x+1, y-1) && (uldr & 0b1100) == 0b1100) ctx.drawImage(outlineSprite, 16, 144, 16, 16, minoX, minoY, 16, 16);
+					if (!this.isMinoVisible(x+1, y+1) && (uldr & 0b1001) == 0b1001) ctx.drawImage(outlineSprite, 32, 144, 16, 16, minoX, minoY, 16, 16);
+					if (!this.isMinoVisible(x-1, y+1) && (uldr & 0b0011) == 0b0011) ctx.drawImage(outlineSprite, 48, 144, 16, 16, minoX, minoY, 16, 16);
+				}
 			}
 		}
 		ctx.globalAlpha = 1;
 		if (this.current != null && this.state != GameState.over) for (let ghostY = this.current.y; true; ghostY++) {
 			if (this.current.checkCollision(this.board, null, ghostY)) {
-				ctx.fillStyle = this.current.outlineColor;
 				let tetriminoX = 240 + this.current.x * 16;
 				let tetriminoY = -12 + 16 * (ghostY - 18);
-				for (let mino of this.current.states[this.current.state]) {
-					let minoX = tetriminoX + mino[0] * 16;
-					let minoY = tetriminoY + mino[1] * 16;
-					if (minoY < 4) continue;
-					if (!(mino[2] & 1)) ctx.fillRect(minoX, minoY+14, 16, 2);
-					if (!(mino[2] & 2)) ctx.fillRect(minoX, minoY, 2, 16);
-					if (!(mino[2] & 4)) ctx.fillRect(minoX, minoY, 16, 2);
-					if (!(mino[2] & 8)) ctx.fillRect(minoX + 14, minoY, 2, 16);
-					if ((mino[2] & 1) && (mino[2] & 2)) ctx.fillRect(minoX, minoY + 14, 2, 2);
-					if ((mino[2] & 2) && (mino[2] & 4)) ctx.fillRect(minoX, minoY, 2, 2);
-					if ((mino[2] & 4) && (mino[2] & 8)) ctx.fillRect(minoX + 14, minoY, 2, 2);
-					if ((mino[2] & 8) && (mino[2] & 1)) ctx.fillRect(minoX + 14, minoY + 14, 2, 2);
-				}
+				for (let mino of this.current.states[this.current.state])
+					ctx.drawImage(outlineSprite, mino[2] * 16, this.current.textureY * 16, 16, 16, tetriminoX + mino[0] * 16, tetriminoY + mino[1] * 16, 16, 16);
 				break;
 			}
 		}

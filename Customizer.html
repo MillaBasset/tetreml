@@ -44,8 +44,10 @@
 			<option selected>Play screen – Singleplayer & sandbox</option>
 			<option>Play screen – Two-player</option>
 			<option>Edit screen – Sandbox</option>
-			<option>Sprite – Singleplayer & Sandbox</option>
-			<option>Sprite – Two-player</option>
+			<option>Sprite 1 – Singleplayer & Sandbox</option>
+			<option>Sprite 2 – Singleplayer & Sandbox</option>
+			<option>Sprite 1 – Two-player</option>
+			<option>Sprite 2 – Two-player</option>
 		</select>
 		<p>
 			<b>Description: </b><span id=description></span><br>
@@ -65,22 +67,28 @@
 		<script>
 			const fileNames = [
 				"Play screen singleplayer.png",
-				"Play screen two player.png",
+				"Play screen two-player.png",
 				"Sandbox edit screen.png",
 				"Sprite singleplayer.png",
-				"Sprite two-player.png"
+				"Outline sprite singleplayer.png",
+				"Sprite two-player.png",
+				"Outline sprite two-player.png"
 			];
 			const fileDescriptions = [
 				"The in-game background texture in singleplayer and sandbox.",
 				"The in-game background texture in two-player.",
 				"The background of edit mode in sandbox.",
-				"The sprite for singleplayer and sandbox. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle and keystroke shapes.",
-				"The sprite for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
+				"The sprite #1 for singleplayer and sandbox. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle and keystroke shapes.",
+				"The sprite #2 for singleplayer and sandbox. Contains ghost minoes and stack outlines.",
+				"The sprite #1 for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
+				"The sprite #2 for two-player. Contains ghost minoes and stack outlines."
 			];
 			const fileSizes = [
 				"640 . 360",
 				"640 . 360",
 				"640 . 360",
+				"256 . 256",
+				"256 . 256",
 				"256 . 256",
 				"256 . 256"
 			];

@@ -314,6 +314,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 
 	quit() {
 		if (this.level999Time > -1) music.level999.pause(); else this.currentSong.pause();
+		super.quit();
 	}
 
 	resume() {

@@ -344,6 +344,9 @@ var mainWindow = document.getElementById("mainWindow");
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
 
+var outlineSprite = new Image();
+outlineSprite.src = "Textures/Outline sprite singleplayer.png";
+
 var ctx = mainWindow.getContext("2d");
 
 var currentGui = null;

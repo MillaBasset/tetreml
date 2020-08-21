@@ -685,6 +685,10 @@ class Playfield {
 		this.pushToQueue();
 	}
 
+	isMinoVisible(x, y) {
+		return x > -1 && x < 10 && y > -1 && y < 40 && this.board[x][y] != undefined;
+	}
+
 	render(timePassed) {
 		// Process game logic.
 		if (this.parent.state == GameState.playing) {
@@ -879,29 +883,28 @@ class Playfield {
 			ctx.globalAlpha = 0.7;
 			for (let x = 0; x < 10; x++) {
 				for (let y = 18; y < 40; y++) {
-					if (this.board[x][y] != undefined) this.renderMino(x, y, this.board[x][y].directions, this.board[x][y].textureY);
+					let mino = this.board[x][y];
+					if (mino != undefined) {
+						this.renderMino(x, y, mino.directions, mino.textureY);
+						let minoX = this.xPos + x * 12;
+						let minoY = this.yPos + 12 * (y - 18);
+						let uldr = this.isMinoVisible(x + 1, y) << 3 | this.isMinoVisible(x, y - 1) << 2 | this.isMinoVisible(x - 1, y) << 1 | this.isMinoVisible(x, y + 1); // Up left down right.
+						ctx.drawImage(outlineSprite, 12 * uldr, 96, 12, 12, minoX, minoY, 12, 12);
+						if (!this.isMinoVisible(x-1, y-1) && (uldr & 0b0110) == 0b0110) ctx.drawImage(outlineSprite, 0, 108, 12, 12, minoX, minoY, 12, 12);
+						if (!this.isMinoVisible(x+1, y-1) && (uldr & 0b1100) == 0b1100) ctx.drawImage(outlineSprite, 12, 108, 12, 12, minoX, minoY, 12, 12);
+						if (!this.isMinoVisible(x+1, y+1) && (uldr & 0b1001) == 0b1001) ctx.drawImage(outlineSprite, 24, 108, 12, 12, minoX, minoY, 12, 12);
+						if (!this.isMinoVisible(x-1, y+1) && (uldr & 0b0011) == 0b0011) ctx.drawImage(outlineSprite, 36, 108, 12, 12, minoX, minoY, 12, 12);
+					}
 				}
 			}
 			ctx.globalAlpha = 1;
 			if (this.current != null && (this.parent.state != GameState.over || this.parent.loser != this.player)) {
 				for (let ghostY = this.current.y; true; ghostY++) {
 					if (this.current.checkCollision(this.board, null, ghostY)) {
-						ctx.fillStyle = this.current.outlineColor;
 						let tetriminoX = this.xPos + this.current.x * 12;
 						let tetriminoY = this.yPos + 12 * (ghostY - 19);
-						for (let mino of this.current.states[this.current.state]) {
-							let minoX = tetriminoX + mino[0] * 12;
-							let minoY = tetriminoY + mino[1] * 12;
-							if (minoY < 4) continue;
-							if (!(mino[2] & 1)) ctx.fillRect(minoX, minoY + 10, 12, 2);
-							if (!(mino[2] & 2)) ctx.fillRect(minoX, minoY, 2, 12);
-							if (!(mino[2] & 4)) ctx.fillRect(minoX, minoY, 12, 2);
-							if (!(mino[2] & 8)) ctx.fillRect(minoX + 10, minoY, 2, 12);
-							if ((mino[2] & 1) && (mino[2] & 2)) ctx.fillRect(minoX, minoY + 10, 2, 2);
-							if ((mino[2] & 2) && (mino[2] & 4)) ctx.fillRect(minoX, minoY, 2, 2);
-							if ((mino[2] & 4) && (mino[2] & 8)) ctx.fillRect(minoX + 10, minoY, 2, 2);
-							if ((mino[2] & 8) && (mino[2] & 1)) ctx.fillRect(minoX + 10, minoY + 10, 2, 2);
-						}
+						for (let mino of this.current.states[this.current.state])
+							ctx.drawImage(outlineSprite, mino[2] * 12, this.current.textureY * 12, 12, 12, tetriminoX + mino[0] * 12, tetriminoY + mino[1] * 12, 12, 12);
 						break;
 					}
 				}
@@ -1765,6 +1768,9 @@ class OptionsScreen {
 
 var sprite = new Image();
 sprite.src = "Textures/Sprite two-player.png";
+
+var outlineSprite = new Image();
+outlineSprite.src = "Textures/Outline sprite two-player.png";
 
 class MainScreen {
 	constructor(parent) {

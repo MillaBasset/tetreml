@@ -1,4 +1,4 @@
-// Version: 2
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -75,6 +75,8 @@ self.addEventListener('install', function (event) {
 		'SFX/Warning.mp3',
 		'SFX/Win.mp3',
 
+		'Textures/Outline sprite singleplayer.png',
+		'Textures/Outline sprite two-player.png',
 		'Textures/Play screen singleplayer.png',
 		'Textures/Play screen two-player.png',
 		'Textures/Sandbox edit screen.png',

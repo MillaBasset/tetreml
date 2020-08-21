@@ -385,6 +385,9 @@ class OptionsScreen {
 var sprite = new Image();
 sprite.src = "Textures/Sprite singleplayer.png";
 
+var outlineSprite = new Image();
+outlineSprite.src = "Textures/Outline sprite singleplayer.png";
+
 class MainScreen {
 	constructor(parent) {
 		this.parent = parent;
