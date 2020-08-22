@@ -4,8 +4,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
 		super(parent, showKeystrokes, doSaveReplay);
 		this.shouldHintTetrimino = true;
-		this.level = 1;
-		this.speedLevel = 1;
+		this.level = 0;
+		this.speedLevel = 0;
 		this.speedStepPointer = 0;
 		this.speedSteps = [[30, 1067], [35, 711], [40, 533], [50, 427], [60, 356], [70, 267], [80, 133], [90, 89], [100, 67], [120, 53], [140, 44], [160, 38], [170, 33], [200, 30], [220, 1067], [230, 133], [233, 67], [236, 44], [239, 33], [243, 27], [247, 22], [251, 19], [300, 17], [330, 8], [360, 5], [400, 4], [420, 3], [450, 4], [500, 5], [Infinity, 0]];
 		this.speedStepNext = this.speedSteps[0][0];
@@ -147,7 +147,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		ctx.fillText(this.score, 632, 114);
 		ctx.fillText(this.lines, 632, 134);
 
-		ctx.fillRect(485, 76, this.level < 100 ? 147 * (this.level - 1) / 99 : 147 * (this.level % 100) / (this.level > 899 ? 99 : 100), 10);
+		ctx.fillRect(485, 76, 147 * (this.level % 100) / (this.level > 899 ? 99 : 100), 10);
 
 		ctx.font = "20px Segoe UI";
 		let time = this.level == 999 ? this.lastRegretMarkTime : this.playTime;
