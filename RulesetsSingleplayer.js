@@ -146,8 +146,8 @@ class PlayScreenBase {
 			this.fallTime -= Math.min(0, this.clearTime);
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.isNewLevel && this.clearTime == 0) this.isNewLevel = false;
-			if (!this.isReplay && this.current != null) {
-				if (this.current.canFall(this.board)) {
+			if (!this.isReplay) {
+				if (this.current != null) if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
 						if (i >= afterClearTime) this.actionQueue.push([0, "fall", i]);
 					}
@@ -181,19 +181,19 @@ class PlayScreenBase {
 					}
 				} else this.buttonHardDrop = false;
 				if (buttonStatus.rotateClockwise) {
-					if (!this.buttonRotateClockwise) {
+					if (this.current != null && !this.buttonRotateClockwise) {
 						this.actionQueue.push([4, "rotateClockwise", latestTime]);
 						this.buttonRotateClockwise = true;
 					}
 				} else this.buttonRotateClockwise = false;
 				if (buttonStatus.rotateCounterClockwise) {
-					if (!this.buttonRotateCounterClockwise) {
+					if (this.current != null && !this.buttonRotateCounterClockwise) {
 						this.actionQueue.push([5, "rotateCounterClockwise", latestTime]);
 						this.buttonRotateCounterClockwise = true;
 					}
 				} else this.buttonRotateCounterClockwise = false;
 				if (buttonStatus.hold) {
-					if (!this.buttonHold) {
+					if (this.current != null && !this.buttonHold) {
 						this.actionQueue.push([6, "doHold", latestTime]);
 						this.buttonHold = true;
 					}
@@ -587,6 +587,7 @@ class PlayScreenBase {
 	}
 
 	lockDown(timestamp) {
+		if (this.current == null) return;
 		this.lock(false);
 		if (!this.isSeeking) sfx.lock.play();
 		this.recordAction("lockDown", timestamp);

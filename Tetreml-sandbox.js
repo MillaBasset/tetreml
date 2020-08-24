@@ -219,156 +219,154 @@ class PlayScreen {
 				this.nextTetrimino();
 			}
 			this.clearTime = Math.max(0, this.clearTime);
-			if (this.current != null) {
-				if (this.fallPeriod != -1) {
-					if (this.current.canFall(this.board)) {
-						let fell = false;
-						while (this.current.canFall(this.board) && this.fallTime >= this.fallPeriod) {
-							if (++this.current.y > this.maxY) {
-								this.lockTime = 0;
-								this.moveCounter = 0;
-								this.maxY = this.current.y;
-							}
-							fell = true;
-							this.fallTime -= this.fallPeriod;
+			if (this.current != null) if (this.fallPeriod != -1) {
+				if (this.current.canFall(this.board)) {
+					let fell = false;
+					while (this.current.canFall(this.board) && this.fallTime >= this.fallPeriod) {
+						if (++this.current.y > this.maxY) {
+							this.lockTime = 0;
+							this.moveCounter = 0;
+							this.maxY = this.current.y;
 						}
-						if (!this.current.canFall(this.board)) sfx.land.play();
-						if (fell) {
-							this.current.onMove();
-							this.lockTime = this.fallTime;
-						}
-					} else {
-						if (this.lockDelay != 0 && (this.lockTime += timePassed) >= this.lockDelay) {
-							this.lock(false);
-							sfx.lock.play();
-						}
+						fell = true;
+						this.fallTime -= this.fallPeriod;
 					}
-					this.fallTime = this.fallPeriod == 0 ? 0 : this.fallTime % this.fallPeriod;
-				}
-				if (buttonStatus.softDrop) {
-					if (!this.softDropLock) {
-						if (this.softDropCounter == -1) {
-							if (buttonStatus.quitModifier) {
-								let fell = false;
-								while (this.current.canFall(this.board)) {
-									this.current.y++;
-									fell = true;
-								}
-								if (fell) {
-									sfx.softDrop.play();
-									sfx.land.play();
-								}
-							} else {
-								this.softDrop();
-								this.softDropCounter = this.oldSoftDropCounter = 0;
-							}
-						} else {
-							if (this.fallPeriod != -1) {
-								this.softDropCounter += timePassed;
-								for (let i = 0; i < Math.floor(this.softDropCounter / this.softDropPeriod); i++) if (this.softDrop()) break;
-								this.softDropCounter %= this.softDropPeriod;
-							} else {
-								this.softDropCounter += timePassed;
-								for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
-								this.oldSoftDropCounter = Math.max(0, Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
-							}
-						}
+					if (!this.current.canFall(this.board)) sfx.land.play();
+					if (fell) {
+						this.current.onMove();
+						this.lockTime = this.fallTime;
 					}
 				} else {
-					this.softDropLock = false;
-					this.softDropCounter = -1;
+					if (this.lockDelay != 0 && (this.lockTime += timePassed) >= this.lockDelay) {
+						this.lock(false);
+						sfx.lock.play();
+					}
 				}
-				if (buttonStatus.hardDrop) {
-					if (!this.buttonHardDrop) {
-						if (buttonStatus.quitModifier) {
-							let page = {
-								operation: {
-									type: this.current.code,
-									rotation: fumenStateMapping[this.current.state],
-									x: this.current.x + this.current.fumenOffsetX[this.current.state],
-									y: 39 - this.current.y + this.current.fumenOffsetY[this.current.state]
-								},
-								flags: {
-									lock: false
-								}
-							};
-							if (this.hold != null) page.comment = `#Q=[${this.hold.code}](${this.current.code})`;
-							this.fumenPagesForCurrent.push(page);
-						} else {
+				this.fallTime = this.fallPeriod == 0 ? 0 : this.fallTime % this.fallPeriod;
+			}
+			if (buttonStatus.softDrop) {
+				if (!this.softDropLock) {
+					if (this.softDropCounter == -1) {
+						if (this.current != null && buttonStatus.quitModifier) {
 							let fell = false;
 							while (this.current.canFall(this.board)) {
-								if (Math.random() < 0.25) this.spawnParticle();
 								this.current.y++;
 								fell = true;
 							}
-							if (fell) this.current.onMove();
-							(fell ? sfx.hardDrop : sfx.softLock).play();
-							for (let i = 0; i < 3; i++) this.spawnParticle();
-							this.lock(2);
+							if (fell) {
+								sfx.softDrop.play();
+								sfx.land.play();
+							}
+						} else {
+							if (this.current != null) this.softDrop();
+							this.softDropCounter = this.oldSoftDropCounter = 0;
 						}
-						this.buttonHardDrop = true;
-					}
-				} else this.buttonHardDrop = false;
-				if (buttonStatus.rotateClockwise) {
-					if (!this.buttonRotateClockwise) {
-						if (buttonStatus.quitModifier) {
-							this.getFumenURL();
-						} else if (this.current.rotateClockwise(this.board)) {
-							sfx.rotate.play();
-							if (this.moveCounter++ < 15) this.lockTime = 0;
+					} else {
+						if (this.fallPeriod != -1) {
+							this.softDropCounter += timePassed;
+							if (this.current != null) for (let i = 0; i < Math.floor(this.softDropCounter / this.softDropPeriod); i++) if (this.softDrop()) break;
+							this.softDropCounter %= this.softDropPeriod;
+						} else {
+							this.softDropCounter += timePassed;
+							if (this.current != null) for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
+							this.oldSoftDropCounter = Math.max(0, Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
 						}
-						this.buttonRotateClockwise = true;
 					}
-				} else this.buttonRotateClockwise = false;
-				if (buttonStatus.rotateCounterClockwise) {
-					if (!this.buttonRotateCounterClockwise) {
-						if (buttonStatus.quitModifier) {
-							this.renderImage();
-						} else if (this.current.rotateCounterClockwise(this.board)) {
-							sfx.rotate.play();
-							if (this.moveCounter++ < 15) this.lockTime = 0;
-						}
-						this.buttonRotateCounterClockwise = true;
-					}
-				} else this.buttonRotateCounterClockwise = false;
-				if (buttonStatus.hold) {
-					if (!this.buttonHold && this.hold != -1 && !this.holdSwitched) {
-						this.current.reset();
-						this.currentFumenPageDataCart.operation = {
-							type: this.current.code,
-							rotation: fumenStateMapping[this.current.state],
-							x: this.current.x + this.current.fumenOffsetX[this.current.state],
-							y: (this.current.canFall(this.board) ? 19 : 20) + this.current.fumenOffsetY[this.current.state]
-						};
-						this.currentFumenPageDataCart.flags.lock = false;
-						this.applyFumenPageDataCart(this.currentFumenPageDataCart);
-						this.pushFumenPage();
-						this.prepareFumenPageDataCart();
-						this.fumenPagesForCurrent = [];
-						this.oldHold = this.hold;
-						this.hold = this.current;
-						if (this.oldHold == null) this.nextTetrimino(); else {
-							this.current = this.oldHold;
-							this.current.state = 0;
-							this.fallTime = 0;
-							this.lockTime = 0;
-							this.moveCounter = 0;
-							this.checkGameOver();
-						}
-						sfx.hold.play();
-						this.holdSwitched = true;
-					}
-				} else this.buttonHold = false;
-				if (buttonStatus.reset) {
-					if (!this.buttonReset) {
-						this.current.reset();
-						this.fumenPagesForCurrent = [];
-						this.checkGameOver();
-						sfx.hold.play();
-						this.buttonReset = true;
-					}
-				} else this.buttonReset = false;
+				}
+			} else {
+				this.softDropLock = false;
+				this.softDropCounter = -1;
 			}
+			if (buttonStatus.hardDrop) {
+				if (this.current != null && !this.buttonHardDrop) {
+					if (buttonStatus.quitModifier) {
+						let page = {
+							operation: {
+								type: this.current.code,
+								rotation: fumenStateMapping[this.current.state],
+								x: this.current.x + this.current.fumenOffsetX[this.current.state],
+								y: 39 - this.current.y + this.current.fumenOffsetY[this.current.state]
+							},
+							flags: {
+								lock: false
+							}
+						};
+						if (this.hold != null) page.comment = `#Q=[${this.hold.code}](${this.current.code})`;
+						this.fumenPagesForCurrent.push(page);
+					} else {
+						let fell = false;
+						while (this.current.canFall(this.board)) {
+							if (Math.random() < 0.25) this.spawnParticle();
+							this.current.y++;
+							fell = true;
+						}
+						if (fell) this.current.onMove();
+						(fell ? sfx.hardDrop : sfx.softLock).play();
+						for (let i = 0; i < 3; i++) this.spawnParticle();
+						this.lock(2);
+					}
+					this.buttonHardDrop = true;
+				}
+			} else this.buttonHardDrop = false;
+			if (buttonStatus.rotateClockwise) {
+				if (this.current != null && !this.buttonRotateClockwise) {
+					if (buttonStatus.quitModifier) {
+						this.getFumenURL();
+					} else if (this.current.rotateClockwise(this.board)) {
+						sfx.rotate.play();
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateClockwise = true;
+				}
+			} else this.buttonRotateClockwise = false;
+			if (buttonStatus.rotateCounterClockwise) {
+				if (this.current != null && !this.buttonRotateCounterClockwise) {
+					if (buttonStatus.quitModifier) {
+						this.renderImage();
+					} else if (this.current.rotateCounterClockwise(this.board)) {
+						sfx.rotate.play();
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateCounterClockwise = true;
+				}
+			} else this.buttonRotateCounterClockwise = false;
+			if (buttonStatus.hold) {
+				if (this.current != null && !this.buttonHold && this.hold != -1 && !this.holdSwitched) {
+					this.current.reset();
+					this.currentFumenPageDataCart.operation = {
+						type: this.current.code,
+						rotation: fumenStateMapping[this.current.state],
+						x: this.current.x + this.current.fumenOffsetX[this.current.state],
+						y: (this.current.canFall(this.board) ? 19 : 20) + this.current.fumenOffsetY[this.current.state]
+					};
+					this.currentFumenPageDataCart.flags.lock = false;
+					this.applyFumenPageDataCart(this.currentFumenPageDataCart);
+					this.pushFumenPage();
+					this.prepareFumenPageDataCart();
+					this.fumenPagesForCurrent = [];
+					this.oldHold = this.hold;
+					this.hold = this.current;
+					if (this.oldHold == null) this.nextTetrimino(); else {
+						this.current = this.oldHold;
+						this.current.state = 0;
+						this.fallTime = 0;
+						this.lockTime = 0;
+						this.moveCounter = 0;
+						this.checkGameOver();
+					}
+					sfx.hold.play();
+					this.holdSwitched = true;
+				}
+			} else this.buttonHold = false;
+			if (buttonStatus.reset) {
+				if (this.current != null && !this.buttonReset) {
+					this.current.reset();
+					this.fumenPagesForCurrent = [];
+					this.checkGameOver();
+					sfx.hold.play();
+					this.buttonReset = true;
+				}
+			} else this.buttonReset = false;
 
 			if (buttonStatus.left) {
 				if (!this.buttonMoveLeft || this.moveLock != 2) {

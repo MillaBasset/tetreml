@@ -721,94 +721,92 @@ class Playfield {
 					}
 				}
 			}
-			if (this.current != null) {
-				if (this.current.canFall(this.board)) {
-					let fell = false;
-					while (this.current.canFall(this.board) && this.fallTime >= this.parent.getFallInterval()) {
-						if (++this.current.y > this.maxY) {
-							this.lockTime = 0;
-							this.moveCounter = 0;
-							this.maxY = this.current.y;
-						}
-						fell = true;
-						this.fallTime -= this.parent.getFallInterval();
+			if (this.current != null) if (this.current.canFall(this.board)) {
+				let fell = false;
+				while (this.current.canFall(this.board) && this.fallTime >= this.parent.getFallInterval()) {
+					if (++this.current.y > this.maxY) {
+						this.lockTime = 0;
+						this.moveCounter = 0;
+						this.maxY = this.current.y;
 					}
-					if (!this.current.canFall(this.board)) this.sfx.land.play();
-					if (fell) {
-						this.current.onMove();
-						this.lockTime = this.fallTime;
-					}
-				} else {
-					if ((this.lockTime += timePassed) >= this.parent.getLockDelay()) {
-						this.lock(false);
-						this.sfx.lock.play();
-					}
+					fell = true;
+					this.fallTime -= this.parent.getFallInterval();
 				}
-				this.fallTime = this.parent.getFallInterval() == 0 ? 0 : this.fallTime % this.parent.getFallInterval();
-				if (this.buttonStatus.softDrop) {
-					if (this.softDropCounter == -1) {
-						this.softDrop();
-						this.softDropCounter = 0;
-					} else {
-						this.softDropCounter += timePassed;
-						for (let i = 0; i < Math.floor(this.softDropCounter / this.softDropPeriod); i++) if (this.softDrop()) break;
-						this.softDropCounter %= this.softDropPeriod;
-					}
-				} else {
-					this.softDropCounter = -1;
+				if (!this.current.canFall(this.board)) this.sfx.land.play();
+				if (fell) {
+					this.current.onMove();
+					this.lockTime = this.fallTime;
 				}
-				if (this.buttonStatus.hardDrop) {
-					if (!this.buttonHardDrop) {
-						let start = this.current.y + this.current.baseY[this.current.state];
-						while (this.current.canFall(this.board)) {
-							if (Math.random() < 0.25) this.spawnParticle();
-							this.current.y++;
-						}
-						let end = this.current.y + this.current.baseY[this.current.state];
-						this.score += this.scoring.getHardDropScore(start, end);
-						if (start != end) this.current.onMove();
-						((start != end)? this.sfx.hardDrop : this.sfx.softLock).play();
-						for (let i = 0; i < 3; i++) this.spawnParticle();
-						this.lock(true);
-						this.buttonHardDrop = true;
-					}
-				} else this.buttonHardDrop = false;
-				if (this.buttonStatus.rotateClockwise) {
-					if (!this.buttonRotateClockwise) {
-						if (this.current.rotateClockwise(this.board)) {
-							this.sfx.rotate.play();
-							if (this.moveCounter++ < 15) this.lockTime = 0;
-						}
-						this.buttonRotateClockwise = true;
-					}
-				} else this.buttonRotateClockwise = false;
-				if (this.buttonStatus.rotateCounterClockwise) {
-					if (!this.buttonRotateCounterClockwise) {
-						if (this.current.rotateCounterClockwise(this.board)) {
-							this.sfx.rotate.play();
-							if (this.moveCounter++ < 15) this.lockTime = 0;
-						}
-						this.buttonRotateCounterClockwise = true;
-					}
-				} else this.buttonRotateCounterClockwise = false;
-				if (this.buttonStatus.hold) {
-					if (!this.buttonHold && !this.holdSwitched) {
-						this.oldHold = this.hold;
-						this.hold = this.current;
-						if (this.oldHold == null) this.nextTetrimino(); else {
-							this.current = this.oldHold;
-							this.current.reset();
-							this.fallTime = 0;
-							this.lockTime = 0;
-							this.moveCounter = 0;
-							this.holds++;
-							this.checkGameOver();
-						}
-						this.sfx.hold.play();
-						this.holdSwitched = true;
-					}
-				} else this.buttonHold = false;
+			} else {
+				if ((this.lockTime += timePassed) >= this.parent.getLockDelay()) {
+					this.lock(false);
+					this.sfx.lock.play();
+				}
 			}
+			this.fallTime = this.parent.getFallInterval() == 0 ? 0 : this.fallTime % this.parent.getFallInterval();
+			if (this.buttonStatus.softDrop) {
+				if (this.softDropCounter == -1) {
+					if (this.current != null) this.softDrop();
+					this.softDropCounter = 0;
+				} else {
+					this.softDropCounter += timePassed;
+					if (this.current != null) for (let i = 0; i < Math.floor(this.softDropCounter / this.softDropPeriod); i++) if (this.softDrop()) break;
+					this.softDropCounter %= this.softDropPeriod;
+				}
+			} else {
+				this.softDropCounter = -1;
+			}
+			if (this.buttonStatus.hardDrop) {
+				if (this.current != null && !this.buttonHardDrop) {
+					let start = this.current.y + this.current.baseY[this.current.state];
+					while (this.current.canFall(this.board)) {
+						if (Math.random() < 0.25) this.spawnParticle();
+						this.current.y++;
+					}
+					let end = this.current.y + this.current.baseY[this.current.state];
+					this.score += this.scoring.getHardDropScore(start, end);
+					if (start != end) this.current.onMove();
+					((start != end)? this.sfx.hardDrop : this.sfx.softLock).play();
+					for (let i = 0; i < 3; i++) this.spawnParticle();
+					this.lock(true);
+					this.buttonHardDrop = true;
+				}
+			} else this.buttonHardDrop = false;
+			if (this.buttonStatus.rotateClockwise) {
+				if (this.current != null && !this.buttonRotateClockwise) {
+					if (this.current.rotateClockwise(this.board)) {
+						this.sfx.rotate.play();
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateClockwise = true;
+				}
+			} else this.buttonRotateClockwise = false;
+			if (this.buttonStatus.rotateCounterClockwise) {
+				if (this.current != null && !this.buttonRotateCounterClockwise) {
+					if (this.current.rotateCounterClockwise(this.board)) {
+						this.sfx.rotate.play();
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateCounterClockwise = true;
+				}
+			} else this.buttonRotateCounterClockwise = false;
+			if (this.buttonStatus.hold) {
+				if (this.current != null && !this.buttonHold && !this.holdSwitched) {
+					this.oldHold = this.hold;
+					this.hold = this.current;
+					if (this.oldHold == null) this.nextTetrimino(); else {
+						this.current = this.oldHold;
+						this.current.reset();
+						this.fallTime = 0;
+						this.lockTime = 0;
+						this.moveCounter = 0;
+						this.holds++;
+						this.checkGameOver();
+					}
+					this.sfx.hold.play();
+					this.holdSwitched = true;
+				}
+			} else this.buttonHold = false;
 
 			if (this.buttonStatus.left) {
 				if (!this.buttonMoveLeft || this.moveLock != 2) {
