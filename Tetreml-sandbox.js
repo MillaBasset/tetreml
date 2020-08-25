@@ -19,28 +19,32 @@ function openRenderedImage() {
 }
 
 const sfx = {
-	single: new SFX("SFX/Single.mp3", gainNode),
-	double: new SFX("SFX/Double.mp3", gainNode),
-	triple: new SFX("SFX/Triple.mp3", gainNode),
-	tetris: new SFX("SFX/Tetris.mp3", gainNode),
-	tSpin: new SFX("SFX/T spin.mp3", gainNode),
-	move: new SFX("SFX/Move.mp3", gainNode),
-	rotate: new SFX("SFX/Rotate.mp3", gainNode),
-	softDrop: new SFX("SFX/Soft drop.mp3", gainNode),
-	hardDrop: new SFX("SFX/Hard drop.mp3", gainNode),
-	lock: new SFX("SFX/Lock.mp3", gainNode),
-	land: new SFX("SFX/Land.mp3", gainNode),
-	hold: new SFX("SFX/Hold.mp3", gainNode),
-	pause: new SFX("SFX/Pause.mp3", gainNode),
-	afterClear: new SFX("SFX/After clear.mp3", gainNode),
-	softLock: new SFX("SFX/Soft lock.mp3", gainNode)
+	single: new SFX("single", gainNode),
+	double: new SFX("double", gainNode),
+	triple: new SFX("triple", gainNode),
+	tetris: new SFX("tetris", gainNode),
+	tSpin: new SFX("tSpin", gainNode),
+	move: new SFX("move", gainNode),
+	rotate: new SFX("rotate", gainNode),
+	softDrop: new SFX("softDrop", gainNode),
+	hardDrop: new SFX("hardDrop", gainNode),
+	lock: new SFX("lock", gainNode),
+	land: new SFX("land", gainNode),
+	hold: new SFX("hold", gainNode),
+	pause: new SFX("pause", gainNode),
+	afterClear: new SFX("afterClear", gainNode),
+	softLock: new SFX("softLock", gainNode)
 };
 
-music = new Audio("Music/Sandbox.mp3");
-music.loop = true;
-music.preload = "auto";
-music.load();
-audioContext.createMediaElementSource(music).connect(gainNode);
+loadSoundEffectConfig(() => {
+	for (let s of Object.values(sfx)) s.load();
+});
+
+music = new Music("sandbox_opening", new Music("sandbox_loop", undefined, false), false);
+
+loadMusicConfig(() => {
+	music.load();
+});
 
 const rewardNames = [
 	"Single",
@@ -184,8 +188,8 @@ class PlayScreen {
 		for (let key in buttonStatus) buttonStatus[key] = false;
 		this.pushToQueue();
 		this.nextTetrimino();
-		music.currentTime = 0;
-		music.play();
+		currentSong = music;
+		currentSong.play();
 	}
 
 	isMinoVisible(x, y) {
@@ -428,10 +432,10 @@ class PlayScreen {
 			switch (this.state) {
 				case GameState.playing:
 					if (buttonStatus.quitModifier) {
-						music.pause();
+						currentSong.pause();
 						goBack();
 					} else {
-						music.pause();
+						currentSong.pause();
 						sfx.pause.play();
 						this.state = GameState.paused;
 					}
@@ -440,7 +444,7 @@ class PlayScreen {
 					if (buttonStatus.quitModifier) {
 						goBack();
 					} else {
-						music.play();
+						currentSong.resume();
 						this.state = GameState.playing;
 					}
 					break;
@@ -813,7 +817,7 @@ class PlayScreen {
 
 	gameOver() {
 		this.state = GameState.over;
-		music.pause();
+		currentSong.pause();
 	}
 }
 

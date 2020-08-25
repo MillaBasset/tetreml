@@ -2,55 +2,58 @@ var playScreenImage = new Image();
 playScreenImage.src = "Textures/Play screen singleplayer.png";
 
 const sfx = {
-	ready: new SFX("SFX/Ready.mp3", gainNode),
-	countdown: new SFX("SFX/Countdown.mp3", gainNode),
-	single: new SFX("SFX/Single.mp3", gainNode),
-	double: new SFX("SFX/Double.mp3", gainNode),
-	triple: new SFX("SFX/Triple.mp3", gainNode),
-	tetris: new SFX("SFX/Tetris.mp3", gainNode),
-	tSpin: new SFX("SFX/T spin.mp3", gainNode),
-	move: new SFX("SFX/Move.mp3", gainNode),
-	rotate: new SFX("SFX/Rotate.mp3", gainNode),
-	softDrop: new SFX("SFX/Soft drop.mp3", gainNode),
-	hardDrop: new SFX("SFX/Hard drop.mp3", gainNode),
-	lock: new SFX("SFX/Lock.mp3", gainNode),
-	land: new SFX("SFX/Land.mp3", gainNode),
-	hold: new SFX("SFX/Hold.mp3", gainNode),
-	pause: new SFX("SFX/Pause.mp3", gainNode),
-	gameOver: new SFX("SFX/Game over.mp3", gainNode),
-	complete: new SFX("SFX/Win.mp3", gainNode),
-	allClear: new SFX("SFX/All clear.mp3", gainNode),
-	afterClear: new SFX("SFX/After clear.mp3", gainNode),
-	softLock: new SFX("SFX/Soft lock.mp3", gainNode),
-	tetriminoO: new SFX("SFX/Tetrimino O.mp3", gainNode),
-	tetriminoJ: new SFX("SFX/Tetrimino J.mp3", gainNode),
-	tetriminoL: new SFX("SFX/Tetrimino L.mp3", gainNode),
-	tetriminoZ: new SFX("SFX/Tetrimino Z.mp3", gainNode),
-	tetriminoS: new SFX("SFX/Tetrimino S.mp3", gainNode),
-	tetriminoT: new SFX("SFX/Tetrimino T.mp3", gainNode),
-	tetriminoI: new SFX("SFX/Tetrimino I.mp3", gainNode),
-	bell: new SFX("SFX/Bell.mp3", gainNode),
-	level999Trigger: new SFX("SFX/Level 999 trigger.mp3", gainNode)
+	ready: new SFX("ready", gainNode),
+	countdown: new SFX("countdown", gainNode),
+	single: new SFX("single", gainNode),
+	double: new SFX("double", gainNode),
+	triple: new SFX("triple", gainNode),
+	tetris: new SFX("tetris", gainNode),
+	tSpin: new SFX("tSpin", gainNode),
+	backToBack: new SFX("backToBack", gainNode),
+	combo: [
+		undefined,
+		new SFX("combo1", gainNode),
+		new SFX("combo2", gainNode),
+		new SFX("combo3", gainNode),
+		new SFX("combo4", gainNode),
+		new SFX("combo5", gainNode),
+		new SFX("combo6", gainNode),
+		new SFX("combo7", gainNode),
+		new SFX("combo8", gainNode),
+		new SFX("combo9", gainNode),
+		new SFX("combo10", gainNode)
+	],
+	move: new SFX("move", gainNode),
+	rotate: new SFX("rotate", gainNode),
+	softDrop: new SFX("softDrop", gainNode),
+	hardDrop: new SFX("hardDrop", gainNode),
+	lock: new SFX("lock", gainNode),
+	land: new SFX("land", gainNode),
+	hold: new SFX("hold", gainNode),
+	pause: new SFX("pause", gainNode),
+	gameOver: new SFX("gameOver", gainNode),
+	complete: new SFX("win", gainNode),
+	allClear: new SFX("allClear", gainNode),
+	afterClear: new SFX("afterClear", gainNode),
+	softLock: new SFX("softLock", gainNode),
+	tetriminoO: new SFX("tetriminoO", gainNode),
+	tetriminoJ: new SFX("tetriminoJ", gainNode),
+	tetriminoL: new SFX("tetriminoL", gainNode),
+	tetriminoZ: new SFX("tetriminoZ", gainNode),
+	tetriminoS: new SFX("tetriminoS", gainNode),
+	tetriminoT: new SFX("tetriminoT", gainNode),
+	tetriminoI: new SFX("tetriminoI", gainNode),
+	bell: new SFX("bell", gainNode),
+	grandMasterLevelUp: new SFX("grandMasterLevelUp", gainNode),
+	level999Trigger: new SFX("level999", gainNode)
 };
 
-const music = {
-	level1Opening: new Audio("Music/Level 1 opening.mp3"),
-	level1: new Audio("Music/Level 1 main.mp3"),
-	level6Start: new Audio("SFX/Level 6.mp3"),
-	level6: new Audio("Music/Level 6.mp3"),
-	level11Start: new Audio("SFX/Level 11.mp3"),
-	level11Opening: new Audio("Music/Level 11 opening.mp3"),
-	level11: new Audio("Music/Level 11 main.mp3"),
-	level999: new Audio("Music/Level 999.mp3")
-};
+loadSoundEffectConfig(() => {
+	for (let s of Object.values(sfx)) if (s instanceof SFX) s.load();
+	for (let i = 1; i < 11; i++) sfx.combo[i].load();
+});
 
-for (let m of Object.values(music)) {
-	m.preload = "auto";
-	m.load();
-	audioContext.createMediaElementSource(m).connect(gainNode);
-}
-
-music.level1.loop = music.level6.loop = music.level11.loop = true;
+loadMusicConfig();
 
 var volume;
 

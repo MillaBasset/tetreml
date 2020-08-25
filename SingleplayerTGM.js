@@ -82,12 +82,18 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		// -2: Not level 999; -1: Going to be level 999; >-1: Time left for level 999.
 		this.level999Time = -2;
 		this.minoVisibilityLifetime = -1;
-
-		this.musicSegments = [[500, music.level1Opening, music.level1Opening], [800, music.level6Start, music.level6], [Infinity, music.level11Start, music.level11Opening]];
-		music.level1Opening.onended = () => { this.changeMusic(music.level1); };
-		music.level6Start.onended = () => { this.changeMusic(music.level6); };
-		music.level11Start.onended = () => { this.changeMusic(music.level11Opening); };
-		music.level11Opening.onended = () => { this.changeMusic(music.level11); };
+		
+		let level500 = new Music("grandMaster_level500Opening", new Music("grandMaster_level500Loop"));
+		let level800 = new Music("grandMaster_level800Opening", new Music("grandMaster_level800Loop"));
+		this.musicSegments = [
+			[500, null, new Music("grandMaster_level0Opening", new Music("grandMaster_level0Loop"))],
+			[800, new Music("grandMaster_level500Trigger", level500), level500],
+			[Infinity, new Music("grandMaster_level800Trigger", level800), level800]
+		];
+		this.musicLevel999 = new Audio("Music/Level 999.mp3?state=original");
+		this.musicLevel999.preload = "auto";
+		this.musicLevel999.load();
+		audioContext.createMediaElementSource(this.musicLevel999).connect(gainNode);
 
 		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastCoolMarkTime", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "level999Score", "level999Time", "minoVisibilityLifetime");
 	}
@@ -99,14 +105,13 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	start() {
 		super.start();
 		this.musicPointer = 0;
-		this.currentSong = music.level1Opening;
-		this.currentSong.play();
+		currentSong = this.musicSegments[0][2];
+		currentSong.play();
 	}
 
 	changeMusic(newMusic) {
-		this.currentSong = newMusic;
-		this.currentSong.currentTime = 0;
-		this.currentSong.play();
+		currentSong = newMusic;
+		currentSong.play();
 	}
 
 	getMusicIndex() {
@@ -196,8 +201,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		if (this.level999Time == -1) {
 			this.totalMinos = 0;
 			if (!this.isSeeking) {
-				music.level999.currentTime = 0;
-				music.level999.play();
+				this.musicLevel999.currentTime = 0;
+				this.musicLevel999.play();
 			}
 			this.level999Time = 55000 + time - this.latestTime;
 		}
@@ -238,11 +243,11 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				let musicIndex = this.getMusicIndex();
 				if (this.state != GameState.over && musicIndex != this.musicPointer) {
 					this.musicPointer = musicIndex;
-					this.currentSong.pause();
-					this.currentSong = this.musicSegments[musicIndex][1];
-					this.currentSong.currentTime = 0;
-					this.currentSong.play();
+					currentSong.pause();
+					currentSong = this.musicSegments[musicIndex][1];
+					currentSong.play();
 				}
+				if (this.level != 999) sfx.grandMasterLevelUp.play();
 			}
 		}
 
@@ -284,7 +289,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				}
 				for (let i = 0; i < 10; i++) this.board.push([...col]);
 				this.clearedLines = [];
-				this.currentSong.pause();
+				currentSong.pause();
 				if (!this.isSeeking) sfx.level999Trigger.play();
 			} else if (this.level == 998 || this.level % 100 == 99) this.shouldRingTheBell = true;
 			if (oldLevel < 500 && this.level > 499 && this.playTime > 419999) this.gameOver(true);
@@ -309,20 +314,20 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	pause() {
 		super.pause();
 		if (!this.isReplay) sfx.pause.play();
-		if (this.level999Time > -1) music.level999.pause(); else this.currentSong.pause();
+		if (this.level999Time > -1) this.musicLevel999.pause(); else currentSong.pause();
 	}
 
 	quit() {
-		if (this.level999Time > -1) music.level999.pause(); else this.currentSong.pause();
+		if (this.level999Time > -1) this.musicLevel999.pause(); else currentSong.pause();
 		super.quit();
 	}
 
 	resume() {
 		super.resume();
 		if (this.level999Time > -1) {
-			music.level999.currentTime = (55000 - this.level999Time) / 1000;
-			music.level999.play();
-		} else if (this.level != 999) this.currentSong.play();
+			this.musicLevel999.currentTime = (55000 - this.level999Time) / 1000;
+			this.musicLevel999.play();
+		} else if (this.level != 999) currentSong.resume();
 	}
 
 	gameOver(victory = false) {
@@ -332,8 +337,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				let mino = this.board[x][y];
 				if (mino) mino.disappearTime = -1;
 			}
-			music.level999.pause();
-		} else this.currentSong.pause();
+			this.musicLevel999.pause();
+		} else currentSong.pause();
 		if (!this.isSeeking) (victory ? sfx.complete : sfx.gameOver).play();
 		this.gradeText = this.gradeNames[Math.min(32, Math.max(0, this.internalGrades[Math.min(31, this.internalGrade)][0] + this.coolRegretBoost + Math.floor(this.level999Score / 100)))];
 	}
@@ -351,7 +356,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	}
 
 	readStateData(state) {
-		if (this.level999Time > -1) music.level999.pause();
+		if (this.level999Time > -1) this.musicLevel999.pause();
 		super.readStateData(state);
 		if (this.speedStepNext == null) this.speedStepNext = Infinity;
 		if (this.timingStepNext == null) this.timingStepNext = Infinity;
@@ -361,10 +366,10 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		super.finalizeSeek();
 		let musicIndex = this.getMusicIndex();
 		if (this.level != 999 && musicIndex != this.musicPointer) {
-			this.currentSong.pause();
+			currentSong.pause();
 			this.musicPointer = musicIndex;
-			this.currentSong = this.musicSegments[musicIndex][2];
-			this.currentSong.currentTime = 0;
+			currentSong = this.musicSegments[musicIndex][2];
+			currentSong.reset();
 		}
 	}
 

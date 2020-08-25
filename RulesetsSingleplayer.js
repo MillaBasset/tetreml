@@ -774,9 +774,13 @@ class PlayScreenBase {
 			if (this.backToBack) {
 				this.rewardAmount *= 1.5;
 				this.rewardName += " BTB";
+				if (!this.isSeeking) sfx.backToBack.play();
 			} else this.backToBack = true;
 		} else this.backToBack = this.backToBack && this.reward == 4;
-		if (reward != 4 && this.reward != 7 && ++this.combo > 0) this.rewardAmount += this.getComboBonus();
+		if (reward != 4 && this.reward != 7 && ++this.combo > 0) {
+			this.rewardAmount += this.getComboBonus();
+			if (!this.isSeeking) sfx.combo[Math.min(10, this.combo)].play();
+		}
 		this.score += this.rewardAmount;
 	}
 
@@ -982,6 +986,15 @@ class GameScreenTengen extends PlayScreenBase {
 		this.level = 1;
 		this.singleSaveableFields.push("linesOfCurrentLevel", "totalLinesToNextLevel", "isNewLevel", "lockScore", "lockScoreTime", "level");
 		this.speedCurveNames = ["Normal", "Moderate", "Speedy", "TetrisDotCom"];
+		let level6 = new Music("endless_level6Opening", new Music("endless_level6Loop"));
+		let level11 = new Music("endless_level11Opening", new Music("endless_level11Loop"));
+		this.music = {
+			level1: new Music("endless_level1Opening", new Music("endless_level1Loop")),
+			level6Trigger: new Music("endless_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("endless_level11Trigger", level11),
+			level11: level11
+		};
 	}
 
 	init() {
@@ -997,23 +1010,8 @@ class GameScreenTengen extends PlayScreenBase {
 
 	start() {
 		super.start();
-		music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-		if (this.level > 10) {
-			this.currentSong = music.level11Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level11;
-				this.currentSong.play();
-			}
-		} else if (this.level > 5) {
-			this.currentSong = music.level6;
-		} else {
-			this.currentSong = music.level1Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level1;
-				this.currentSong.play();
-			}
-		}
-		if (!this.isReplay) this.currentSong.play();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
 	}
 
 	renderBehind(timePassed) {
@@ -1112,26 +1110,14 @@ class GameScreenTengen extends PlayScreenBase {
 			this.isNewLevel = true;
 			if (!this.isSeeking) switch (this.level) {
 				case 6:
-					this.currentSong.pause();
-					this.currentSong = music.level6Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level6;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
+					stopCurrentMusic();
+					currentSong = this.music.level6Trigger;
+					currentSong.play();
 					break;
 				case 11:
-					this.currentSong.pause();
-					this.currentSong = music.level11Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level11Opening;
-						this.currentSong.play();
-					}
-					music.level11Opening.onended = () => {
-						this.currentSong = music.level11;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
+					stopCurrentMusic();
+					currentSong = this.music.level11Trigger;
+					currentSong.play();
 					break;
 			}
 			this.clearTime = 1000;
@@ -1144,19 +1130,19 @@ class GameScreenTengen extends PlayScreenBase {
 			if (this.score > this.highScore) localStorage["tetrisHighScore" + this.speedCurveNames[this.speedCurve]] = this.score;
 			if (this.lines > this.maxLines) localStorage["tetrisMaxLines" + this.speedCurveNames[this.speedCurve]] = this.lines;
 		}
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	pause() {
 		super.pause();
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		this.currentSong.play();
+		currentSong.resume();
 	}
 
 	getFallInterval() {
@@ -1168,7 +1154,7 @@ class GameScreenTengen extends PlayScreenBase {
 	}
 
 	quit() {
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -1188,29 +1174,15 @@ class GameScreenTengen extends PlayScreenBase {
 
 	readStateData(state) {
 		this.oldLevel = this.level;
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.readStateData(state);
 	}
 
 	finalizeSeek() {
 		super.finalizeSeek();
-		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-			if (this.level > 10) {
-				this.currentSong = music.level11Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level11;
-					this.currentSong.play();
-				}
-			} else if (this.level > 5) {
-				this.currentSong = music.level6;
-			} else {
-				this.currentSong = music.level1Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level1;
-					this.currentSong.play();
-				}
-			}
+		if (this.state != GameState.over && Math.floor((this.level - 1) / 5) != Math.floor((this.oldLevel - 1) / 5)) {
+			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+			currentSong.reset();
 		}
 	}
 }
@@ -1298,6 +1270,15 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 		this.linesToNextLevel = 10;
 		this.totalLinesToNextLevel = 10;
 		this.singleSaveableFields.push("level", "linesOfCurrentLevel", "totalLinesToNextLevel", "linesToNextLevel");
+		let level6 = new Music("marathonFixedGoal_level6Opening", new Music("marathonFixedGoal_level6Loop"));
+		let level11 = new Music("marathonFixedGoal_level11Opening", new Music("marathonFixedGoal_level11Loop"));
+		this.music = {
+			level1: new Music("marathonFixedGoal_level1Opening", new Music("marathonFixedGoal_level1Loop")),
+			level6Trigger: new Music("marathonFixedGoal_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("marathonFixedGoal_level11Trigger", level11),
+			level11: level11
+		};
 	}
 
 	init() {
@@ -1308,23 +1289,8 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-		if (this.level > 10) {
-			this.currentSong = music.level11Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level11;
-				this.currentSong.play();
-			}
-		} else if (this.level > 5) {
-			this.currentSong = music.level6;
-		} else {
-			this.currentSong = music.level1Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level1;
-				this.currentSong.play();
-			}
-		}
-		if (!this.isReplay) this.currentSong.play();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
 	}
 
 	renderBehind(timePassed) {
@@ -1385,7 +1351,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 				this.gameOverMessage = "Level 15 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonHighScore = this.score;
-				this.currentSong.pause();
+				stopCurrentMusic();
 				if (!this.isSeeking) sfx.complete.play();
 			} else {
 				this.linesOfCurrentLevel -= this.linesToNextLevel;
@@ -1393,29 +1359,10 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 				this.level++;
 				this.totalLinesToNextLevel += 10;
 				this.isNewLevel = true;
-				if (!this.isSeeking) switch (this.level) {
-					case 6:
-						this.currentSong.pause();
-						this.currentSong = music.level6Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level6;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
-					case 11:
-						this.currentSong.pause();
-						this.currentSong = music.level11Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level11Opening;
-							this.currentSong.play();
-						}
-						music.level11Opening.onended = () => {
-							this.currentSong = music.level11;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
+				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
+					stopCurrentMusic();
+					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					currentSong.play();
 				}
 				this.clearTime = 1000;
 			}
@@ -1425,19 +1372,19 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 	gameOver() {
 		super.gameOver();
 		this.gameOverMessage = "The stack got too high.";
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	pause() {
 		super.pause();
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		this.currentSong.play();
+		currentSong.resume();
 	}
 
 	getFallInterval() {
@@ -1457,7 +1404,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 	}
 
 	quit() {
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -1471,29 +1418,15 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 
 	readStateData(state) {
 		this.oldLevel = this.level;
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.readStateData(state);
 	}
 
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-			if (this.level > 10) {
-				this.currentSong = music.level11Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level11;
-					this.currentSong.play();
-				}
-			} else if (this.level > 5) {
-				this.currentSong = music.level6;
-			} else {
-				this.currentSong = music.level1Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level1;
-					this.currentSong.play();
-				}
-			}
+			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+			currentSong.reset();
 		}
 	}
 
@@ -1512,6 +1445,15 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 		this.linesToNextLevel = 5;
 		this.totalLinesToNextLevel = 5;
 		this.singleSaveableFields.push("level", "linesOfCurrentLevel", "totalLinesToNextLevel", "linesToNextLevel");
+		let level6 = new Music("marathonVariableGoal_level6Opening", new Music("marathonVariableGoal_level6Loop"));
+		let level11 = new Music("marathonVariableGoal_level11Opening", new Music("marathonVariableGoal_level11Loop"));
+		this.music = {
+			level1: new Music("marathonVariableGoal_level1Opening", new Music("marathonVariableGoal_level1Loop")),
+			level6Trigger: new Music("marathonVariableGoal_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("marathonVariableGoal_level11Trigger", level11),
+			level11: level11
+		};
 	}
 
 	init() {
@@ -1522,23 +1464,8 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-		if (this.level > 10) {
-			this.currentSong = music.level11Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level11;
-				this.currentSong.play();
-			}
-		} else if (this.level > 5) {
-			this.currentSong = music.level6;
-		} else {
-			this.currentSong = music.level1Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level1;
-				this.currentSong.play();
-			}
-		}
-		if (!this.isReplay) this.currentSong.play();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
 	}
 
 	renderBehind(timePassed) {
@@ -1609,7 +1536,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 				this.gameOverMessage = "Level 15 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonVariableHighScore = this.score;
-				this.currentSong.pause();
+				stopCurrentMusic();
 				if (!this.isSeeking) sfx.complete.play();
 				break;
 			} else {
@@ -1618,29 +1545,10 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 				this.totalLinesToNextLevel += this.linesToNextLevel;
 				this.isNewLevel = true;
 				this.clearTime = 1000;
-				if (!this.isSeeking) switch (this.level) {
-					case 6:
-						this.currentSong.pause();
-						this.currentSong = music.level6Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level6;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
-					case 11:
-						this.currentSong.pause();
-						this.currentSong = music.level11Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level11Opening;
-							this.currentSong.play();
-						}
-						music.level11Opening.onended = () => {
-							this.currentSong = music.level11;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
+				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
+					stopCurrentMusic();
+					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					currentSong.play();
 				}
 			}
 		}
@@ -1649,19 +1557,19 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 	gameOver() {
 		super.gameOver();
 		this.gameOverMessage = "The stack got too high.";
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	pause() {
 		super.pause();
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		this.currentSong.play();
+		currentSong.resume();
 	}
 
 	getFallInterval() {
@@ -1681,7 +1589,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 	}
 
 	quit() {
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -1695,29 +1603,15 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 
 	readStateData(state) {
 		this.oldLevel = this.level;
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.readStateData(state);
 	}
 
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-			if (this.level > 10) {
-				this.currentSong = music.level11Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level11;
-					this.currentSong.play();
-				}
-			} else if (this.level > 5) {
-				this.currentSong = music.level6;
-			} else {
-				this.currentSong = music.level1Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level1;
-					this.currentSong.play();
-				}
-			}
+			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+			currentSong.reset();
 		}
 	}
 
@@ -1737,6 +1631,15 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 		this.linesToNextLevel = 10;
 		this.totalLinesToNextLevel = 10;
 		this.singleSaveableFields.push("level", "linesOfCurrentLevel", "totalLinesToNextLevel", "linesToNextLevel");
+		let level6 = new Music("marathonTetrisDotCom_level6Opening", new Music("marathonTetrisDotCom_level6Loop"));
+		let level11 = new Music("marathonTetrisDotCom_level11Opening", new Music("marathonTetrisDotCom_level11Loop"));
+		this.music = {
+			level1: new Music("marathonTetrisDotCom_level1Opening", new Music("marathonTetrisDotCom_level1Loop")),
+			level6Trigger: new Music("marathonTetrisDotCom_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("marathonTetrisDotCom_level11Trigger", level11),
+			level11: level11
+		};
 	}
 
 	init() {
@@ -1747,23 +1650,8 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-		if (this.level > 10) {
-			this.currentSong = music.level11Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level11;
-				this.currentSong.play();
-			}
-		} else if (this.level > 5) {
-			this.currentSong = music.level6;
-		} else {
-			this.currentSong = music.level1Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level1;
-				this.currentSong.play();
-			}
-		}
-		if (!this.isReplay) this.currentSong.play();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
 	}
 
 	renderBehind(timePassed) {
@@ -1824,7 +1712,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 				this.gameOverMessage = "Level 30 has been completed.";
 				super.gameOver();
 				if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonTetrisDotComHighScore = this.score;
-				this.currentSong.pause();
+				stopCurrentMusic();
 				if (!this.isSeeking) sfx.complete.play();
 			} else {
 				this.linesOfCurrentLevel -= this.linesToNextLevel;
@@ -1832,29 +1720,10 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 				this.level++;
 				this.totalLinesToNextLevel += 10;
 				this.isNewLevel = true;
-				if (!this.isSeeking) switch (this.level) {
-					case 6:
-						this.currentSong.pause();
-						this.currentSong = music.level6Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level6;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
-					case 11:
-						this.currentSong.pause();
-						this.currentSong = music.level11Start;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level11Opening;
-							this.currentSong.play();
-						}
-						music.level11Opening.onended = () => {
-							this.currentSong = music.level11;
-							this.currentSong.play();
-						}
-						this.currentSong.play();
-						break;
+				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
+					stopCurrentMusic();
+					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					currentSong.play();
 				}
 				this.clearTime = 1000;
 			}
@@ -1864,20 +1733,20 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 	gameOver() {
 		super.gameOver();
 		this.gameOverMessage = "The stack got too high.";
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonTetrisDotComHighScore = this.score;
 	}
 
 	pause() {
 		super.pause();
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		this.currentSong.play();
+		currentSong.resume();
 	}
 
 	getFallInterval() {
@@ -1897,7 +1766,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 	}
 
 	quit() {
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -1911,29 +1780,15 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 
 	readStateData(state) {
 		this.oldLevel = this.level;
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.readStateData(state);
 	}
 
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-			if (this.level > 10) {
-				this.currentSong = music.level11Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level11;
-					this.currentSong.play();
-				}
-			} else if (this.level > 5) {
-				this.currentSong = music.level6;
-			} else {
-				this.currentSong = music.level1Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level1;
-					this.currentSong.play();
-				}
-			}
+			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+			currentSong.reset();
 		}
 	}
 
@@ -1952,6 +1807,15 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 		this.isNewLevel = false;
 		this.singleSaveableFields.push("level", "linesOfCurrentLevel", "isNewLevel");
 		this.speedCurveNames = ["Normal", "Moderate", "Speedy", "TetrisDotCom"];
+		let level6 = new Music("endless_level6Opening", new Music("endless_level6Loop"));
+		let level11 = new Music("endless_level11Opening", new Music("endless_level11Loop"));
+		this.music = {
+			level1: new Music("endless_level1Opening", new Music("endless_level1Loop")),
+			level6Trigger: new Music("endless_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("endless_level11Trigger", level11),
+			level11: level11
+		};
 	}
 
 	init() {
@@ -1967,23 +1831,8 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-		if (this.level > 10) {
-			this.currentSong = music.level11Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level11;
-				this.currentSong.play();
-			}
-		} else if (this.level > 5) {
-			this.currentSong = music.level6;
-		} else {
-			this.currentSong = music.level1Opening;
-			this.currentSong.onended = () => {
-				this.currentSong = music.level1;
-				this.currentSong.play();
-			}
-		}
-		if (!this.isReplay) this.currentSong.play();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
 	}
 
 	renderBehind(timePassed) {
@@ -2047,29 +1896,10 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 			this.level++;
 			if (this.level != this.levels.length) this.totalLinesToNextLevel += this.levels[this.level][0];
 			this.isNewLevel = true;
-			if (!this.isSeeking) switch (this.level) {
-				case 6:
-					this.currentSong.pause();
-					this.currentSong = music.level6Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level6;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
-					break;
-				case 11:
-					this.currentSong.pause();
-					this.currentSong = music.level11Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level11Opening;
-						this.currentSong.play();
-					}
-					music.level11Opening.onended = () => {
-						this.currentSong = music.level11;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
-					break;
+			if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
+				stopCurrentMusic();
+				currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+				currentSong.play();
 			}
 			this.clearTime = 1000;
 		}
@@ -2081,19 +1911,19 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 			if (this.score > this.highScore) localStorage["tetrisGuidelineHighScore" + this.speedCurveNames[this.speedCurve]] = this.score;
 			if (this.lines > this.maxLines) localStorage["tetrisGuidelineMaxLines" + this.speedCurveNames[this.speedCurve]] = this.lines;
 		}
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	pause() {
 		super.pause();
-		this.currentSong.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		this.currentSong.play();
+		currentMusic.resume();
 	}
 
 	getFallInterval() {
@@ -2113,7 +1943,7 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 	}
 
 	quit() {
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -2133,29 +1963,15 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 
 	readStateData(state) {
 		this.oldLevel = this.level;
-		this.currentSong.pause();
+		stopCurrentMusic();
 		super.readStateData(state);
 	}
 
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			music.level1Opening.currentTime = music.level1.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = 0;
-			if (this.level > 10) {
-				this.currentSong = music.level11Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level11;
-					this.currentSong.play();
-				}
-			} else if (this.level > 5) {
-				this.currentSong = music.level6;
-			} else {
-				this.currentSong = music.level1Opening;
-				this.currentSong.onended = () => {
-					this.currentSong = music.level1;
-					this.currentSong.play();
-				}
-			}
+			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+			currentSong.reset();
 		}
 	}
 }
@@ -2164,6 +1980,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
 		super(parent, showKeystrokes, doSaveReplay);
 		this.singleSaveableFields.push("actionTime");
+		currentSong = new Music("40Line_opening", new Music("40Line_loop"));
 	}
 
 	init() {
@@ -2177,8 +1994,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level6.currentTime = 0;
-		if (!this.isReplay) music.level6.play();
+		if (!this.isReplay) currentSong.play();
 	}
 
 	processGameLogic(timePassed) {
@@ -2248,32 +2064,32 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 				if (this.score > this.highScore) localStorage.tetris40LineHighScore = this.score;
 				if (this.actionTime < this.shortestTime || this.shortestTime == -1) localStorage.tetris40LineShortestTime = this.actionTime;
 			}
-			music.level6.pause();
+			stopCurrentMusic();
 			if (!this.isSeeking) sfx.complete.play();
 		}
 	}
 
 	pause() {
 		super.pause();
-		music.level6.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		music.level6.play();
+		currentSong.resume();
 	}
 
 	gameOver() {
 		super.gameOver();
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetris40LineHighScore = this.score;
 		this.gameOverMessage = "The stack got too high.";
-		music.level6.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	quit() {
-		music.level6.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -2292,10 +2108,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 
 	finalizeSeek() {
 		super.finalizeSeek();
-		if (this.oldState == GameState.over && this.state != GameState.over) {
-			music.level6.currentTime = 0;
-			music.level6.play();
-		}
+		if (this.oldState == GameState.over && this.state != GameState.over) currentSong.play();
 	}
 }
 
@@ -2303,6 +2116,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
 		super(parent, showKeystrokes, doSaveReplay);
 		this.singleSaveableFields.push("timeLeft");
+		currentSong = new Music("40Line_opening", new Music("40Line_loop"));
 	}
 
 	init() {
@@ -2316,8 +2130,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 
 	start() {
 		super.start();
-		music.level6.currentTime = 0;
-		if (!this.isReplay) music.level6.play();
+		if (!this.isReplay) currentSong.play();
 	}
 
 	processGameLogic(timePassed) {
@@ -2334,7 +2147,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 					if (this.score > this.highScore) localStorage.tetris2MinuteHighScore = this.score;
 					if (this.lines > this.maxLines) localStorage.tetris2MinuteMaxLines = this.lines;
 				}
-				music.level6.pause();
+				stopCurrentMusic();
 				if (!this.isSeeking) sfx.complete.play();
 			}
 		}
@@ -2389,24 +2202,24 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 
 	pause() {
 		super.pause();
-		music.level6.pause();
+		stopCurrentMusic();
 		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		music.level6.play();
+		currentSong.resume();
 	}
 
 	gameOver() {
 		super.gameOver();
 		this.gameOverMessage = "The stack got too high.";
-		music.level6.pause();
+		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
 	quit() {
-		music.level6.pause();
+		stopCurrentMusic();
 		super.quit();
 	}
 
@@ -2425,9 +2238,6 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 
 	finalizeSeek() {
 		super.finalizeSeek();
-		if (this.oldState == GameState.over && this.state != GameState.over) {
-			music.level6.currentTime = 0;
-			music.level6.play();
-		}
+		if (this.oldState == GameState.over && this.state != GameState.over) currentSong.play();
 	}
 }

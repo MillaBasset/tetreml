@@ -11,7 +11,7 @@
 
 @font-face {
 	font-family: "Segoe UI";
-	src: url("segoeuisl.ttf") format("truetype");
+	src: url("segoeuisl.woff2") format("woff2");
 	font-weight: 350;
 }
 

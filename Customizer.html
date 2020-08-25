@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset=utf-8>
-		<title>Tetreml – Customize appearance</title>
+		<title>Tetreml – Customize</title>
 		<link rel="manifest" href="manifest.json">
 		<script src="ProgressiveInstaller.js"></script><style>
 			body, input, select, button {
@@ -25,108 +25,46 @@
 				margin-bottom: 3px;
 			}
 
+			h4 {
+				margin-top: 0px;
+			}
+
+			.section {
+				margin-left: 50px;
+			}
+
 			p {
 				text-align: justify;
 			}
 
-			ul {
-				list-style-type: "– ";
+			a {
+				text-decoration: none;
+			}
+
+			input[type="number"] {
+				text-align: right;
+				width: 60px;
+			}
+
+			button {
+				display: inline;
 			}
 		</style>
 	</head>
 	<body>
 		<p><a href="index.html">Back to home</a></p>
-		<h1>Customize appearance</h1>
-		<p>Here you can apply your own textures for use in <i>Tetreml</i>.</p>
+		<h1>Customize</h1>
+		<p>Here you can apply your own textures, sound effects and music tracks for use in <i>Tetreml</i>.</p>
 		<br>
-		<label for=selector>Texture type: </label>
-		<select id=selector onchange="updateInfo()">
-			<option selected>Play screen – Singleplayer & sandbox</option>
-			<option>Play screen – Two-player</option>
-			<option>Edit screen – Sandbox</option>
-			<option>Sprite 1 – Singleplayer & Sandbox</option>
-			<option>Sprite 2 – Singleplayer & Sandbox</option>
-			<option>Sprite 1 – Two-player</option>
-			<option>Sprite 2 – Two-player</option>
+		<select id=categorySelector onchange="onCategoryChange()">
+			<option value="categoryTextures" selected>Textures</option>
+			<option value="categorySoundEffects">Sound effects</option>
+			<option value="categoryMusic">Music</option>
 		</select>
-		<p>
-			<b>Description: </b><span id=description></span><br>
-			<b>Texture size: </b><span id=size></span>
-		</p>
-		<label for=fileInput>File to apply: </label>
-		<input type=file id=fileInput accept="image/*" oninput="fileInputChange()">
-		<br>
-		<p>Before applying, please make sure your texture has the size matching the above.</p>
-		<button id=buttonApply disabled=true onclick="apply()">Apply</button><br>
-		<button onclick="reset()">Reset</button><br>
-		<button onclick="viewCurrent()">View current</button><br>
-		<button onclick="viewDefault()">View default</button><br>
-		<br>
-		<button onclick="resetAll()">Reset all textures</button>
-
+		<br><br>
 		<script>
-			const fileNames = [
-				"Play screen singleplayer.png",
-				"Play screen two-player.png",
-				"Sandbox edit screen.png",
-				"Sprite singleplayer.png",
-				"Outline sprite singleplayer.png",
-				"Sprite two-player.png",
-				"Outline sprite two-player.png"
-			];
-			const fileDescriptions = [
-				"The in-game background texture in singleplayer and sandbox.",
-				"The in-game background texture in two-player.",
-				"The background of edit mode in sandbox.",
-				"The sprite #1 for singleplayer and sandbox. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle and keystroke shapes.",
-				"The sprite #2 for singleplayer and sandbox. Contains ghost minoes and stack outlines.",
-				"The sprite #1 for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
-				"The sprite #2 for two-player. Contains ghost minoes and stack outlines."
-			];
-			const fileSizes = [
-				"640 . 360",
-				"640 . 360",
-				"640 . 360",
-				"256 . 256",
-				"256 . 256",
-				"256 . 256",
-				"256 . 256"
-			];
-
 			var theCache = null;
 			(async () => { theCache = await caches.open("TetremlCustomAssets"); })();
-
-			function getIndex() {
-				return document.getElementById("selector").selectedIndex;
-			}
-
-			function updateInfo() {
-				let index = getIndex();
-				document.getElementById("description").innerHTML = fileDescriptions[index];
-				document.getElementById("size").innerHTML = fileSizes[index];
-			}
-
-			function getPath(index = getIndex()) {
-				return "Textures/" + fileNames[index];
-			}
-
-			function fileInputChange() {
-				document.getElementById("buttonApply").disabled = document.getElementById("fileInput").files.length == 0;
-			}
-
-			function apply() {
-				if (theCache == null) return;
-				let files = document.getElementById("fileInput").files;
-				if (files.length == 0) return;
-				theCache.put(getPath(), new Response(files[0]));
-				alert("The texture has been applied.");
-			}
-
-			function reset() {
-				if (theCache == null) return;
-				theCache.delete(getPath());
-				alert("The texture has been reset to default.");
-			}
 
 			function openURL(url) {
 				let element = document.createElement("a");
@@ -135,22 +73,530 @@
 				element.click();
 			}
 
-			function viewCurrent() {
-				openURL(getPath());
+			function loadJSON(url) {
+				let callResolve, callReject;
+				let promise = new Promise((resolve, reject) => { callResolve = resolve; callReject = reject; })
+				let request = new XMLHttpRequest();
+				request.open('GET', url, true);
+				request.responseType = 'json';
+				request.onload = () => {
+					callResolve(request.response);
+				};
+				request.onerror = () => {
+					callReject();
+				};
+				request.send();
+				return promise;
 			}
+		</script>
+		<div id=categoryTextures>
+			<label for=textures_selector>Texture type: </label>
+			<select id=textures_selector onchange="textures_updateInfo()">
+				<option selected>Play screen – Singleplayer & sandbox</option>
+				<option>Play screen – Two-player</option>
+				<option>Edit screen – Sandbox</option>
+				<option>Sprite 1 – Singleplayer & Sandbox</option>
+				<option>Sprite 2 – Singleplayer & Sandbox</option>
+				<option>Sprite 1 – Two-player</option>
+				<option>Sprite 2 – Two-player</option>
+			</select>
+			<p>
+				<b>Description: </b><span id=textures_description></span><br>
+				<b>Texture size: </b><span id=textures_size></span>
+			</p>
+			<label for=textures_fileInput>File to apply: </label>
+			<input type=file id=textures_fileInput accept="image/*" oninput="textures_fileInputChange()">
+			<br>
+			<p>Before applying, please make sure your texture has the size matching the above.</p>
+			<button id=textures_buttonApply disabled=true onclick="textures_apply()">Apply</button>
+			<button onclick="textures_reset()">Reset</button>
+			<button onclick="textures_viewCurrent()">View current</button>
+			<button onclick="textures_viewDefault()">View default</button>
+			<br><br>
+			<button onclick="textures_resetAll()">Reset all textures</button>
 
-			function viewDefault() {
-				openURL(getPath() + "?state=original");
+			<script>
+				const textures_fileNames = [
+					"Play screen singleplayer.png",
+					"Play screen two-player.png",
+					"Sandbox edit screen.png",
+					"Sprite singleplayer.png",
+					"Outline sprite singleplayer.png",
+					"Sprite two-player.png",
+					"Outline sprite two-player.png"
+				];
+				const textures_fileDescriptions = [
+					"The in-game background texture in singleplayer and sandbox.",
+					"The in-game background texture in two-player.",
+					"The background of edit mode in sandbox.",
+					"The sprite #1 for singleplayer and sandbox. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle and keystroke shapes.",
+					"The sprite #2 for singleplayer and sandbox. Contains ghost minoes and stack outlines.",
+					"The sprite #1 for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
+					"The sprite #2 for two-player. Contains ghost minoes and stack outlines."
+				];
+				const textures_fileSizes = [
+					"640 . 360",
+					"640 . 360",
+					"640 . 360",
+					"256 . 256",
+					"256 . 256",
+					"256 . 256",
+					"256 . 256"
+				];
+
+				function textures_getIndex() {
+					return document.getElementById("textures_selector").selectedIndex;
+				}
+
+				function textures_updateInfo() {
+					let index = textures_getIndex();
+					document.getElementById("textures_description").innerHTML = textures_fileDescriptions[index];
+					document.getElementById("textures_size").innerHTML = textures_fileSizes[index];
+				}
+
+				function textures_getPath(index = textures_getIndex()) {
+					return "Textures/" + textures_fileNames[index];
+				}
+
+				function textures_fileInputChange() {
+					document.getElementById("textures_buttonApply").disabled = document.getElementById("textures_fileInput").files.length == 0;
+				}
+
+				function apply() {
+					if (theCache == null) return;
+					let files = document.getElementById("textures_fileInput").files;
+					if (files.length == 0) return;
+					theCache.put(textures_getPath(), new Response(files[0]));
+					alert("The texture has been applied.");
+				}
+
+				function textures_reset() {
+					if (theCache == null) return;
+					theCache.delete(textures_getPath());
+					alert("The texture has been reset to default.");
+				}
+
+				function textures_viewCurrent() {
+					openURL(textures_getPath());
+				}
+
+				function textures_viewDefault() {
+					openURL(textures_getPath() + "?state=original");
+				}
+
+				function textures_resetAll() {
+					if (theCache == null) return;
+					if (!confirm("Are you sure you want to reset all textures? This will revert them to default.")) return;
+					for (let i = 0; i < 7; i++) theCache.delete(textures_getPath(i));
+					alert("All textures have been reset to default.");
+				}
+
+				textures_updateInfo();
+			</script>
+		</div>
+		<div id=categorySoundEffects style="display: none;">
+			<h4>Use sounds</h4>
+			<div class="section">
+				<label for=soundEffects_selector>Sound effect type: </label>
+				<select id=soundEffects_selector onchange="soundEffects_onSelectorChange()">
+					<optgroup label="General">
+						<option value=ready selected>Ready</option>
+						<option value=countdown>Countdown</option>
+						<option value=pause>Pause</option>
+						<option value=win>Win</option>
+						<option value=gameOver>Game over</option>
+					</optgroup>
+					<optgroup label="Tetrimino">
+						<option value=move>Tetrimino move</option>
+						<option value=rotate>Tetrimino rotate</option>
+						<option value=land>Tetrimino touching obstacle</option>
+						<option value=softDrop>Soft drop</option>
+						<option value=softLock>Soft lock</option>
+						<option value=hardDrop>Hard drop</option>
+						<option value=hold>Hold</option>
+						<option value=lock>Tetrimino lockdown</option>
+					</optgroup>
+					<optgroup label="Line clear">
+						<option value=single>Single</option>
+						<option value=double>Double</option>
+						<option value=triple>Triple</option>
+						<option value=tetris>Tetris</option>
+						<option value=tSpin>T-spin</option>
+						<option value=backToBack>Back to back</option>
+						<option value=allClear>All clear</option>
+						<option value=afterClear>After clear</option>
+						<option value=combo1>Combo 1</option>
+						<option value=combo2>Combo 2</option>
+						<option value=combo3>Combo 3</option>
+						<option value=combo4>Combo 4</option>
+						<option value=combo5>Combo 5</option>
+						<option value=combo6>Combo 6</option>
+						<option value=combo7>Combo 7</option>
+						<option value=combo8>Combo 8</option>
+						<option value=combo9>Combo 9</option>
+						<option value=combo10>Combo 10+</option>
+					</optgroup>
+					<optgroup label="Grand master">
+						<option value=tetriminoI>Next tetrimino I</option>
+						<option value=tetriminoJ>Next tetrimino J</option>
+						<option value=tetriminoL>Next tetrimino L</option>
+						<option value=tetriminoO>Next tetrimino O</option>
+						<option value=tetriminoS>Next tetrimino S</option>
+						<option value=tetriminoT>Next tetrimino T</option>
+						<option value=tetriminoZ>Next tetrimino Z</option>
+						<option value=bell>Bell</option>
+						<option value=grandMasterLevelUp>Level x99 → x00</option>
+						<option value=level999>Level 999 trigger</option>
+					</optgroup>
+					<optgroup label="Two-player">
+						<option value=attack>Attack – Send</option>
+						<option value=attackDetonating>Attack – Detonating</option>
+						<option value=attackNear>Attack – Preparing detonation</option>
+						<option value=defend>Defend</option>
+						<option value=warning>Warning</option>
+					</optgroup>
+				</select>
+				<br>
+				<label for=soundEffects_applySpinner>Sound ID to use: </label>
+				<input id=soundEffects_applySpinner type=number value=0 step=1>
+				<br>
+				<p>
+					Current: <span id=soundEffects_currentID></span><br>
+					&lt; 0: Built-in sounds; 0: No sound; &gt; 0: Custom sounds.
+				</p>
+				<button onclick="soundEffects_apply()">Apply</button>
+				<button onclick="soundEffects_viewCurrent()">View current</button>
+				<button onclick="soundEffects_reset()">Reset</button>
+			</div>
+			<br>
+			<h4>Register custom sounds</h4>
+			<div class=section>
+				<label for=soundEffects_registerSpinner>Sound ID: </label>
+				<input id=soundEffects_registerSpinner type=number value=1 min=1 step=1>
+				<br>
+				<label for=soundEffects_fileInput>File: </label>
+				<input id=soundEffects_fileInput type=file accept="audio/*" onchange="soundEffects_onFileChanged()">
+				<br>
+				<button id=soundEffects_buttonRegister disabled=true onclick="soundEffects_register()">Register</button>
+				<button onclick="soundEffects_view()">View</button>
+				<button onclick="soundEffects_delete()">Delete</button>
+				<br>
+				<p>Registered sounds <button onclick="soundEffects_update()">Update</button></p>
+				<div id=soundEffects_registeredIDs style="margin-left: 50px;">
+					<i>Press </i>Update<i> above to retrieve the list of registered sound IDs.</i>
+				</div>
+			</div>
+			<br>
+			<button onclick="soundEffects_resetAll()">Reset all sounds</button>
+			<script>
+				var soundEffects_defaultConfig;
+				var soundEffects_currentConfig;
+
+				(async() => {
+					soundEffects_defaultConfig = await loadJSON('SFX/sfxconfig.json?state=original');
+					soundEffects_currentConfig = await loadJSON('SFX/sfxconfig.json');
+					soundEffects_onSelectorChange();
+				})();
+
+				function soundEffects_onSelectorChange() {
+					document.getElementById("soundEffects_applySpinner").value = document.getElementById("soundEffects_currentID").innerHTML = soundEffects_currentConfig[document.getElementById("soundEffects_selector").value];
+				}
+
+				function soundEffects_saveConfig() {
+					if (theCache == null) return;
+					theCache.put('SFX/sfxconfig.json', new Response(JSON.stringify(soundEffects_currentConfig)));
+				}
+
+				function soundEffects_apply() {
+					if (theCache == null) return;
+					soundEffects_currentConfig[document.getElementById("soundEffects_selector").value] = document.getElementById("soundEffects_currentID").innerHTML = Number.parseInt(document.getElementById("soundEffects_applySpinner").value);
+					soundEffects_saveConfig();
+					alert("The sound effect has been applied.");
+				}
+
+				function soundEffects_viewCurrent() {
+					openURL(`SFX/${soundEffects_currentConfig[document.getElementById("soundEffects_selector").value]}.mp3`);
+				}
+
+				function soundEffects_reset() {
+					if (theCache == null) return;
+					soundEffects_currentConfig[document.getElementById("soundEffects_selector").value] = document.getElementById("soundEffects_currentID").innerHTML = document.getElementById("soundEffects_applySpinner").value = soundEffects_defaultConfig[document.getElementById("soundEffects_selector").value];
+					soundEffects_saveConfig();
+					alert("The sound effect has been reset to default.");
+				}
+
+				function soundEffects_onFileChanged() {
+					document.getElementById("soundEffects_buttonRegister").disabled = document.getElementById("soundEffects_fileInput").files.length == 0;
+				}
+
+				function soundEffects_getSoundURL() {
+					return `SFX/${document.getElementById("soundEffects_registerSpinner").value}.mp3`;
+				}
+
+				function soundEffects_register() {
+					if (theCache == null) return;
+					let files = document.getElementById("soundEffects_fileInput").files;
+					if (files.length == 0) return;
+					theCache.put(soundEffects_getSoundURL(), new Response(files[0]));
+					alert("The sound has been registered.");
+				}
+
+				function soundEffects_view() {
+					openURL(soundEffects_getSoundURL());
+				}
+
+				function soundEffects_delete() {
+					if (theCache == null) return;
+					theCache.delete(soundEffects_getSoundURL());
+					alert("The sound effect has been deleted.");
+				}
+
+				function soundEffects_update() {
+					if (theCache == null) return;
+					(async () => {
+						let s = "";
+						let isFirst = true;
+						for (let request of await theCache.keys())
+							if (request.url.includes("/SFX/")) {
+								let matches = request.url.match(/(?<=\/SFX\/)(-|)\d*?(?=.mp3)/);
+								if (matches != null) {
+									s += (isFirst ? "" : "<br>") + matches[0];
+									isFirst = false;
+								}
+							}
+						if (isFirst) s = "<i>There are no registered custom sounds.</i>";
+						document.getElementById("soundEffects_registeredIDs").innerHTML = s;
+					})();
+				}
+
+				function soundEffects_resetAll() {
+					if (theCache == null) return;
+					if (!confirm("Are you sure you want to reset all sound effects? This will delete all sound files and revert the sound effects to default.")) return;
+					(async () => {
+						for (let request of await theCache.keys())
+							if (request.url.includes("/SFX/")) await theCache.delete(request);
+						soundEffects_currentConfig = {...soundEffects_defaultConfig};
+						soundEffects_onSelectorChange();
+						alert("All sound effects have been reset to default.");
+					})();
+				}
+			</script>
+		</div>
+		<div id=categoryMusic style="display: none;">
+			<h4>Use music</h4>
+			<div class="section">
+				<label for=music_selector>Music type: </label>
+				<select id=music_selector onchange="music_onSelectorChange()">
+					<optgroup label="Marathon – Fixed goal">
+						<option value="marathonFixedGoal_level1Opening" selected>Level 1 ÷ 5 – Opening</option>
+						<option value="marathonFixedGoal_level1Loop">Level 1 ÷ 5 – Loop</option>
+						<option value="marathonFixedGoal_level6Trigger">Level 6 trigger</option>
+						<option value="marathonFixedGoal_level6Opening">Level 6 ÷ 10 – Opening</option>
+						<option value="marathonFixedGoal_level6Loop">Level 6 ÷ 10 – Loop</option>
+						<option value="marathonFixedGoal_level11Trigger">Level 11 trigger</option>
+						<option value="marathonFixedGoal_level11Opening">Level 11 ÷ 15 – Opening</option>
+						<option value="marathonFixedGoal_level11Loop">Level 11 ÷ 15 – Loop</option>
+					</optgroup>
+					<optgroup label="Marathon – Variable goal">
+						<option value="marathonVariableGoal_level1Opening">Level 1 ÷ 5 – Opening</option>
+						<option value="marathonVariableGoal_level1Loop">Level 1 ÷ 5 – Loop</option>
+						<option value="marathonVariableGoal_level6Trigger">Level 6 trigger</option>
+						<option value="marathonVariableGoal_level6Opening">Level 6 ÷ 10 – Opening</option>
+						<option value="marathonVariableGoal_level6Loop">Level 6 ÷ 10 – Loop</option>
+						<option value="marathonVariableGoal_level11Trigger">Level 11 trigger</option>
+						<option value="marathonVariableGoal_level11Opening">Level 11 ÷ 15 – Opening</option>
+						<option value="marathonVariableGoal_level11Loop">Level 11 ÷ 15 – Loop</option>
+					</optgroup>
+					<optgroup label="Marathon – tetris.com">
+						<option value="marathonTetrisDotCom_level1Opening">Level 1 ÷ 5 – Opening</option>
+						<option value="marathonTetrisDotCom_level1Loop">Level 1 ÷ 5 – Loop</option>
+						<option value="marathonTetrisDotCom_level6Trigger">Level 6 trigger</option>
+						<option value="marathonTetrisDotCom_level6Opening">Level 6 ÷ 10 – Opening</option>
+						<option value="marathonTetrisDotCom_level6Loop">Level 6 ÷ 10 – Loop</option>
+						<option value="marathonTetrisDotCom_level11Trigger">Level 11 trigger</option>
+						<option value="marathonTetrisDotCom_level11Opening">Level 11 ÷ 30 – Opening</option>
+						<option value="marathonTetrisDotCom_level11Loop">Level 11 ÷ 30 – Loop</option>
+					</optgroup>
+					<optgroup label="Grand master">
+						<option value="grandMaster_level0Opening">Level 0 ÷ 499 – Opening</option>
+						<option value="grandMaster_level0Loop">Level 0 ÷ 499 – Loop</option>
+						<option value="grandMaster_level500Trigger">Level 500 trigger</option>
+						<option value="grandMaster_level500Opening">Level 500 ÷ 799 – Opening</option>
+						<option value="grandMaster_level500Loop">Level 500 ÷ 799 – Loop</option>
+						<option value="grandMaster_level800Trigger">Level 800 trigger</option>
+						<option value="grandMaster_level800Opening">Level 800 ÷ 998 – Opening</option>
+						<option value="grandMaster_level800Loop">Level 800 ÷ 998 – Loop</option>
+					</optgroup>
+					<optgroup label="Endless">
+						<option value="endless_level1Opening">Level 1 ÷ 5 – Opening</option>
+						<option value="endless_level1Loop">Level 1 ÷ 5 – Loop</option>
+						<option value="endless_level6Trigger">Level 6 trigger</option>
+						<option value="endless_level6Opening">Level 6 ÷ 10 – Opening</option>
+						<option value="endless_level6Loop">Level 6 ÷ 10 – Loop</option>
+						<option value="endless_level11Trigger">Level 11 trigger</option>
+						<option value="endless_level11Opening">Level 11+ – Opening</option>
+						<option value="endless_level11Loop">Level 11+ – Loop</option>
+					</optgroup>
+					<optgroup label="40-line (Sprint)">
+						<option value="40Line_opening">Opening</option>
+						<option value="40Line_loop">Loop</option>
+					</optgroup>
+					<optgroup label="2-minute (Ultra)">
+						<option value="2Minute_opening">Opening</option>
+						<option value="2Minute_loop">Loop</option>
+					</optgroup>
+					<optgroup label="Two-player">
+						<option value="twoPlayer_level1Opening">Level 1 ÷ 5 – Opening</option>
+						<option value="twoPlayer_level1Loop">Level 1 ÷ 5 – Loop</option>
+						<option value="twoPlayer_level6Trigger">Level 6 trigger</option>
+						<option value="twoPlayer_level6Opening">Level 6 ÷ 10 – Opening</option>
+						<option value="twoPlayer_level6Loop">Level 6 ÷ 10 – Loop</option>
+						<option value="twoPlayer_level11Trigger">Level 11 trigger</option>
+						<option value="twoPlayer_level11Opening">Level 11+ – Opening</option>
+						<option value="twoPlayer_level11Loop">Level 11+ – Loop</option>
+					</optgroup>
+					<optgroup label="Sandbox">
+						<option value="sandbox_opening">Opening</option>
+						<option value="sandbox_loop">Loop</option>
+					</optgroup>
+				</select>
+				<span id=music_selectorCategoryName></span>
+				<br>
+				<label for=music_applySpinner>Music ID to use: </label>
+				<input id=music_applySpinner type=number value=0 step=1>
+				<br>
+				<p>
+					Current: <span id=music_currentID></span><br>
+					&lt; 0: Built-in music; 0: No music; &gt; 0: Custom music.
+				</p>
+				<button onclick="music_apply()">Apply</button>
+				<button onclick="music_viewCurrent()">View current</button>
+				<button onclick="music_reset()">Reset</button>
+			</div>
+			<br>
+			<h4>Register custom music</h4>
+			<div class=section>
+				<label for=music_registerSpinner>Music ID: </label>
+				<input id=music_registerSpinner type=number value=1 min=1 step=1>
+				<br>
+				<label for=music_fileInput>File: </label>
+				<input id=music_fileInput type=file accept="audio/*" onchange="music_onFileChanged()">
+				<br>
+				<button id=music_buttonRegister disabled=true onclick="music_register()">Register</button>
+				<button onclick="music_view()">View</button>
+				<button onclick="music_delete()">Delete</button>
+				<br>
+				<p>Registered sounds <button onclick="music_update()">Update</button></p>
+				<div id=music_registeredIDs style="margin-left: 50px;">
+					<i>Press </i>Update<i> above to retrieve the list of registered music IDs.</i>
+				</div>
+			</div>
+			<br>
+			<button onclick="music_resetAll()">Reset all music_delete</button>
+			<script>
+				var music_defaultConfig;
+				var music_currentConfig;
+
+				(async() => {
+					music_defaultConfig = await loadJSON('Music/musicconfig.json?state=original');
+					music_currentConfig = await loadJSON('Music/musicconfig.json');
+					music_onSelectorChange();
+				})();
+
+				function music_onSelectorChange() {
+					let selector = document.getElementById("music_selector");
+					document.getElementById("music_selectorCategoryName").innerHTML = "(" + selector.options[selector.selectedIndex].parentElement.label + ")";
+					document.getElementById("music_applySpinner").value = document.getElementById("music_currentID").innerHTML = music_currentConfig[selector.value];
+				}
+
+				function music_saveConfig() {
+					if (theCache == null) return;
+					theCache.put('Music/musicconfig.json', new Response(JSON.stringify(music_currentConfig)));
+				}
+
+				function music_apply() {
+					if (theCache == null) return;
+					music_currentConfig[document.getElementById("music_selector").value] = document.getElementById("music_currentID").innerHTML = Number.parseInt(document.getElementById("music_applySpinner").value);
+					music_saveConfig();
+					alert("The music has been applied.");
+				}
+
+				function music_viewCurrent() {
+					openURL(`Music/${music_currentConfig[document.getElementById("music_selector").value]}.mp3`);
+				}
+
+				function music_reset() {
+					if (theCache == null) return;
+					music_currentConfig[document.getElementById("music_selector").value] = document.getElementById("music_currentID").innerHTML = document.getElementById("music_applySpinner").value = music_defaultConfig[document.getElementById("music_selector").value];
+					music_saveConfig();
+					alert("The sound effect has been reset to default.");
+				}
+
+				function music_onFileChanged() {
+					document.getElementById("music_buttonRegister").disabled = document.getElementById("music_fileInput").files.length == 0;
+				}
+
+				function music_getMusicURL() {
+					return `Music/${document.getElementById("music_registerSpinner").value}.mp3`;
+				}
+
+				function music_register() {
+					if (theCache == null) return;
+					let files = document.getElementById("music_fileInput").files;
+					if (files.length == 0) return;
+					theCache.put(music_getMusicURL(), new Response(files[0]));
+					alert("The sound has been registered.");
+				}
+
+				function music_view() {
+					openURL(music_getMusicURL());
+				}
+
+				function music_delete() {
+					if (theCache == null) return;
+					theCache.delete(music_getMusicURL());
+					alert("The music has been deleted.");
+				}
+
+				function music_update() {
+					if (theCache == null) return;
+					(async () => {
+						let s = "";
+						let isFirst = true;
+						for (let request of await theCache.keys())
+							if (request.url.includes("/Music/")) {
+								let matches = request.url.match(/(?<=\/Music\/)(-|)\d*?(?=.mp3)/);
+								if (matches != null) {
+									s += (isFirst ? "" : "<br>") + matches[0];
+									isFirst = false;
+								}
+							}
+						if (isFirst) s = "<i>There are no registered custom music tracks.</i>";
+						document.getElementById("music_registeredIDs").innerHTML = s;
+					})();
+				}
+
+				function music_resetAll() {
+					if (theCache == null) return;
+					if (!confirm("Are you sure you want to reset all music tracks? This will delete all music files and revert the music tracks to default.")) return;
+					(async () => {
+						for (let request of await theCache.keys())
+							if (request.url.includes("/Music/")) await theCache.delete(request);
+						music_currentConfig = {...music_defaultConfig};
+						music_onSelectorChange();
+						alert("All music tracks have been reset to default.");
+					})();
+				}
+			</script>
+		</div>
+		<script>
+			var currentOpenCategory = document.getElementById("categoryTextures");
+
+			function onCategoryChange() {
+				currentOpenCategory.style.display = "none";
+				currentOpenCategory = document.getElementById(document.getElementById("categorySelector").value);
+				currentOpenCategory.style.display = "block";
 			}
-
-			function resetAll() {
-				if (theCache == null) return;
-				if (!confirm("Are you sure you want to reset all textures? This will revert all of them to default.")) return;
-				for (let i = 0; i < 7; i++) theCache.delete(getPath(i));
-				alert("All textures have been reset to default.");
-			}
-
-			updateInfo();
 		</script>
 	</body>
 </html>

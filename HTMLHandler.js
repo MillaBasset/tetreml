@@ -38,7 +38,7 @@ setAdaptiveSizing(localStorage.tetrisAdaptiveSizing ? localStorage.tetrisAdaptiv
 
 var selector = document.getElementById('selector');
 selector.addEventListener('change', function(event) {
-	location.replace(this.options[this.selectedIndex].value);
+	location.replace(this.value);
 });
 
 selector.addEventListener('click', function (event) {

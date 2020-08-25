@@ -2,24 +2,10 @@ var playScreenImage = new Image();
 playScreenImage.src = "Textures/Play screen two-player.png";
 
 const music = {
-	level1Opening: new Audio("Music/Level 1 opening.mp3"),
-	level1: new Audio("Music/Level 1 main.mp3"),
-	level6Start: new Audio("SFX/Level 6.mp3"),
-	level6: new Audio("Music/Level 6.mp3"),
-	level11Start: new Audio("SFX/Level 11.mp3"),
-	level11Opening: new Audio("Music/Level 11 opening.mp3"),
-	level11: new Audio("Music/Level 11 main.mp3"),
-	gameOverOpening: new Audio("Music/Two-player game over opening.mp3"),
-	gameOver: new Audio("Music/Two-player game over main.mp3"),
-}
-
-for (let m of Object.values(music)) {
-	m.preload = "auto";
-	m.load();
-	audioContext.createMediaElementSource(m).connect(gainNode);
-}
-
-music.level1.loop = music.level6.loop = music.level11.loop = music.gameOver.loop = true;
+	level1: new Music("twoPlayer_level1Opening", new Music("twoPlayer_level1Loop", undefined, false), false),
+	level6: new Music("twoPlayer_level6Trigger", new Music("twoPlayer_level6Opening", new Music("twoPlayer_level6Loop", undefined, false), false), false),
+	level11: new Music("twoPlayer_level11Trigger", new Music("twoPlayer_level11Opening", new Music("twoPlayer_level11Loop", undefined, false), false), false)
+};
 
 function loadControls() {
 	keyMappingPlayer1 = {};
@@ -99,23 +85,107 @@ const garbageAmounts = [0, 1, 2, 4, 0, 0, 1, 1, 2, 4, 6];
 
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
-const sfx = {
-	ready: new Audio("SFX/Ready.mp3", 1),
-	countdown: new Audio("SFX/Countdown.mp3", 1),
-	pause: new Audio("SFX/Pause.mp3"),
-	gameOver: new Audio("SFX/Game over.mp3"),
-	win: new Audio("SFX/Win.mp3")
-};
-for (let s of Object.values(sfx)) {
-	s.preload = "auto";
-	s.load();
-	audioContext.createMediaElementSource(s).connect(gainNode);
-}
-sfx.warning = new Audio("SFX/Warning.mp3");
-sfx.warning.loop = true;
 var warningPanNode = audioContext.createStereoPanner();
 warningPanNode.connect(audioContext.destination);
-audioContext.createMediaElementSource(sfx.warning).connect(warningPanNode);
+
+class SFXWarning {
+	constructor() {
+		this.ready = false;
+		this.playing = false;
+	}
+
+	load() {
+		let id = soundEffectConfig.warning;
+		if ((id ?? 0) == 0) return;
+		let request = new XMLHttpRequest();
+		request.open('GET', `SFX/${id}.mp3${id > 0 ? "?cacheonly=true" : ""}`, true);
+		request.responseType = 'arraybuffer';
+		request.onload = () => {
+			audioContext.decodeAudioData(request.response, (buffer) => {
+				if (request.status != 200) {
+					request.onerror();
+					return;
+				}
+				this.buffer = buffer;
+				this.ready = true;
+				if (this.playing) this.play();
+			}, (error) => { console.error(error); });
+		};
+		request.onerror = () => {
+			console.warn(`Tetreml: Failed to retrieve sound effect with ID ${id}. This sound effect will not be played.`)
+		};
+		request.send();
+	}
+
+	play() {
+		if (!this.ready || this.playing) return;
+		this.source = audioContext.createBufferSource();
+		this.source.buffer = this.buffer;
+		this.source.loop = true;
+		this.source.connect(warningPanNode);
+		this.source.start();
+		this.playing = true;
+	}
+
+	pause() {
+		if (!this.ready || !this.playing) return;
+		this.source.stop();
+		this.playing = false;
+	}
+}
+
+const sfx = {
+	ready: new SFX("ready", gainNode),
+	countdown: new SFX("countdown", gainNode),
+	pause: new SFX("pause", gainNode),
+	gameOver: new SFX("gameOver", gainNode),
+	win: new SFX("win", gainNode),
+
+	single: new SFX("single"),
+	double: new SFX("double"),
+	triple: new SFX("triple"),
+	tetris: new SFX("tetris"),
+	tSpin: new SFX("tSpin"),
+	backToBack: new SFX("backToBack", gainNode),
+	combo: [
+		undefined,
+		new SFX("combo1", gainNode),
+		new SFX("combo2", gainNode),
+		new SFX("combo3", gainNode),
+		new SFX("combo4", gainNode),
+		new SFX("combo5", gainNode),
+		new SFX("combo6", gainNode),
+		new SFX("combo7", gainNode),
+		new SFX("combo8", gainNode),
+		new SFX("combo9", gainNode),
+		new SFX("combo10", gainNode)
+	],
+	move: new SFX("move"),
+	rotate: new SFX("rotate"),
+	softDrop: new SFX("softDrop"),
+	hardDrop: new SFX("hardDrop"),
+	lock: new SFX("lock"),
+	softLock: new SFX("softLock"),
+	land: new SFX("land"),
+	hold: new SFX("hold"),
+	allClear: new SFX("allClear"),
+	afterClear: new SFX("afterClear"),
+	attack: new SFX("attack"),
+	attackNear: new SFX("attackNear"),
+	attackDetonating: new SFX("attackDetonating"),
+	defend: new SFX("defend"),
+	warning: new SFXWarning()
+};
+
+loadSoundEffectConfig(() => {
+	for (let s of Object.values(sfx)) if (s instanceof SFX) s.load();
+	for (let i = 1; i < 11; i++) sfx.combo[i].load();
+	sfx.warning.load();
+});
+
+loadMusicConfig(() => {
+	for (let m of Object.values(music)) m.load();
+});
 
 const panNodes = [];
 for (let i = 0; i < 2; i++) {
@@ -124,44 +194,12 @@ for (let i = 0; i < 2; i++) {
 	panNodes.push(node);
 }
 
-function getSFXes(panNode) {
-	return {
-		single: new SFX("SFX/Single.mp3", panNode),
-		double: new SFX("SFX/Double.mp3", panNode),
-		triple: new SFX("SFX/Triple.mp3", panNode),
-		tetris: new SFX("SFX/Tetris.mp3", panNode),
-		tSpin: new SFX("SFX/T spin.mp3", panNode),
-		move: new SFX("SFX/Move.mp3", panNode),
-		rotate: new SFX("SFX/Rotate.mp3", panNode),
-		softDrop: new SFX("SFX/Soft drop.mp3", panNode),
-		hardDrop: new SFX("SFX/Hard drop.mp3", panNode),
-		lock: new SFX("SFX/Lock.mp3", panNode),
-		softLock: new SFX("SFX/Soft lock.mp3", panNode),
-		land: new SFX("SFX/Land.mp3", panNode),
-		hold: new SFX("SFX/Hold.mp3", panNode),
-		allClear: new SFX("SFX/All clear.mp3", panNode),
-		afterClear: new SFX("SFX/After clear.mp3", panNode),
-		attack1: new SFX("SFX/Attack 1.mp3", panNode),
-		attack2: new SFX("SFX/Attack 2.mp3", panNode),
-		attackNear: new SFX("SFX/Attack near.mp3", panNode),
-		attackDetonating: new SFX("SFX/Attack detonating.mp3", panNode),
-		defend: new SFX("SFX/Defend.mp3", panNode)
-	}
-}
-
-const playSfx = [
-	getSFXes(panNodes[0]),
-	getSFXes(panNodes[1])
-];
-
 var volume;
 
 function setVolume(newVolume) {
 	volume = Math.max(0, Math.min(10, newVolume));
 	localStorage.tetrisVolume = volume;
 	newVolume = Math.pow(volume / 10, 4);
-	for (let track of Object.values(music)) track.volume = newVolume;
-	for (let effect of Object.values(sfx)) effect.volume = newVolume;
 	gainNode.gain.value = newVolume;
 }
 
@@ -286,8 +324,8 @@ class PlayScreen {
 		this.level = 1;
 		let time = new Date().getTime();
 		this.playfields = [
-			new Playfield(this, 68, 6, 209, 278, 0, keyMappingPlayer1, time, garbageType, new scoring(), playSfx[0]),
-			new Playfield(this, 452, 6, 322, 278, 1, keyMappingPlayer2, time, garbageType, new scoring(), playSfx[1])
+			new Playfield(this, 68, 6, 209, 278, 0, keyMappingPlayer1, time, garbageType, new scoring(), panNodes[0]),
+			new Playfield(this, 452, 6, 322, 278, 1, keyMappingPlayer2, time, garbageType, new scoring(), panNodes[1])
 		];
 		for (let line = 39; line > 39 - handicappedLines; line--) {
 			let bag = [...zeroToNine];
@@ -350,27 +388,27 @@ class PlayScreen {
 					case GameState.playing:
 						if (this.playfields[0].buttonStatus.quitModifier) {
 							if (this.warning) sfx.warning.pause();
-							this.currentSong.pause();
+							currentSong.pause();
 							goBack();
 							break;
 						}
 						this.state = GameState.paused;
-						this.currentSong.pause();
+						currentSong.pause();
 						if (this.warning) sfx.warning.pause();
 						sfx.pause.play();
 						break;
 					case GameState.paused:
 						if (this.playfields[0].buttonStatus.quitModifier) {
-							this.currentSong.pause();
+							currentSong.pause();
 							goBack();
 							break;
 						}
 						this.state = GameState.playing;
-						this.currentSong.play();
+						currentSong.resume();
 						if (this.warning) sfx.warning.play();
 						break;
 					case GameState.over:
-						this.currentSong.pause();
+						currentSong.pause();
 						goBack();
 						break;
 				}
@@ -422,23 +460,8 @@ class PlayScreen {
 				if (this.warmupLeft == -1) {
 					for (let i = 0; i < 2; i++) this.playfields[i].nextTetrimino();
 					this.state = GameState.playing;
-					music.level1.currentTime = music.level1Opening.currentTime = music.level6.currentTime = music.level11.currentTime = music.level11Opening.currentTime = sfx.win.currentTime = music.gameOverOpening.currentTime = music.gameOver.currentTime = 0;
-					if (this.level > 10) {
-						this.currentSong = music.level11Opening;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level11;
-							this.currentSong.play();
-						}
-					} else if (this.level > 5) {
-						this.currentSong = music.level6;
-					} else {
-						this.currentSong = music.level1Opening;
-						this.currentSong.onended = () => {
-							this.currentSong = music.level1;
-							this.currentSong.play();
-						}
-					}
-					this.currentSong.play();
+					currentSong = music.level1;
+					currentSong.play();
 				} else {
 					this.warmupSecond += 1000;
 					if (this.warmupLeft < 3) sfx.countdown.play();
@@ -519,27 +542,15 @@ class PlayScreen {
 			if (this.level != this.levels.length) this.totalLinesToNextLevel += this.levels[this.level][0];
 			switch (this.level) {
 				case 6:
-					this.currentSong.pause();
-					this.currentSong = music.level6Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level6;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
+					currentSong.pause();
+					currentSong = music.level6;
+					currentSong.play();
 					this.levelUpTime = 3000;
 					break;
 				case 11:
-					this.currentSong.pause();
-					this.currentSong = music.level11Start;
-					this.currentSong.onended = () => {
-						this.currentSong = music.level11Opening;
-						this.currentSong.play();
-					}
-					music.level11Opening.onended = () => {
-						this.currentSong = music.level11;
-						this.currentSong.play();
-					}
-					this.currentSong.play();
+					currentSong.pause();
+					currentSong = music.level11;
+					currentSong.play();
 					this.levelUpTime = 3000;
 					break;
 			}
@@ -560,25 +571,16 @@ class PlayScreen {
 
 	gameOver(player) {
 		this.state = GameState.over;
-		this.currentSong.pause();
+		currentSong.pause();
 		if (this.warning) sfx.warning.pause();
 		this.loser = player;
-		music.gameOverOpening.onended = () => {
-			this.currentSong = music.gameOver;
-			this.currentSong.play();
-		}
-		sfx.win.onended = () => {
-			this.currentSong = music.gameOverOpening;
-			this.currentSong.play();
-		}
-		this.currentSong = sfx.win;
-		this.currentSong.play();
+		sfx.win.play();
 		openGui(new GameOverScreen(this.parent, this));
 	}
 }
 
 class Playfield {
-	constructor(parent, xPos, yPos, keystrokesX, keystrokesY, player, keyMapping, seed, garbageType, scoring, sfx) {
+	constructor(parent, xPos, yPos, keystrokesX, keystrokesY, player, keyMapping, seed, garbageType, scoring, panNode) {
 		this.xPos = xPos;
 		this.yPos = yPos;
 		this.player = player;
@@ -647,7 +649,7 @@ class Playfield {
 			esc: false,
 			quitModifier: false
 		}
-		this.sfx = sfx;
+		this.panNode = panNode;
 		this.garbageQueue = [];
 		this.garbagePhase = 0; // 0: Preparing; 1: Near; 2: Detonating.
 		this.garbageTime = 0;
@@ -668,6 +670,10 @@ class Playfield {
 		this.keystrokesX = keystrokesX;
 		this.keystrokesY = keystrokesY;
 		this.particles = [];
+	}
+
+	playSfx(sfx) {
+		sfx.play(this.panNode);
 	}
 
 	init() {
@@ -695,7 +701,7 @@ class Playfield {
 			this.clearTime -= timePassed;
 			this.fallTime -= Math.min(0, this.clearTime);
 			if (this.clearTime < 1 && this.current == null) {
-				if (this.clearedLines.length != 0) this.sfx.afterClear.play();
+				if (this.clearedLines.length != 0) this.playSfx(sfx.afterClear);
 				for (let line of this.clearedLines) {
 					for (let i = 0; i < 10; i++) {
 						this.board[i].splice(line, 1);
@@ -715,8 +721,8 @@ class Playfield {
 					if (this.garbageTime >= currentDeadline) {
 						this.garbageTime -= currentDeadline;
 						switch (++this.garbagePhase) {
-							case 1: this.sfx.attackNear.play(); break;
-							case 2: this.sfx.attackDetonating.play(); break;
+							case 1: this.playSfx(sfx.attackNear); break;
+							case 2: this.playSfx(sfx.attackDetonating); break;
 						}
 					}
 				}
@@ -732,7 +738,7 @@ class Playfield {
 					fell = true;
 					this.fallTime -= this.parent.getFallInterval();
 				}
-				if (!this.current.canFall(this.board)) this.sfx.land.play();
+				if (!this.current.canFall(this.board)) this.playSfx(sfx.land);
 				if (fell) {
 					this.current.onMove();
 					this.lockTime = this.fallTime;
@@ -740,7 +746,7 @@ class Playfield {
 			} else {
 				if ((this.lockTime += timePassed) >= this.parent.getLockDelay()) {
 					this.lock(false);
-					this.sfx.lock.play();
+					this.playSfx(sfx.lock);
 				}
 			}
 			this.fallTime = this.parent.getFallInterval() == 0 ? 0 : this.fallTime % this.parent.getFallInterval();
@@ -766,7 +772,7 @@ class Playfield {
 					let end = this.current.y + this.current.baseY[this.current.state];
 					this.score += this.scoring.getHardDropScore(start, end);
 					if (start != end) this.current.onMove();
-					((start != end)? this.sfx.hardDrop : this.sfx.softLock).play();
+					this.playSfx(start != end ? sfx.hardDrop : sfx.softLock);
 					for (let i = 0; i < 3; i++) this.spawnParticle();
 					this.lock(true);
 					this.buttonHardDrop = true;
@@ -775,7 +781,7 @@ class Playfield {
 			if (this.buttonStatus.rotateClockwise) {
 				if (this.current != null && !this.buttonRotateClockwise) {
 					if (this.current.rotateClockwise(this.board)) {
-						this.sfx.rotate.play();
+						this.playSfx(sfx.rotate);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
 					this.buttonRotateClockwise = true;
@@ -784,7 +790,7 @@ class Playfield {
 			if (this.buttonStatus.rotateCounterClockwise) {
 				if (this.current != null && !this.buttonRotateCounterClockwise) {
 					if (this.current.rotateCounterClockwise(this.board)) {
-						this.sfx.rotate.play();
+						this.playSfx(sfx.rotate);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
 					this.buttonRotateCounterClockwise = true;
@@ -803,7 +809,7 @@ class Playfield {
 						this.holds++;
 						this.checkGameOver();
 					}
-					this.sfx.hold.play();
+					this.playSfx(sfx.hold);
 					this.holdSwitched = true;
 				}
 			} else this.buttonHold = false;
@@ -1014,8 +1020,8 @@ class Playfield {
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			this.sfx.move.play();
-			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) this.sfx.land.play();
+			this.playSfx(sfx.move);
+			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.land);
 			return true;
 		}
 		return false;
@@ -1030,8 +1036,8 @@ class Playfield {
 			}
 			this.current.onMove();
 			this.score += this.scoring.getSoftDropScore();
-			this.sfx.softDrop.play();
-			if (!this.current.canFall(this.board)) this.sfx.land.play();
+			this.playSfx(sfx.softDrop);
+			if (!this.current.canFall(this.board)) this.playSfx(sfx.land);
 			return false;
 		}
 		return true;
@@ -1066,7 +1072,7 @@ class Playfield {
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		this.score += this.scoring.getLockScore(baseline, this.parent.level, isDrop);
-		if (tSpinType) this.sfx.tSpin.play();
+		if (tSpinType) this.playSfx(sfx.tSpin);
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		if (toClear.length != 0) {
 			this.clearLines(toClear);
@@ -1083,7 +1089,7 @@ class Playfield {
 		lines = Math.min(12 - total, lines);
 		if (lines > 0) {
 			this.garbageQueue.push(lines);
-			if (Math.random() > 0.5) this.sfx.attack1.play(); else this.sfx.attack2.play();
+			this.playSfx(sfx.attack);
 			this.received += lines;
 			return lines;
 		}
@@ -1109,17 +1115,17 @@ class Playfield {
 		this.parent.addLines(toClear.length);
 		this.clearTime = 500;
 		switch (toClear.length) {
-			case 1: this.sfx.single.play(); break;
-			case 2: this.sfx.double.play(); break;
-			case 3: this.sfx.triple.play(); break;
-			case 4: this.sfx.tetris.play(); break;
+			case 1: this.playSfx(sfx.single); break;
+			case 2: this.playSfx(sfx.double); break;
+			case 3: this.playSfx(sfx.triple); break;
+			case 4: this.playSfx(sfx.tetris); break;
 		}
 		if ((this.totalMinos -= toClear.length * 10) == 0) {
 			this.score += 1000;
 			this.clearTime = 1000;
 			this.garbageLines += 4;
 			this.allClears++;
-			this.sfx.allClear.play();
+			this.playSfx(sfx.allClear);
 		}
 		this.current = null;
 		this.processAttack();
@@ -1138,12 +1144,14 @@ class Playfield {
 				this.rewardName += " BTB";
 				this.garbageLines += 1;
 				this.backToBacks++;
+				this.playSfx(sfx.backToBack);
 			} else this.backToBack = true;
 		} else this.backToBack = this.backToBack && this.reward > 2;
 		this.maxCombo = Math.max(this.maxCombo, ++this.combo);
 		if (reward != 4 && this.reward != 7 && this.combo > 0) {
 			this.rewardAmount += this.scoring.getComboAmount(this.combo, this.parent.level);
 			this.garbageLines += this.combo > 11 ? 5 : comboAmounts[this.combo];
+			this.playSfx(sfx.combo[Math.min(10, this.combo)]);
 		}
 		this.score += this.rewardAmount;
 	}
@@ -1174,7 +1182,7 @@ class Playfield {
 				}
 				isDefense = true;
 			}
-			if (isDefense) this.sfx.defend.play();
+			if (isDefense) this.playSfx(sfx.defend);
 			this.attacks += this.parent.playfields[this.player ? 0 : 1].addGarbage(this.garbageLines);
 		} else if (this.garbagePhase == 2 && this.clearedLines.length == 0) {
 			let lines = this.garbageQueue.splice(0, 1)[0];
