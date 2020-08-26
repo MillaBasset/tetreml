@@ -88,6 +88,27 @@
 				request.send();
 				return promise;
 			}
+
+			function exportConfigJSON(name, original, current) {
+				let toExport = {};
+				for (let entry of Object.entries(current)) if (entry[1] != original[entry[0]]) toExport[entry[0]] = entry[1];
+
+				let date = new Date();
+				let filename = `${name} – ${date.getHours()}h${date.getMinutes() < 10 ? "0" : ""}${date.getMinutes()}.${date.getSeconds() < 10 ? "0" : ""}${date.getSeconds()} ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.json`;
+				let data = JSON.stringify(toExport, null, "\t");
+
+				let blob = new Blob([data], {type: 'text/json'});
+				if (window.navigator.msSaveOrOpenBlob) {
+					window.navigator.msSaveBlob(blob, filename);
+				} else {
+					var elem = window.document.createElement('a');
+					elem.href = window.URL.createObjectURL(blob);
+					elem.download = filename;
+					document.body.appendChild(elem);
+					elem.click();
+					document.body.removeChild(elem);
+				}
+			}
 		</script>
 		<div id=categoryTextures>
 			<label for=textures_selector>Texture type: </label>
@@ -267,6 +288,12 @@
 				<button onclick="soundEffects_apply()">Apply</button>
 				<button onclick="soundEffects_viewCurrent()">View current</button>
 				<button onclick="soundEffects_reset()">Reset</button>
+				<br><br>
+				<label for=soundEffects_jsonInput onchange="soundEffects_onJsonFileChanged()">Load JSON file: </label>
+				<input id=soundEffects_jsonInput type=file accept=".json" onchange="soundEffects_onJsonFileChanged()">
+				<button id=soundEffects_buttonLoadJson onclick="soundEffects_loadJsonFile()" disabled>Load</button>
+				<br>
+				<button onclick="exportConfigJSON('Tetreml sounds configuration', soundEffects_defaultConfig, soundEffects_currentConfig)">Export JSON</button>
 			</div>
 			<br>
 			<h4>Register custom sounds</h4>
@@ -325,6 +352,27 @@
 					alert("The sound effect has been reset to default.");
 				}
 
+				function soundEffects_onJsonFileChanged() {
+					document.getElementById("soundEffects_buttonLoadJson").disabled = document.getElementById("soundEffects_jsonInput").files.length == 0;
+				}
+
+				function soundEffects_loadJsonFile() {
+					if (theCache == null) return;
+					let files = document.getElementById("soundEffects_jsonInput").files;
+					if (files.length == 0) return;
+					let reader = new FileReader();
+					reader.addEventListener('load', (event) => {
+						let info = JSON.parse(event.target.result);
+						for (let entry of Object.entries(info)) {
+							if (entry[0] in soundEffects_defaultConfig && Number.isInteger(entry[1])) soundEffects_currentConfig[entry[0]] = entry[1];
+						}
+						document.getElementById("soundEffects_currentID").innerHTML = document.getElementById("soundEffects_applySpinner").value = soundEffects_currentConfig[document.getElementById("soundEffects_selector").value];
+						soundEffects_saveConfig();
+						alert("The JSON has been loaded.");
+					});
+					reader.readAsText(files[0]);
+				}
+
 				function soundEffects_onFileChanged() {
 					document.getElementById("soundEffects_buttonRegister").disabled = document.getElementById("soundEffects_fileInput").files.length == 0;
 				}
@@ -354,18 +402,16 @@
 				function soundEffects_update() {
 					if (theCache == null) return;
 					(async () => {
-						let s = "";
-						let isFirst = true;
+						let l = [];
 						for (let request of await theCache.keys())
 							if (request.url.includes("/SFX/")) {
 								let matches = request.url.match(/(?<=\/SFX\/)(-|)\d*?(?=.mp3)/);
 								if (matches != null) {
-									s += (isFirst ? "" : "<br>") + matches[0];
-									isFirst = false;
+									let num = Number.parseInt(matches[0]);
+									if (!Number.isNaN(num)) l.push(num);
 								}
 							}
-						if (isFirst) s = "<i>There are no registered custom sounds.</i>";
-						document.getElementById("soundEffects_registeredIDs").innerHTML = s;
+						document.getElementById("soundEffects_registeredIDs").innerHTML = l.length == 0 ? "<i>There are no registered custom sounds.</i>" : l.sort((a, b) => a-b).map(id => `<a href="SFX/${id}.mp3" target="_blank">${id}</a>`).reduce((total, current) => total + "<br>" + current);
 					})();
 				}
 
@@ -472,6 +518,12 @@
 				<button onclick="music_apply()">Apply</button>
 				<button onclick="music_viewCurrent()">View current</button>
 				<button onclick="music_reset()">Reset</button>
+				<br><br>
+				<label for=music_jsonInput onchange="music_onJsonFileChanged()">Load JSON file: </label>
+				<input id=music_jsonInput type=file accept=".json" onchange="music_onJsonFileChanged()">
+				<button id=music_buttonLoadJson onclick="music_loadJsonFile()" disabled>Load</button>
+				<br>
+				<button onclick="exportConfigJSON('Tetreml music configuration', music_defaultConfig, music_currentConfig)">Export JSON</button>
 			</div>
 			<br>
 			<h4>Register custom music</h4>
@@ -532,6 +584,27 @@
 					alert("The sound effect has been reset to default.");
 				}
 
+				function music_onJsonFileChanged() {
+					document.getElementById("music_buttonLoadJson").disabled = document.getElementById("music_jsonInput").files.length == 0;
+				}
+
+				function music_loadJsonFile() {
+					if (theCache == null) return;
+					let files = document.getElementById("music_jsonInput").files;
+					if (files.length == 0) return;
+					let reader = new FileReader();
+					reader.addEventListener('load', (event) => {
+						let info = JSON.parse(event.target.result);
+						for (let entry of Object.entries(info)) {
+							if (entry[0] in music_defaultConfig && Number.isInteger(entry[1])) music_currentConfig[entry[0]] = entry[1];
+						}
+						document.getElementById("music_currentID").innerHTML = document.getElementById("music_applySpinner").value = music_currentConfig[document.getElementById("music_selector").value];
+						music_saveConfig();
+						alert("The JSON has been loaded.");
+					});
+					reader.readAsText(files[0]);
+				}
+
 				function music_onFileChanged() {
 					document.getElementById("music_buttonRegister").disabled = document.getElementById("music_fileInput").files.length == 0;
 				}
@@ -561,18 +634,16 @@
 				function music_update() {
 					if (theCache == null) return;
 					(async () => {
-						let s = "";
-						let isFirst = true;
+						let l = [];
 						for (let request of await theCache.keys())
 							if (request.url.includes("/Music/")) {
 								let matches = request.url.match(/(?<=\/Music\/)(-|)\d*?(?=.mp3)/);
 								if (matches != null) {
-									s += (isFirst ? "" : "<br>") + matches[0];
-									isFirst = false;
+									let num = Number.parseInt(matches[0]);
+									if (!Number.isNaN(num)) l.push(num);
 								}
 							}
-						if (isFirst) s = "<i>There are no registered custom music tracks.</i>";
-						document.getElementById("music_registeredIDs").innerHTML = s;
+						document.getElementById("music_registeredIDs").innerHTML = l.length == 0 ? "<i>There are no registered custom music tracks.</i>" : l.sort((a, b) => a-b).map(id => `<a href="Music/${id}.mp3" target="_blank">${id}</a>`).reduce((total, current) => total + "<br>" + current);
 					})();
 				}
 
