@@ -16,7 +16,7 @@ class SFX {
 		id = soundEffectConfig[id];
 		if ((id ?? 0) == 0) return;
 		let request = new XMLHttpRequest();
-		request.open('GET', `SFX/${id}.mp3${id > 0 ? "?cacheonly=true" : ""}`, true);
+		request.open('GET', `SFX/${id}.mp3?cacheonly=true`, true);
 		request.responseType = 'arraybuffer';
 		request.onload = () => {
 			if (request.status != 200) {
@@ -103,7 +103,7 @@ class Music {
 		this.audio.preload = "auto";
 		this.audio.load();
 		audioContext.createMediaElementSource(this.audio).connect(gainNode);
-		this.audio.src = `Music/${this.id}.mp3${this.id > 0 ? "?cacheonly=true" : ""}`;
+		this.audio.src = `Music/${this.id}.mp3?cacheonly=true`;
 	}
 
 	play() {
