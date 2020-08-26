@@ -183,7 +183,7 @@
 					document.getElementById("textures_buttonApply").disabled = document.getElementById("textures_fileInput").files.length == 0;
 				}
 
-				function apply() {
+				function textures_apply() {
 					if (theCache == null) return;
 					let files = document.getElementById("textures_fileInput").files;
 					if (files.length == 0) return;
