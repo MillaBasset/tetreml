@@ -597,13 +597,13 @@ class PlayScreenBase {
 		if (this.state == GameState.playing && this.current != null) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
+				if (!this.isSeeking) {
+					(this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
+					if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
+				}
 				this.current.x = newX;
 				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
-				if (!this.isSeeking) {
-					sfx.move.play();
-					if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
-				}
 				if (isInitialPress || this.wasNull) this.addKeypress();
 				this.wasNull = false;
 				this.recordAction(offset == 1 ? "moveRight" : "moveLeft", timestamp);
@@ -615,18 +615,22 @@ class PlayScreenBase {
 	}
 
 	rotateClockwise(timestamp) {
-		if (this.current != null && this.current.rotateClockwise(this.board)) {
+		if (this.current != null) {
+			let inAir = this.current.canFall(this.board);
+			if (!this.current.rotateClockwise(this.board)) return;
 			this.addKeypress();
-			if (!this.isSeeking) sfx.rotate.play();
+			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			this.recordAction("rotateClockwise", timestamp);
 		}
 	}
 
 	rotateCounterClockwise(timestamp) {
-		if (this.current != null && this.current.rotateCounterClockwise(this.board)) {
+		if (this.current != null) {
+			let inAir = this.current.canFall(this.board);
+			if (!this.current.rotateCounterClockwise(this.board)) return;
 			this.addKeypress();
-			if (!this.isSeeking) sfx.rotate.play();
+			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			this.recordAction("rotateCounterClockwise", timestamp);
 		}

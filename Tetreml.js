@@ -24,7 +24,9 @@ const sfx = {
 		new SFX("combo10", gainNode)
 	],
 	move: new SFX("move", gainNode),
+	moveOnGround: new SFX("moveOnGround", gainNode),
 	rotate: new SFX("rotate", gainNode),
+	rotateOnGround: new SFX("rotateOnGround", gainNode),
 	softDrop: new SFX("softDrop", gainNode),
 	hardDrop: new SFX("hardDrop", gainNode),
 	lock: new SFX("lock", gainNode),

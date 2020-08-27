@@ -62,7 +62,6 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		this.comboMultipliers = [[1, 1, 1, 1], [1, 1.2, 1.4, 1.5], [1, 1.2, 1.5, 1.8], [1, 1.4, 1.6, 2], [1, 1.4, 1.7, 2.2], [1, 1.4, 1.8, 2.3], [1, 1.4, 1.9, 2.4], [1, 1.5, 2, 2.5], [1, 1.5, 2.1, 2.6], [1, 2, 2.5, 3]];
 		this.coolTimes = [52000, 52000, 49000, 45000, 45000, 42000, 42000, 38000, 38000];
 		this.regretTimes = [90000, 75000, 75000, 68000, 60000, 60000, 50000, 50000, 50000, 50000];
-		this.lastCoolMarkTime = 0;
 		this.lastRegretMarkTime = 0;
 		this.invisibleRollEligible = true;
 		this.lastWasCool = false;
@@ -95,7 +94,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		this.musicLevel999.load();
 		audioContext.createMediaElementSource(this.musicLevel999).connect(gainNode);
 
-		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastCoolMarkTime", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "level999Score", "level999Time", "minoVisibilityLifetime");
+		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "level999Score", "level999Time", "minoVisibilityLifetime");
 	}
 
 	init() {
@@ -212,8 +211,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		oldLevel %= 100;
 		let newLevel = this.level % 100;
 		if (this.level < 900 && oldLevel < 70 && newLevel >= 70) {
-			let coolSectionTime = this.playTime - this.lastCoolMarkTime;
-			this.lastCoolMarkTime = this.playTime;
+			let coolSectionTime = this.playTime - this.lastRegretMarkTime;
 			if (this.lastWasCool = (coolSectionTime < (this.lastWasCool ? this.oldCoolSectionTime + 2001 : this.coolTimes[Math.floor(this.level / 100)])))
 				this.coolDisplayLevel = 82 + Math.floor(Math.random() * 17);
 			else this.invisibleRollEligible = false;

@@ -146,22 +146,24 @@ const sfx = {
 	triple: new SFX("triple"),
 	tetris: new SFX("tetris"),
 	tSpin: new SFX("tSpin"),
-	backToBack: new SFX("backToBack", gainNode),
+	backToBack: new SFX("backToBack"),
 	combo: [
 		undefined,
-		new SFX("combo1", gainNode),
-		new SFX("combo2", gainNode),
-		new SFX("combo3", gainNode),
-		new SFX("combo4", gainNode),
-		new SFX("combo5", gainNode),
-		new SFX("combo6", gainNode),
-		new SFX("combo7", gainNode),
-		new SFX("combo8", gainNode),
-		new SFX("combo9", gainNode),
-		new SFX("combo10", gainNode)
+		new SFX("combo1"),
+		new SFX("combo2"),
+		new SFX("combo3"),
+		new SFX("combo4"),
+		new SFX("combo5"),
+		new SFX("combo6"),
+		new SFX("combo7"),
+		new SFX("combo8"),
+		new SFX("combo9"),
+		new SFX("combo10")
 	],
 	move: new SFX("move"),
+	moveOnGround: new SFX("moveOnGround"),
 	rotate: new SFX("rotate"),
+	rotateOnGround: new SFX("rotateOnGround"),
 	softDrop: new SFX("softDrop"),
 	hardDrop: new SFX("hardDrop"),
 	lock: new SFX("lock"),
@@ -780,8 +782,9 @@ class Playfield {
 			} else this.buttonHardDrop = false;
 			if (this.buttonStatus.rotateClockwise) {
 				if (this.current != null && !this.buttonRotateClockwise) {
+					let inAir = this.current.canFall(this.board);
 					if (this.current.rotateClockwise(this.board)) {
-						this.playSfx(sfx.rotate);
+						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
 					this.buttonRotateClockwise = true;
@@ -789,8 +792,9 @@ class Playfield {
 			} else this.buttonRotateClockwise = false;
 			if (this.buttonStatus.rotateCounterClockwise) {
 				if (this.current != null && !this.buttonRotateCounterClockwise) {
+					let inAir = this.current.canFall(this.board);
 					if (this.current.rotateCounterClockwise(this.board)) {
-						this.playSfx(sfx.rotate);
+						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
 					this.buttonRotateCounterClockwise = true;
@@ -1017,10 +1021,10 @@ class Playfield {
 		if (this.parent.state != GameState.playing || this.current == null) return false;
 		let newX = this.current.x + offset;
 		if (!this.current.checkCollision(this.board, newX, this.current.y)) {
+			this.playSfx(this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround);
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			this.playSfx(sfx.move);
 			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.land);
 			return true;
 		}

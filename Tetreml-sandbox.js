@@ -25,7 +25,9 @@ const sfx = {
 	tetris: new SFX("tetris", gainNode),
 	tSpin: new SFX("tSpin", gainNode),
 	move: new SFX("move", gainNode),
+	moveOnGround: new SFX("moveOnGround", gainNode),
 	rotate: new SFX("rotate", gainNode),
+	rotateOnGround: new SFX("rotateOnGround", gainNode),
 	softDrop: new SFX("softDrop", gainNode),
 	hardDrop: new SFX("hardDrop", gainNode),
 	lock: new SFX("lock", gainNode),
@@ -316,9 +318,12 @@ class PlayScreen {
 				if (this.current != null && !this.buttonRotateClockwise) {
 					if (buttonStatus.quitModifier) {
 						this.getFumenURL();
-					} else if (this.current.rotateClockwise(this.board)) {
-						sfx.rotate.play();
-						if (this.moveCounter++ < 15) this.lockTime = 0;
+					} else {
+						let inAir = this.current.canFall(this.board);
+						if (this.current.rotateClockwise(this.board)) {
+							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
+							if (this.moveCounter++ < 15) this.lockTime = 0;
+						}
 					}
 					this.buttonRotateClockwise = true;
 				}
@@ -327,9 +332,12 @@ class PlayScreen {
 				if (this.current != null && !this.buttonRotateCounterClockwise) {
 					if (buttonStatus.quitModifier) {
 						this.renderImage();
-					} else if (this.current.rotateCounterClockwise(this.board)) {
-						sfx.rotate.play();
-						if (this.moveCounter++ < 15) this.lockTime = 0;
+					} else {
+						let inAir = this.current.canFall(this.board);
+						if (this.current.rotateCounterClockwise(this.board)) {
+							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
+							if (this.moveCounter++ < 15) this.lockTime = 0;
+						}
 					}
 					this.buttonRotateCounterClockwise = true;
 				}
@@ -688,10 +696,10 @@ class PlayScreen {
 		if (this.state != GameState.playing || this.current == null) return;
 		let newX = this.current.x + offset;
 		if (!this.current.checkCollision(this.board, newX, this.current.y)) {
+			(this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			sfx.move.play();
 			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 			return true;
 		}
