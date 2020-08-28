@@ -142,7 +142,7 @@ class PlayScreen {
 		this.lockDelay = lockDelay;
 		let fieldString = "";
 		let fumenColorMapping = ["X", "I", "J", "L", "O", "S", "T", "Z"]
-		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? fumenColorMapping[this.board[x][y].textureY / 8] : "_";
+		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? fumenColorMapping[this.board[x][y].textureY] : "_";
 		this.currentFumenPage.field = tetrisFumen.Field.create(fieldString);
 		this.currentFumenPageDataCart.flags = { lock: true };
 
