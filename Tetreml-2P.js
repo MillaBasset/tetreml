@@ -86,7 +86,7 @@ const garbageAmounts = [0, 1, 2, 4, 0, 0, 1, 1, 2, 4, 6];
 const comboAmounts = [0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5];
 
 var warningPanNode = audioContext.createStereoPanner();
-warningPanNode.connect(audioContext.destination);
+warningPanNode.connect(gainNode);
 
 class SFXWarning {
 	constructor() {
@@ -145,6 +145,7 @@ const sfx = {
 	double: new SFX("double"),
 	triple: new SFX("triple"),
 	tetris: new SFX("tetris"),
+	tSpinZero: new SFX("tSpinZero", gainNode),
 	tSpin: new SFX("tSpin"),
 	backToBack: new SFX("backToBack"),
 	combo: [
@@ -175,6 +176,7 @@ const sfx = {
 	attack: new SFX("attack"),
 	attackNear: new SFX("attackNear"),
 	attackDetonating: new SFX("attackDetonating"),
+	garbageInsertion: new SFX("garbageInsertion"),
 	defend: new SFX("defend"),
 	warning: new SFXWarning()
 };
@@ -1076,7 +1078,7 @@ class Playfield {
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		this.score += this.scoring.getLockScore(baseline, this.parent.level, isDrop);
-		if (tSpinType) this.playSfx(sfx.tSpin);
+		if (tSpinType) this.playSfx(toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin);
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		if (toClear.length != 0) {
 			this.clearLines(toClear);
@@ -1208,10 +1210,11 @@ class Playfield {
 				this.minos.splice(0, 1);
 				this.minos.push(minos);
 				this.totalMinos += minos;
-				this.garbagePhase = 0;
-				this.garbageTime = 0;
-				this.clearTime = 500;
 			}
+			this.garbagePhase = 0;
+			this.garbageTime = 0;
+			this.clearTime = 500;
+			this.playSfx(sfx.garbageInsertion);
 		}
 		this.attackProcessed = true;
 		this.parent.updateWarning();

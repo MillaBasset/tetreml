@@ -8,6 +8,7 @@ const sfx = {
 	double: new SFX("double", gainNode),
 	triple: new SFX("triple", gainNode),
 	tetris: new SFX("tetris", gainNode),
+	tSpinZero: new SFX("tSpinZero", gainNode),
 	tSpin: new SFX("tSpin", gainNode),
 	backToBack: new SFX("backToBack", gainNode),
 	combo: [

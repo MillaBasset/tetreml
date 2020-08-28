@@ -723,7 +723,7 @@ class PlayScreenBase {
 			return -1;
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
-		if (!this.isSeeking && tSpinType) sfx.tSpin.play();
+		if (!this.isSeeking && tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		this.clearLines(toClear);
 		if (toClear.length != 0) {

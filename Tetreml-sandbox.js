@@ -23,6 +23,7 @@ const sfx = {
 	double: new SFX("double", gainNode),
 	triple: new SFX("triple", gainNode),
 	tetris: new SFX("tetris", gainNode),
+	tSpinZero: new SFX("tSpinZero", gainNode),
 	tSpin: new SFX("tSpin", gainNode),
 	move: new SFX("move", gainNode),
 	moveOnGround: new SFX("moveOnGround", gainNode),
@@ -480,6 +481,9 @@ class PlayScreen {
 		} else this.buttonVolumeDown = false;
 
 		// Actually render things on the screen.
+		ctx.imageSmoothingEnabled = false;
+		ctx.globalAlpha = 1;
+		ctx.drawImage(playScreenImage, 0, 0);
 		
 		if (this.hold == -1) {
 			ctx.strokeStyle = "#F00";
@@ -493,10 +497,6 @@ class PlayScreen {
 			ctx.lineTo(182, 69);
 			ctx.stroke();
 		}
-
-		ctx.imageSmoothingEnabled = false;
-		ctx.globalAlpha = 1;
-		ctx.drawImage(playScreenImage, 0, 0);
 		
 		ctx.fillStyle = "#FFF";
 		ctx.font = "16px Segoe UI";
@@ -760,7 +760,7 @@ class PlayScreen {
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
-		if (tSpinType) sfx.tSpin.play();
+		if (tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
 		if (toClear.length != 0) {
 			this.clearLines(toClear)
 		} else {

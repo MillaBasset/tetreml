@@ -23,6 +23,7 @@
 	"single": -20,
 	"softDrop": -21,
 	"softLock": -22,
+	"tSpinZero": -23,
 	"tSpin": -23,
 	"tetriminoI": -24,
 	"tetriminoJ": -25,
@@ -46,5 +47,6 @@
 	"combo8": 0,
 	"combo9": 0,
 	"combo10": 0,
-	"backToBack": 0
+	"backToBack": 0,
+	"garbageInsertion": 0
 }
