@@ -1482,7 +1482,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
 		ctx.fillText("Level " + this.level, 485, 85);
-		ctx.fillText("Lines: " + this.lines, 485, 111);
+		ctx.fillText("Progress: " + this.lines, 485, 111);
 		ctx.fillText("Time elapsed", 485, 154);
 		
 		ctx.textAlign = "right";
