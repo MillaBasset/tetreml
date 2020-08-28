@@ -734,6 +734,8 @@ class PlayScreenBase {
 			this.combo = -1;
 			this.nextTetrimino();
 		}
+
+		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
 		
 		return baseline;
 	}

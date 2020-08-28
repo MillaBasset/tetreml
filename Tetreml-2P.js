@@ -1087,6 +1087,8 @@ class Playfield {
 			this.nextTetrimino();
 		}
 		this.parent.updateWarning();
+
+		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
 	}
 
 	addGarbage(lines) {

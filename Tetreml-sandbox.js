@@ -767,6 +767,8 @@ class PlayScreen {
 			this.nextTetrimino();
 		}
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
+
+		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
 	}
 
 	clearLines(toClear) {
