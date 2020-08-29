@@ -1154,9 +1154,9 @@ class Playfield {
 				this.backToBacks++;
 				this.playSfx(sfx.backToBack);
 			} else this.backToBack = true;
-		} else this.backToBack = this.backToBack && this.reward > 2;
+		} else this.backToBack = this.backToBack && reward > 2;
 		this.maxCombo = Math.max(this.maxCombo, ++this.combo);
-		if (reward != 4 && this.reward != 7 && this.combo > 0) {
+		if (reward != 4 && reward != 7 && this.combo > 0) {
 			this.rewardAmount += this.scoring.getComboAmount(this.combo, this.parent.level);
 			this.garbageLines += this.combo > 11 ? 5 : comboAmounts[this.combo];
 			this.playSfx(sfx.combo[Math.min(10, this.combo)]);

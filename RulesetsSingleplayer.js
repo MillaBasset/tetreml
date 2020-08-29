@@ -782,8 +782,8 @@ class PlayScreenBase {
 				this.rewardName += " BTB";
 				if (!this.isSeeking) sfx.backToBack.play();
 			} else this.backToBack = true;
-		} else this.backToBack = this.backToBack && this.reward == 4;
-		if (reward != 4 && this.reward != 7 && ++this.combo > 0) {
+		} else this.backToBack = this.backToBack && reward > 2;
+		if (reward != 4 && reward != 7 && ++this.combo > 0) {
 			this.rewardAmount += this.getComboBonus();
 			if (!this.isSeeking) sfx.combo[Math.min(10, this.combo)].play();
 		}
