@@ -1,4 +1,4 @@
-// Version: 10
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -115,6 +115,6 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
 	let params = new URL(event.request.url).searchParams;
 	event.respondWith(
-		(async () => { return (params.get("state") != "original" && (await caches.match(event.request, { cacheName: "TetremlCustomAssets", ignoreSearch: true }))) || (await caches.match(event.request, { cacheName: "Tetreml", ignoreSearch: true })) || (params.get("cacheonly") == "true" ? new Response(null, { status: 404 }) : fetch(event.request)); })()
+		(async () => { return (params.get("state") != "original" && (await caches.match(event.request, { cacheName: "TetremlCustomAssets", ignoreSearch: true, ignoreVary: true }))) || (await caches.match(event.request, { cacheName: "Tetreml", ignoreSearch: true, ignoreVary: true })) || (params.get("cacheonly") == "true" ? new Response(null, { status: 404 }) : fetch(event.request)); })()
 	);
 });
