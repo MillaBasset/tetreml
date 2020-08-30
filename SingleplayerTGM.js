@@ -108,11 +108,6 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		currentSong.play();
 	}
 
-	changeMusic(newMusic) {
-		currentSong = newMusic;
-		currentSong.play();
-	}
-
 	getMusicIndex() {
 		let res = 0;
 		while (this.speedLevel >= this.musicSegments[res][0]) res++;

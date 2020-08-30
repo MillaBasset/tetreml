@@ -74,6 +74,7 @@ class Music {
 		this.ready = false;
 		this.id = id;
 		this.next = next;
+		this.playing = false;
 		this.loadImmediately = loadImmediately;
 		if (loadImmediately) this.load();
 	}
@@ -85,8 +86,9 @@ class Music {
 			return;
 		}
 		this.audio = new Audio();
-		this.audio.oncanplay = () => {
+		this.audio.onloadeddata = () => {
 			this.ready = true;
+			if (this.playing) this.play();
 		};
 		this.audio.onerror = () => {
 			console.warn(`Tetreml: Failed to retrieve music track with ID ${this.id}. This track will not be played.`);
@@ -107,30 +109,35 @@ class Music {
 	}
 
 	play() {
-		if (!this.ready) {
+		if (this.id == 0) {
 			if (this.next != undefined) {
 				currentSong = this.next;
 				currentSong.play();
 			}
 			return;
 		}
+		this.playing = true;
+		if (!this.ready) return;
 		this.audio.currentTime = 0;
 		this.audio.play();
 	}
 
 	pause() {
+		this.playing = false;
 		if (!this.ready) return;
 		this.audio.pause();
 	}
 
 	resume() {
-		if (!this.ready) {
+		if (this.id == 0) {
 			if (this.next != undefined) {
 				currentSong = this.next;
 				currentSong.play();
 			}
 			return;
 		}
+		this.playing = true;
+		if (!this.ready) return;
 		this.audio.play();
 	}
 
