@@ -180,7 +180,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			ctx.fillText("Grade", 320, 105, 160);
 			ctx.font = "300 50px Segoe UI";
 			ctx.fillStyle = "#FF0";
-			ctx.fillText(this.gradeText, 320, 160);
+			ctx.fillText(this.gradeText, 320, 160, 150);
 		}
 	}
 
