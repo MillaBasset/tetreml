@@ -94,7 +94,7 @@ class PlayScreenBase {
 			mode: this.getModeName(),
 			modeParameters: {}
 		};
-		this.singleSaveableFields = ["score", "lines", "combo", "backToBack", "rewardName", "rewardAmount", "rewardTime", "lockScore", "holdSwitched", "clearTime", "clearedLines", "clearEffectTime", "tetriminoes", "holds", "keypressed", "wasNull", "moveLock", "isClearing"];
+		this.singleSaveableFields = ["score", "lines", "combo", "backToBack", "holdSwitched", "clearTime", "clearedLines", "tetriminoes", "holds", "keypressed", "wasNull", "moveLock", "isClearing"];
 		this.isReplay = false;
 		this.isClearing = false;
 		this.isSeeking = false;
@@ -565,6 +565,8 @@ class PlayScreenBase {
 			this.minos.splice(line, 1);
 			this.minos = [0].concat(this.minos);
 		}
+		// Ensure that nextTetrimino always runs.
+		if (this.isReplay) this.clearTime = 0;
 		this.nextTetrimino();
 		this.isClearing = false;
 		this.clearedLines = [];
@@ -779,8 +781,10 @@ class PlayScreenBase {
 		if (doesRewardTriggerBackToBack[reward]) {
 			if (this.backToBack) {
 				this.rewardAmount *= 1.5;
-				this.rewardName += " BTB";
-				if (!this.isSeeking) sfx.backToBack.play();
+				if (!this.isSeeking) {
+					this.rewardName += " BTB";
+					sfx.backToBack.play();
+				}
 			} else this.backToBack = true;
 		} else this.backToBack = this.backToBack && reward > 2;
 		if (reward != 4 && reward != 7 && ++this.combo > 0) {

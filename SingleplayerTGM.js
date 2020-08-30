@@ -117,7 +117,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	processGameLogic(timePassed) {
 		if (this.state == GameState.playing) {
 			if (this.level != 999 && this.current != null && this.internalGradePoints != 0 && this.internalCombo < 1 && (this.decayCounter += timePassed) >= this.internalGrades[Math.min(31, this.internalGrade)][1]) {
-				this.internalGradePoints = Math.max(0, this.internalGradePoints - Math.floor(this.decayCounter / this.internalGrades[this.internalGrade][1]));
+				this.internalGradePoints = Math.max(0, this.internalGradePoints - Math.floor(this.decayCounter / this.internalGrades[Math.min(31, this.internalGrade)][1]));
 				if (this.internalGradePoints == 0) this.decayCounter = 0; else this.decayCounter %= this.internalGrades[Math.min(31, this.internalGrade)][1];
 			}
 			let endTime = this.playTime + this.level999Time;
