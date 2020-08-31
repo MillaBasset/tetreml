@@ -10,6 +10,9 @@ sprite.src = "Textures/Sprite singleplayer.png";
 var outlineSprite = new Image();
 outlineSprite.src = "Textures/Outline sprite singleplayer.png";
 
+var gifBackground = new Image();
+gifBackground.src = "Textures/GIF background.png";
+
 var imageRenderer = document.getElementById('imageRenderer');
 var imageRendererContext = imageRenderer.getContext('2d');
 imageRendererContext.imageSmoothingEnabled = false;
@@ -141,12 +144,21 @@ class PlayScreen {
 		this.fallPeriod = fallPeriod;
 		this.lockDelay = lockDelay;
 		let fieldString = "";
-		let fumenColorMapping = ["X", "I", "J", "L", "O", "S", "T", "Z"]
+		let fumenColorMapping = ["X", "I", "J", "L", "O", "S", "T", "Z"];
 		for (let y = this.stackMinY; y < 40; y++) for (let x = 0; x < 10; x++) fieldString += this.board[x][y] ? fumenColorMapping[this.board[x][y].textureY] : "_";
 		this.currentFumenPage.field = tetrisFumen.Field.create(fieldString);
 		this.currentFumenPageDataCart.flags = { lock: true };
 
 		this.current = null;
+
+		/* Used to generate GIF images. Structure of each frame:
+		   – Board state.
+		   – Current tetrimino: type, rotation state and position.
+		*/
+		this.gifFrames = [];
+		this.pushGIFFrame();
+		this.gifIsRendering = false;
+
 		this.queue = [];
 		for (let c of sequence) this.queue.push(new (tetriminoTypeMapping[c])());
 		this.softDropCounter = -1;
@@ -316,59 +328,67 @@ class PlayScreen {
 				}
 			} else this.buttonHardDrop = false;
 			if (buttonStatus.rotateClockwise) {
-				if (this.current != null && !this.buttonRotateClockwise) {
+				if (!this.buttonRotateClockwise) {
 					if (buttonStatus.quitModifier) {
 						this.getFumenURL();
-					} else {
+						this.buttonRotateClockwise = true;
+					} else if (this.current != null) {
 						let inAir = this.current.canFall(this.board);
 						if (this.current.rotateClockwise(this.board)) {
 							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
+						this.buttonRotateClockwise = true;
 					}
-					this.buttonRotateClockwise = true;
 				}
 			} else this.buttonRotateClockwise = false;
 			if (buttonStatus.rotateCounterClockwise) {
-				if (this.current != null && !this.buttonRotateCounterClockwise) {
+				if (!this.buttonRotateCounterClockwise) {
 					if (buttonStatus.quitModifier) {
 						this.renderImage();
-					} else {
+						this.buttonRotateCounterClockwise = true;
+					} else if (this.current != null) {
 						let inAir = this.current.canFall(this.board);
 						if (this.current.rotateCounterClockwise(this.board)) {
 							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
+						this.buttonRotateCounterClockwise = true;
 					}
-					this.buttonRotateCounterClockwise = true;
 				}
 			} else this.buttonRotateCounterClockwise = false;
 			if (buttonStatus.hold) {
-				if (this.current != null && !this.buttonHold && this.hold != -1 && !this.holdSwitched) {
-					this.current.reset();
-					this.currentFumenPageDataCart.operation = {
-						type: this.current.code,
-						rotation: fumenStateMapping[this.current.state],
-						x: this.current.x + this.current.fumenOffsetX[this.current.state],
-						y: (this.current.canFall(this.board) ? 19 : 20) + this.current.fumenOffsetY[this.current.state]
-					};
-					this.currentFumenPageDataCart.flags.lock = false;
-					this.applyFumenPageDataCart(this.currentFumenPageDataCart);
-					this.pushFumenPage();
-					this.prepareFumenPageDataCart();
-					this.fumenPagesForCurrent = [];
-					this.oldHold = this.hold;
-					this.hold = this.current;
-					if (this.oldHold == null) this.nextTetrimino(); else {
-						this.current = this.oldHold;
-						this.current.state = 0;
-						this.fallTime = 0;
-						this.lockTime = 0;
-						this.moveCounter = 0;
-						this.checkGameOver();
+				if (!this.buttonHold) {
+					if (buttonStatus.quitModifier) {
+						this.generateGIF();
+						this.buttonHold = true;
+					} else if (this.current != null && this.hold != -1 && !this.holdSwitched) {
+						this.current.reset();
+						this.currentFumenPageDataCart.operation = {
+							type: this.current.code,
+							rotation: fumenStateMapping[this.current.state],
+							x: this.current.x + this.current.fumenOffsetX[this.current.state],
+							y: (this.current.canFall(this.board) ? 19 : 20) + this.current.fumenOffsetY[this.current.state]
+						};
+						this.currentFumenPageDataCart.flags.lock = false;
+						this.applyFumenPageDataCart(this.currentFumenPageDataCart);
+						this.pushFumenPage();
+						this.prepareFumenPageDataCart();
+						this.fumenPagesForCurrent = [];
+						this.oldHold = this.hold;
+						this.hold = this.current;
+						if (this.oldHold == null) this.nextTetrimino(); else {
+							this.current = this.oldHold;
+							this.current.state = 0;
+							this.fallTime = 0;
+							this.lockTime = 0;
+							this.moveCounter = 0;
+							this.checkGameOver();
+						}
+						sfx.hold.play();
+						this.holdSwitched = true;
+						this.buttonHold = true;
 					}
-					sfx.hold.play();
-					this.holdSwitched = true;
 				}
 			} else this.buttonHold = false;
 			if (buttonStatus.reset) {
@@ -435,6 +455,14 @@ class PlayScreen {
 					this.buttonRotateCounterClockwise = true;
 				}
 			} else this.buttonRotateCounterClockwise = false;
+			if (buttonStatus.hold) {
+				if (!this.buttonHold) {
+					if (buttonStatus.quitModifier) {
+						this.generateGIF();
+					}
+					this.buttonHold = true;
+				}
+			} else this.buttonHold = false;
 		}
 
 		if (buttonStatus.esc) {
@@ -510,27 +538,44 @@ class PlayScreen {
 		ctx.font = "12px Segoe UI";
 		ctx.textAlign = "left";
 		this.keyY = 110;
-		this.renderKeyLine(keyNames.left, "Move left");
-		this.renderKeyLine(keyNames.right, "Move right");
-		this.renderKeyLine(keyNames.softDrop, "Soft drop");
-		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.softDrop, "Firm drop");
-		this.renderKeyLine(keyNames.hardDrop, "Hard drop");
-		this.renderKeyLine(keyNames.rotateCounterClockwise, "Rotate counterclockwise");
-		this.renderKeyLine(keyNames.rotateClockwise, "Rotate clockwise");
-		this.renderKeyLine(keyNames.hold, "Hold");
-		this.renderKeyLine(keyNames.reset, "Reset current tetrimino");
-		this.renderKeyLine(keyNames.esc, this.state == GameState.over ? "Return to edit screen" : this.state == GameState.playing ? "Pause" : "Continue");
-		if (this.state != GameState.over) this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.esc, "Return to edit screen"); else this.keyY += 15;
-		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate Fumen frame");
-		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateCounterClockwise, "Render image");
-		this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateClockwise, "Get Fumen URL");
-		this.renderKeyLine(keyNames.volumeUp, "Volume up");
-		this.renderKeyLine(keyNames.volumeDown, "Volume down");
+		if (buttonStatus.quitModifier) {
+			this.renderKeyLine(keyNames.left, "Move left");
+			this.renderKeyLine(keyNames.right, "Move right");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.softDrop, "Firm drop");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate Fumen frame");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateCounterClockwise, "Render image");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateClockwise, "Get Fumen URL");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hold, "Render GIF");
+			this.renderKeyLine(keyNames.reset, "Reset current tetrimino");
+			if (this.state != GameState.over) this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.esc, "Return to edit screen"); else this.keyY += 15;
+			this.keyY += 15;
+			this.renderKeyLine(keyNames.volumeUp, "Volume up");
+			this.renderKeyLine(keyNames.volumeDown, "Volume down");
+			this.keyY += 15;
+			this.renderKeyLine(keyNames.quitModifier, "Extra functions");
+		} else {
+			this.renderKeyLine(keyNames.left, "Move left");
+			this.renderKeyLine(keyNames.right, "Move right");
+			this.renderKeyLine(keyNames.softDrop, "Soft drop");
+			this.renderKeyLine(keyNames.hardDrop, "Hard drop");
+			this.renderKeyLine(keyNames.rotateCounterClockwise, "Rotate counterclockwise");
+			this.renderKeyLine(keyNames.rotateClockwise, "Rotate clockwise");
+			this.renderKeyLine(keyNames.hold, "Hold");
+			this.renderKeyLine(keyNames.reset, "Reset current tetrimino");
+			this.renderKeyLine(keyNames.esc, this.state == GameState.over ? "Return to edit screen" : this.state == GameState.playing ? "Pause" : "Continue");
+			this.keyY += 15;
+			this.renderKeyLine(keyNames.volumeUp, "Volume up");
+			this.renderKeyLine(keyNames.volumeDown, "Volume down");
+			this.keyY += 15;
+			this.renderKeyLine(keyNames.quitModifier, "Extra functions");
+		}
 
 		if (this.volumeDisplayTime > 0) {
 			ctx.fillText(`Volume: ${volume} / 10`, 15, 350);
 			this.volumeDisplayTime -= timePassed;
 		}
+
+		if (this.gifIsRendering) ctx.fillText("Rendering GIF...", 15, 20);
 
 		ctx.fillText("Intermediate Fumen frames", 485, 20);
 		ctx.textAlign = "right";
@@ -675,6 +720,86 @@ class PlayScreen {
 		this.currentFumenPageDataCart.flags = { lock: true };
 	}
 
+	pushGIFFrame() {
+		let boardString = "";
+		let x;
+		for (let y = 18; y < 40; y++) for (x = 0; x < 10; x++) {
+			let mino = this.board[x][y];
+			boardString += String.fromCharCode(mino ? 128 | (mino.textureY << 4) | mino.directions : 0);
+		}
+		this.gifFrames.push({
+			board: boardString,
+			current: this.current ? this.current.code + String.fromCharCode(this.current.state) + String.fromCharCode(this.current.x) + String.fromCharCode(this.current.y-18) : null
+		});
+	}
+
+	generateGIF() {
+		if (this.gifIsRendering) return;
+		this.gifIsRendering = true;
+
+		let gif = new GIF({
+			repeat: 0,
+			workers: 2,
+			quality: 1,
+			background: "#000",
+		});
+		imageRendererContext.fillStyle = "#FFF";
+
+		for (let frame of this.gifFrames) {
+			imageRendererContext.clearRect(0, 0, 160, 352);
+			imageRendererContext.drawImage(gifBackground, 0, 0);
+			const { board, current } = frame;
+			const minoes = [];
+			imageRendererContext.globalAlpha = 0.8;
+			for (let y = 0; y < 22; y++) {
+				let count = 0;
+				for (let x = 0; x < 10; x++) {
+					let code = board.charCodeAt(y * 10 + x);
+					if (code & 128) {
+						imageRendererContext.drawImage(sprite, 16 * (code & 15), 16 * ((code & 112) >> 4), 16, 16, x * 16, y * 16, 16, 16);
+						count++;
+					}
+				}
+				minoes.push(count);
+			}
+			if (current != null) {
+				imageRendererContext.globalAlpha = 1;
+				let tetrimino = tetriminoMapping[current[0]];
+				let state = current.charCodeAt(1), x = current.charCodeAt(2), y = current.charCodeAt(3);
+				for (let mino of tetrimino.states[state]) {
+					let row = y + mino[1];
+					if (row > -1) {
+						imageRendererContext.drawImage(sprite, 16 * mino[2], 16 * tetrimino.textureY, 16, 16, 16 * (x + mino[0]), 16 * row, 16, 16);
+						if (++minoes[row] > 9) {
+							imageRendererContext.globalAlpha = 0.2;
+							imageRendererContext.fillRect(0, 16 * row, 160, 16);
+							imageRendererContext.globalAlpha = 1;
+						}
+					}
+				}
+			}
+			gif.addFrame(imageRenderer, {copy: true});
+		}
+
+		gif.on("finished", (blob) => {
+			let date = new Date();
+			let filename = `Tetreml sandbox – ${date.getHours()}h${date.getMinutes() < 10 ? "0" : ""}${date.getMinutes()}.${date.getSeconds() < 10 ? "0" : ""}${date.getSeconds()} ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.gif`;
+			if (window.navigator.msSaveOrOpenBlob) {
+				window.navigator.msSaveBlob(blob, filename);
+			} else {
+				var elem = window.document.createElement('a');
+				elem.href = window.URL.createObjectURL(blob);
+				elem.download = filename;
+				document.body.appendChild(elem);
+				elem.click();
+				document.body.removeChild(elem);
+			}
+			this.gifIsRendering = false;
+		});
+
+		gif.render();
+	}
+
 	close() {
 		
 	}
@@ -747,6 +872,7 @@ class PlayScreen {
 		this.pushFumenPage();
 		this.prepareFumenPageDataCart();
 		this.fumenPagesForCurrent = [];
+		this.pushGIFFrame();
 		let toClear = [];
 		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {

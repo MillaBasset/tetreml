@@ -1,4 +1,4 @@
-// Version: 4
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -9,6 +9,9 @@ self.addEventListener('install', function (event) {
 		'Font/segoeuii.ttf',
 		'Font/segoeuil.ttf',
 		'Font/segoeuisl.woff2',
+
+		'GIF/gif.js',
+		'GIF/gif.worker.js',
 	
 		'Music/-1.mp3',
 		'Music/-2.mp3',
