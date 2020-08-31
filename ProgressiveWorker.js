@@ -76,6 +76,7 @@ self.addEventListener('install', function (event) {
 		'SFX/-35.mp3',
 		'SFX/sfxconfig.json',
 
+		'Textures/GIF background.png',
 		'Textures/Outline sprite singleplayer.png',
 		'Textures/Outline sprite two-player.png',
 		'Textures/Play screen singleplayer.png',
