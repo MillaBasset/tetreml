@@ -270,7 +270,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			if (this.level == 999) {
 				this.level999Time = -1;
 				this.clearTime = 3000;
-				this.invisibleRollEligible &= this.internalGrade > 26;
+				this.invisibleRollEligible = this.invisibleRollEligible && this.internalGrade > 26;
 				this.minoVisibilityLifetime = this.invisibleRollEligible ? 0 : 5000;
 				this.board = [];
 				let col = [];
