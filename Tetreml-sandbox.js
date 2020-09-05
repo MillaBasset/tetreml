@@ -312,6 +312,7 @@ class PlayScreen {
 						};
 						if (this.hold != null) page.comment = `#Q=[${this.hold.code}](${this.current.code})`;
 						this.fumenPagesForCurrent.push(page);
+						this.pushGIFFrame();
 					} else {
 						let fell = false;
 						while (this.current.canFall(this.board)) {
@@ -542,7 +543,7 @@ class PlayScreen {
 			this.renderKeyLine(keyNames.left, "Move left");
 			this.renderKeyLine(keyNames.right, "Move right");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.softDrop, "Firm drop");
-			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate Fumen frame");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate frame");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateCounterClockwise, "Render image");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateClockwise, "Get Fumen URL");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hold, "Render GIF");
@@ -577,7 +578,7 @@ class PlayScreen {
 
 		if (this.gifIsRendering) ctx.fillText("Rendering GIF...", 15, 20);
 
-		ctx.fillText("Intermediate Fumen frames", 485, 20);
+		ctx.fillText("Intermediate frames", 485, 20);
 		ctx.textAlign = "right";
 		ctx.fillText("" + this.fumenPagesForCurrent.length, 632, 40);
 
