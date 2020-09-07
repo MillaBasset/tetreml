@@ -198,7 +198,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				this.musicLevel999.currentTime = 0;
 				this.musicLevel999.play();
 			}
-			this.level999Time = 55000 + time - this.latestTime;
+			this.level999Time = 54417 + time - this.latestTime;
 		}
 	}
 

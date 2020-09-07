@@ -934,7 +934,7 @@ class PlayScreen {
 	}
 
 	nextTetrimino() {
-		this.current = this.queue.splice(0, 1)[0];
+		this.current = this.queue.shift();
 		if (this.queue.length < 6) this.pushToQueue();
 		this.moveCounter = 0;
 		this.fallTime = 0;

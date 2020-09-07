@@ -1193,7 +1193,7 @@ class Playfield {
 			if (isDefense) this.playSfx(sfx.defend);
 			this.attacks += this.parent.playfields[this.player ? 0 : 1].addGarbage(this.garbageLines);
 		} else if (this.garbagePhase == 2 && this.clearedLines.length == 0) {
-			let lines = this.garbageQueue.splice(0, 1)[0];
+			let lines = this.garbageQueue.shift();
 			this.stackMinY -= lines;
 			for (let i = 0; i < lines; i++) {
 				let garbageLine = this.garbageGenerator.generate();
@@ -1228,7 +1228,7 @@ class Playfield {
 			this.current = null;
 			return;
 		}
-		this.current = this.queue.splice(0, 1)[0];
+		this.current = this.queue.shift();
 		if (this.queue.length < 6) this.pushToQueue();
 		this.fallTime = 0;
 		this.lockTime = 0;

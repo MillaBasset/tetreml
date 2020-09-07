@@ -834,7 +834,7 @@ class PlayScreenBase {
 			this.current = null;
 			return;
 		}
-		this.current = this.queue.splice(0, 1)[0];
+		this.current = this.queue.shift();
 		if (this.queue.length < 6) this.pushToQueue();
 		this.fallTime = 0;
 		this.lockTime = 0;
