@@ -281,6 +281,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 					this.minos.push(0);
 				}
 				for (let i = 0; i < 10; i++) this.board.push([...col]);
+				this.stackMinY = 40;
 				this.clearedLines = [];
 				currentSong.pause();
 				if (!this.isSeeking) sfx.level999Trigger.play();
