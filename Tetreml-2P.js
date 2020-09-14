@@ -462,7 +462,7 @@ class PlayScreen {
 			if (this.warmupSecond < 1) {
 				this.warmupLeft--;
 				if (this.warmupLeft == -1) {
-					for (let i = 0; i < 2; i++) this.playfields[i].nextTetrimino();
+					for (let i = 0; i < 2; i++) this.playfields[i].start();
 					this.state = GameState.playing;
 					currentSong = music.level1;
 					currentSong.play();
@@ -695,6 +695,11 @@ class Playfield {
 		this.pushToQueue();
 	}
 
+	start() {
+		this.nextTetrimino();
+		this.processInstaFall();
+	}
+
 	isMinoVisible(x, y) {
 		return x > -1 && x < 10 && y > -1 && y < 40 && this.board[x][y] != undefined;
 	}
@@ -779,6 +784,7 @@ class Playfield {
 					this.playSfx(start != end ? sfx.hardDrop : sfx.softLock);
 					for (let i = 0; i < 3; i++) this.spawnParticle();
 					this.lock(true);
+					this.processInstaFall();
 					this.buttonHardDrop = true;
 				}
 			} else this.buttonHardDrop = false;
@@ -786,6 +792,7 @@ class Playfield {
 				if (this.current != null && !this.buttonRotateClockwise) {
 					let inAir = this.current.canFall(this.board);
 					if (this.current.rotateClockwise(this.board)) {
+						this.processInstaFall();
 						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
@@ -796,6 +803,7 @@ class Playfield {
 				if (this.current != null && !this.buttonRotateCounterClockwise) {
 					let inAir = this.current.canFall(this.board);
 					if (this.current.rotateCounterClockwise(this.board)) {
+						this.processInstaFall();
 						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
 						if (this.moveCounter++ < 15) this.lockTime = 0;
 					}
@@ -815,6 +823,7 @@ class Playfield {
 						this.holds++;
 						this.checkGameOver();
 					}
+					this.processInstaFall();
 					this.playSfx(sfx.hold);
 					this.holdSwitched = true;
 				}
@@ -1027,7 +1036,7 @@ class Playfield {
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.land);
+			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.land);
 			return true;
 		}
 		return false;
@@ -1089,6 +1098,21 @@ class Playfield {
 		this.parent.updateWarning();
 
 		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
+	}
+
+	processInstaFall() {
+		if (this.state != GameState.playing || this.current == null || this.parent.getFallInterval() != 0) return false;
+		let fell = false;
+		while (this.current.canFall(this.board)) {
+			this.current.y++;
+			fell = true;
+		}
+		this.playSfx(sfx.land);
+		if (fell) {
+			this.maxY = this.current.y;
+			this.current.onMove();
+		}
+		return true;
 	}
 
 	addGarbage(lines) {

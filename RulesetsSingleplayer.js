@@ -130,6 +130,7 @@ class PlayScreenBase {
 		this.state = GameState.playing;
 		if (!this.isReplay)	this.nextTetrimino();
 		if (this.doSaveReplay) this.saveState();
+		this.processInstaFall(0);
 	}
 
 	processGameLogic(timePassed) {
@@ -137,12 +138,13 @@ class PlayScreenBase {
 		if (this.state == GameState.playing) {
 			this.clearTime -= timePassed;
 			let afterClearTime = this.playTime;
+			let fallInterval = this.getFallInterval();
+			let iStart = fallInterval == 0 ? this.playTime : this.playTime + (fallInterval - this.fallTime) % fallInterval;
 			if (!this.isReplay && this.clearTime < 1 && this.current == null) {
 				afterClearTime = latestTime + this.clearTime;
 				this.afterClear(afterClearTime);
+				iStart = afterClearTime + fallInterval;
 			}
-			let fallInterval = this.getFallInterval();
-			let iStart = fallInterval == 0 ? this.playTime : this.playTime + (fallInterval - this.fallTime) % fallInterval;
 			this.fallTime -= Math.min(0, this.clearTime);
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.isNewLevel && this.clearTime == 0) this.isNewLevel = false;
@@ -322,6 +324,11 @@ class PlayScreenBase {
 				this.buttonVolumeDown = true;
 			}
 		} else this.buttonVolumeDown = false;
+	}
+
+	processInstaFall(timestamp) {
+		if (this.state != GameState.playing || this.current == null || this.getFallInterval() != 0) return;
+		while (this.current.canFall(this.board)) this.fall(timestamp);
 	}
 
 	addKeypress() {
@@ -591,6 +598,7 @@ class PlayScreenBase {
 	lockDown(timestamp) {
 		if (this.current == null) return;
 		this.lock(false);
+		this.processInstaFall(timestamp);
 		if (!this.isSeeking) sfx.lock.play();
 		this.recordAction("lockDown", timestamp);
 	}
@@ -599,15 +607,13 @@ class PlayScreenBase {
 		if (this.state == GameState.playing && this.current != null) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
-				if (!this.isSeeking) {
-					(this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
-					if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
-				}
+				if (!this.isSeeking) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
 				this.current.x = newX;
 				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
 				if (isInitialPress || this.wasNull) this.addKeypress();
 				this.wasNull = false;
+				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 				this.recordAction(offset == 1 ? "moveRight" : "moveLeft", timestamp);
 				return true;
 			}
@@ -623,6 +629,7 @@ class PlayScreenBase {
 			this.addKeypress();
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
+			this.processInstaFall(timestamp);
 			this.recordAction("rotateClockwise", timestamp);
 		}
 	}
@@ -634,6 +641,7 @@ class PlayScreenBase {
 			this.addKeypress();
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
+			this.processInstaFall(timestamp);
 			this.recordAction("rotateCounterClockwise", timestamp);
 		}
 	}
@@ -681,6 +689,7 @@ class PlayScreenBase {
 			(count ? sfx.hardDrop : sfx.softLock).play();
 		}
 		this.lock(true);
+		this.processInstaFall(timestamp);
 		this.recordAction("hardDrop", timestamp);
 		return count;
 	}
@@ -701,6 +710,7 @@ class PlayScreenBase {
 			if (!this.isSeeking) sfx.hold.play();
 			if (this.moveLock) this.wasNull = true;
 			this.holdSwitched = true;
+			this.processInstaFall(timestamp);
 			this.recordAction("hold", timestamp);
 		}
 	}

@@ -203,6 +203,7 @@ class PlayScreen {
 		for (let key in buttonStatus) buttonStatus[key] = false;
 		this.pushToQueue();
 		this.nextTetrimino();
+		this.processInstaFall();
 		currentSong = music;
 		currentSong.play();
 	}
@@ -324,6 +325,7 @@ class PlayScreen {
 						(fell ? sfx.hardDrop : sfx.softLock).play();
 						for (let i = 0; i < 3; i++) this.spawnParticle();
 						this.lock(2);
+						this.processInstaFall();
 					}
 					this.buttonHardDrop = true;
 				}
@@ -336,6 +338,7 @@ class PlayScreen {
 					} else if (this.current != null) {
 						let inAir = this.current.canFall(this.board);
 						if (this.current.rotateClockwise(this.board)) {
+							this.processInstaFall();
 							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
@@ -351,6 +354,7 @@ class PlayScreen {
 					} else if (this.current != null) {
 						let inAir = this.current.canFall(this.board);
 						if (this.current.rotateCounterClockwise(this.board)) {
+							this.processInstaFall();
 							(inAir ? sfx.rotate : sfx.rotateOnGround).play();
 							if (this.moveCounter++ < 15) this.lockTime = 0;
 						}
@@ -386,6 +390,7 @@ class PlayScreen {
 							this.moveCounter = 0;
 							this.checkGameOver();
 						}
+						this.processInstaFall();
 						sfx.hold.play();
 						this.holdSwitched = true;
 						this.buttonHold = true;
@@ -826,7 +831,7 @@ class PlayScreen {
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			if (this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
+			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 			return true;
 		}
 		return false;
@@ -896,6 +901,21 @@ class PlayScreen {
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 
 		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
+	}
+
+	processInstaFall() {
+		if (this.state != GameState.playing || this.current == null || this.parent.getFallInterval() != 0) return false;
+		let fell = false;
+		while (this.current.canFall(this.board)) {
+			this.current.y++;
+			fell = true;
+		}
+		this.playSfx(sfx.land);
+		if (fell) {
+			this.maxY = this.current.y;
+			this.current.onMove();
+		}
+		return true;
 	}
 
 	clearLines(toClear) {
