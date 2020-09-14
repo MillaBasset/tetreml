@@ -1101,7 +1101,7 @@ class Playfield {
 	}
 
 	processInstaFall() {
-		if (this.state != GameState.playing || this.current == null || this.parent.getFallInterval() != 0) return false;
+		if (this.parent.state != GameState.playing || this.current == null || this.parent.getFallInterval() != 0) return false;
 		let fell = false;
 		while (this.current.canFall(this.board)) {
 			this.current.y++;

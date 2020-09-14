@@ -904,13 +904,13 @@ class PlayScreen {
 	}
 
 	processInstaFall() {
-		if (this.state != GameState.playing || this.current == null || this.parent.getFallInterval() != 0) return false;
+		if (this.state != GameState.playing || this.current == null || this.fallPeriod != 0) return false;
 		let fell = false;
 		while (this.current.canFall(this.board)) {
 			this.current.y++;
 			fell = true;
 		}
-		this.playSfx(sfx.land);
+		sfx.land.play();
 		if (fell) {
 			this.maxY = this.current.y;
 			this.current.onMove();
