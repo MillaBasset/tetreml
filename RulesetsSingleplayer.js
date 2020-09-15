@@ -327,7 +327,7 @@ class PlayScreenBase {
 	}
 
 	processInstaFall(timestamp) {
-		if (this.state != GameState.playing || this.current == null || this.getFallInterval() != 0) return;
+		if (this.isReplay || this.state != GameState.playing || this.current == null || this.getFallInterval() != 0) return;
 		while (this.current.canFall(this.board)) this.fall(timestamp);
 	}
 
