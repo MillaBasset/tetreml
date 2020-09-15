@@ -73,6 +73,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		this.coolRegretBoost = 0;
 		// This combo differs from the guideline. It only counts up if a double or better is made.
 		this.internalCombo = -1;
+		this.gameOverFromTorikan = false;
 
 		// "Level 999" here is equivalent to the staff roll.
 		this.level999DisappearingPoints = [0, 4, 8, 12, 26, 50];
@@ -94,7 +95,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		this.musicLevel999.load();
 		audioContext.createMediaElementSource(this.musicLevel999).connect(gainNode);
 
-		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "level999Score", "level999Time", "minoVisibilityLifetime");
+		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "gameOverFromTorikan", "level999Score", "level999Time", "minoVisibilityLifetime");
 	}
 
 	init() {
@@ -142,11 +143,11 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		ctx.fillText("Lines", 485, 134);
 		
 		ctx.textAlign = "right";
-		ctx.fillText(this.level > 899 ? 999 : (Math.floor(this.level / 100) + 1) * 100, 632, 72);
+		ctx.fillText(this.gameOverFromTorikan ? 500 : this.level > 899 ? 999 : (Math.floor(this.level / 100) + 1) * 100, 632, 72);
 		ctx.fillText(this.score, 632, 114);
 		ctx.fillText(this.lines, 632, 134);
 
-		ctx.fillRect(485, 76, 147 * (this.level % 100) / (this.level > 899 ? 99 : 100), 10);
+		ctx.fillRect(485, 76, this.gameOverFromTorikan ? 147 : 147 * (this.level % 100) / (this.level > 899 ? 99 : 100), 10);
 
 		ctx.font = "20px Segoe UI";
 		let time = this.level == 999 ? this.lastRegretMarkTime : this.playTime;
@@ -240,7 +241,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 					currentSong = this.musicSegments[musicIndex][1];
 					currentSong.play();
 				}
-				if (this.level != 999) sfx.grandMasterLevelUp.play();
+				if (this.state != GameState.over && this.level != 999) sfx.grandMasterLevelUp.play();
 			}
 		}
 
@@ -286,7 +287,10 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				currentSong.pause();
 				if (!this.isSeeking) sfx.level999Trigger.play();
 			} else if (this.level == 998 || this.level % 100 == 99) this.shouldRingTheBell = true;
-			if (oldLevel < 500 && this.level > 499 && this.playTime > 419999) this.gameOver(true);
+			if (oldLevel < 500 && this.level > 499 && this.playTime > 419999) {
+				this.gameOverFromTorikan = true;
+				this.gameOver(true);
+			}
 			this.processLeveling(oldLevel);
 		}
 
