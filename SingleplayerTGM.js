@@ -106,7 +106,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		super.start();
 		this.musicPointer = 0;
 		currentSong = this.musicSegments[0][2];
-		currentSong.play();
+		if (!this.isReplay()) currentSong.play();
 	}
 
 	getMusicIndex() {
@@ -237,9 +237,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				let musicIndex = this.getMusicIndex();
 				if (this.state != GameState.over && musicIndex != this.musicPointer) {
 					this.musicPointer = musicIndex;
-					currentSong.pause();
-					currentSong = this.musicSegments[musicIndex][1];
-					currentSong.play();
+					let music = this.musicSegments[musicIndex][1];
+					music.play(music.id != 0);
 				}
 				if (this.state != GameState.over && this.level != 999) sfx.grandMasterLevelUp.play();
 			}
@@ -364,10 +363,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		super.finalizeSeek();
 		let musicIndex = this.getMusicIndex();
 		if (this.level != 999 && musicIndex != this.musicPointer) {
-			currentSong.pause();
 			this.musicPointer = musicIndex;
-			currentSong = this.musicSegments[musicIndex][2];
-			currentSong.reset();
+			this.musicSegments[musicIndex][2].setCurrent();
 		}
 	}
 

@@ -464,8 +464,7 @@ class PlayScreen {
 				if (this.warmupLeft == -1) {
 					for (let i = 0; i < 2; i++) this.playfields[i].start();
 					this.state = GameState.playing;
-					currentSong = music.level1;
-					currentSong.play();
+					music.level1.play();
 				} else {
 					this.warmupSecond += 1000;
 					if (this.warmupLeft < 3) sfx.countdown.play();
@@ -527,6 +526,7 @@ class PlayScreen {
 	}
 
 	close() {
+		currentSong = null;
 	}
 	
 	getFallInterval() {
@@ -546,15 +546,11 @@ class PlayScreen {
 			if (this.level != this.levels.length) this.totalLinesToNextLevel += this.levels[this.level][0];
 			switch (this.level) {
 				case 6:
-					currentSong.pause();
-					currentSong = music.level6;
-					currentSong.play();
+					music.level6.play(music.level6.id == 0);
 					this.levelUpTime = 3000;
 					break;
 				case 11:
-					currentSong.pause();
-					currentSong = music.level11;
-					currentSong.play();
+					music.level11.play(music.level11.id == 0);
 					this.levelUpTime = 3000;
 					break;
 			}
@@ -968,7 +964,7 @@ class Playfield {
 			let newParticles = [];
 			for (let particle of this.particles) {
 				let ratio = particle.time / particle.lifetime;
-				ctx.drawImage(sprite, 12, 144, 7, 7, particle.x + 3.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 3.5 * ratio, 7 * (1 - ratio), 7 * (1 - ratio));
+				ctx.drawImage(sprite, 34, 146, 7, 7, particle.x + 3.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 3.5 * ratio, 7 * (1 - ratio), 7 * (1 - ratio));
 				if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 			}
 			this.particles = newParticles;

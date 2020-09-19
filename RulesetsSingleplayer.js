@@ -449,7 +449,7 @@ class PlayScreenBase {
 			let newParticles = [];
 			for (let particle of this.particles) {
 				let ratio = particle.time / particle.lifetime;
-				ctx.drawImage(sprite, 80, 128, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 4.5 * ratio, 9 * (1 - ratio), 9 * (1 - ratio));
+				ctx.drawImage(sprite, 84, 132, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1 - Math.pow((1 - ratio), 4)) - 4.5 * ratio, 9 * (1 - ratio), 9 * (1 - ratio));
 				if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 			}
 			this.particles = newParticles;
@@ -546,7 +546,7 @@ class PlayScreenBase {
 	renderInFront(timePassed) { };
 
 	close() {
-		
+		currentSong = null;
 	}
 
 	renderMino(x, y, directions, textureY) {
@@ -1130,14 +1130,10 @@ class GameScreenTengen extends PlayScreenBase {
 			this.isNewLevel = true;
 			if (!this.isSeeking) switch (this.level) {
 				case 6:
-					stopCurrentMusic();
-					currentSong = this.music.level6Trigger;
-					currentSong.play();
+					this.music.level6Trigger.play(this.music.level6Trigger.id == 0);
 					break;
 				case 11:
-					stopCurrentMusic();
-					currentSong = this.music.level11Trigger;
-					currentSong.play();
+					this.music.level11Trigger.play(this.music.level11Trigger.id == 0);
 					break;
 			}
 			this.clearTime = 1000;
@@ -1162,7 +1158,7 @@ class GameScreenTengen extends PlayScreenBase {
 
 	resume() {
 		super.resume();
-		currentSong.resume();
+		currentSong.resume(true);
 	}
 
 	getFallInterval() {
@@ -1201,8 +1197,7 @@ class GameScreenTengen extends PlayScreenBase {
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level - 1) / 5) != Math.floor((this.oldLevel - 1) / 5)) {
-			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
-			currentSong.reset();
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
 		}
 	}
 }
@@ -1380,9 +1375,8 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 				this.totalLinesToNextLevel += 10;
 				this.isNewLevel = true;
 				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
-					stopCurrentMusic();
-					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
-					currentSong.play();
+					let music = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					music.play(music.id == 0);
 				}
 				this.clearTime = 1000;
 			}
@@ -1445,8 +1439,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
-			currentSong.reset();
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
 		}
 	}
 
@@ -1566,9 +1559,8 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 				this.isNewLevel = true;
 				this.clearTime = 1000;
 				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
-					stopCurrentMusic();
-					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
-					currentSong.play();
+					let music = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					music.play(music.id == 0);
 				}
 			}
 		}
@@ -1630,8 +1622,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
-			currentSong.reset();
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
 		}
 	}
 
@@ -1741,9 +1732,8 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 				this.totalLinesToNextLevel += 10;
 				this.isNewLevel = true;
 				if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
-					stopCurrentMusic();
-					currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
-					currentSong.play();
+					let music = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+					music.play(music.id == 0);
 				}
 				this.clearTime = 1000;
 			}
@@ -1807,8 +1797,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
-			currentSong.reset();
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
 		}
 	}
 
@@ -1917,9 +1906,8 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 			if (this.level != this.levels.length) this.totalLinesToNextLevel += this.levels[this.level][0];
 			this.isNewLevel = true;
 			if (!this.isSeeking && (this.level == 6 || this.level == 11)) {
-				stopCurrentMusic();
-				currentSong = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
-				currentSong.play();
+				let music = this.level == 6 ? this.music.level6Trigger : this.music.level11Trigger;
+				music.play(music.id == 0);
 			}
 			this.clearTime = 1000;
 		}
@@ -1990,8 +1978,7 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 	finalizeSeek() {
 		super.finalizeSeek();
 		if (this.state != GameState.over && Math.floor((this.level-1) / 5) != Math.floor((this.oldLevel-1) / 5)) {
-			currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
-			currentSong.reset();
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
 		}
 	}
 }

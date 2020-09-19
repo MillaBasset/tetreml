@@ -88,7 +88,7 @@ class Music {
 		this.audio = new Audio();
 		this.audio.onloadeddata = () => {
 			this.ready = true;
-			if (this.playing) this.play();
+			if (this.playing) this.resume();
 		};
 		this.audio.onerror = () => {
 			console.warn(`Tetreml: Failed to retrieve music track with ID ${this.id}. This track will not be played.`);
@@ -98,8 +98,7 @@ class Music {
 		else {
 			if (!this.loadImmediately) this.next.load();
 			this.audio.onended = () => {
-				currentSong = this.next;
-				currentSong.play();
+				this.next.play();
 			};
 		}
 		this.audio.preload = "auto";
@@ -108,14 +107,14 @@ class Music {
 		this.audio.src = `Music/${this.id}.mp3?cacheonly=true`;
 	}
 
-	play() {
-		if (this.id == 0) {
-			if (this.next != undefined) {
-				currentSong = this.next;
-				currentSong.play();
-			}
+	play(keepable = false) {
+		if (keepable && currentSong != null && (currentSong.next == undefined ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
+		if (this.id == 0 && this.next != undefined) {
+			this.next.play(keepable);
 			return;
 		}
+		if (currentSong != null) currentSong.pause();
+		currentSong = this;
 		this.playing = true;
 		if (!this.ready) return;
 		this.audio.currentTime = 0;
@@ -128,11 +127,10 @@ class Music {
 		this.audio.pause();
 	}
 
-	resume() {
+	resume(keepable = false) {
 		if (this.id == 0) {
 			if (this.next != undefined) {
-				currentSong = this.next;
-				currentSong.play();
+				this.next.play(keepable);
 			}
 			return;
 		}
@@ -144,6 +142,12 @@ class Music {
 	reset() {
 		if (!this.ready) return;
 		this.audio.currentTime = 0;
+	}
+
+	setCurrent() {
+		if (currentSong != null && (currentSong.next == undefined ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
+		currentSong = this;
+		this.reset();
 	}
 }
 

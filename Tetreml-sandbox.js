@@ -652,7 +652,7 @@ class PlayScreen {
 		let newParticles = [];
 		for (let particle of this.particles) {
 			let ratio = particle.time / particle.lifetime;
-			ctx.drawImage(sprite, 80, 128, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1-Math.pow((1-ratio), 4)) - 4.5 * ratio, 9 * (1-ratio), 9 * (1-ratio));
+			ctx.drawImage(sprite, 84, 132, 9, 9, particle.x + 4.5 * ratio, particle.y - particle.distance * (1-Math.pow((1-ratio), 4)) - 4.5 * ratio, 9 * (1-ratio), 9 * (1-ratio));
 			if ((particle.time += timePassed) < particle.lifetime) newParticles.push(particle);
 		}
 		this.particles = newParticles;
