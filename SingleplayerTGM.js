@@ -106,7 +106,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		super.start();
 		this.musicPointer = 0;
 		currentSong = this.musicSegments[0][2];
-		if (!this.isReplay()) currentSong.play();
+		if (!this.isReplay) currentSong.play();
 	}
 
 	getMusicIndex() {
