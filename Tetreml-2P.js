@@ -318,6 +318,7 @@ class GameOverScreen {
 	close() {
 		document.removeEventListener("keydown", this.keydown);
 		for (let i = 0; i < 2; i++) this.playScreen.playfields[i].close();
+		currentSong = null;
 	}
 }
 
@@ -412,7 +413,6 @@ class PlayScreen {
 						if (this.warning) sfx.warning.play();
 						break;
 					case GameState.over:
-						currentSong.pause();
 						goBack();
 						break;
 				}
@@ -526,7 +526,6 @@ class PlayScreen {
 	}
 
 	close() {
-		currentSong = null;
 	}
 	
 	getFallInterval() {
