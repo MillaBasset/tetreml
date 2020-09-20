@@ -637,7 +637,7 @@ class PlayScreen {
 				let tetriminoX = 240 + this.current.x * 16;
 				let tetriminoY = -12 + 16 * (ghostY - 18);
 				for (let mino of this.current.states[this.current.state])
-					ctx.drawImage(outlineSprite, mino[2] * 16, this.current.textureY * 16, 16, 16, tetriminoX + mino[0] * 16, tetriminoY + mino[1] * 16, 16, 16);
+					if (ghostY + mino[1] > 18) ctx.drawImage(outlineSprite, mino[2] * 16, this.current.textureY * 16, 16, 16, tetriminoX + mino[0] * 16, tetriminoY + mino[1] * 16, 16, 16);
 				break;
 			}
 		}

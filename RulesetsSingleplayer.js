@@ -411,7 +411,7 @@ class PlayScreenBase {
 					let tetriminoX = this.gridX + this.current.x * this.minoSize;
 					let tetriminoY = this.gridY + this.minoSize * (ghostY - 19);
 					for (let mino of this.current.states[this.current.state])
-						ctx.drawImage(outlineSprite, mino[2] * 16, this.current.textureY * 16, 16, 16, tetriminoX + mino[0] * this.minoSize, tetriminoY + mino[1] * this.minoSize, this.minoSize, this.minoSize);
+						if (ghostY + mino[1] > 18) ctx.drawImage(outlineSprite, mino[2] * 16, this.current.textureY * 16, 16, 16, tetriminoX + mino[0] * this.minoSize, tetriminoY + mino[1] * this.minoSize, this.minoSize, this.minoSize);
 					break;
 				}
 			}

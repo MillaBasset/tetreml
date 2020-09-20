@@ -918,7 +918,7 @@ class Playfield {
 						let tetriminoX = this.xPos + this.current.x * 12;
 						let tetriminoY = this.yPos + 12 * (ghostY - 19);
 						for (let mino of this.current.states[this.current.state])
-							ctx.drawImage(outlineSprite, mino[2] * 12, this.current.textureY * 12, 12, 12, tetriminoX + mino[0] * 12, tetriminoY + mino[1] * 12, 12, 12);
+							if (ghostY + mino[1] > 18) ctx.drawImage(outlineSprite, mino[2] * 12, this.current.textureY * 12, 12, 12, tetriminoX + mino[0] * 12, tetriminoY + mino[1] * 12, 12, 12);
 						break;
 					}
 				}
