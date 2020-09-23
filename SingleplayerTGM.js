@@ -238,7 +238,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				if (this.state != GameState.over && musicIndex != this.musicPointer) {
 					this.musicPointer = musicIndex;
 					let music = this.musicSegments[musicIndex][1];
-					music.play(music.id != 0);
+					music.play(music.id == 0);
 				}
 				if (this.state != GameState.over && this.level != 999) sfx.grandMasterLevelUp.play();
 			}
