@@ -1082,6 +1082,10 @@ class GameScreenTengen extends PlayScreenBase {
 
 		ctx.font = "20px Segoe UI";
 		ctx.fillText("" + this.score, 632, 30);
+	}
+
+	renderInFront(timePassed) {
+		super.renderInFront(timePassed);
 
 		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
 			ctx.font = "12px Segoe UI";
@@ -1089,10 +1093,7 @@ class GameScreenTengen extends PlayScreenBase {
 			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillText(this.lockScore == 1000 ? "1k" : "" + this.lockScore, 233, 16 + 16 * (this.lockScoreLine - 17));
 		}
-	}
 
-	renderInFront(timePassed) {
-		super.renderInFront(timePassed);
 		switch (this.state) {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
@@ -1236,6 +1237,10 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		ctx.fillText("" + this.tetriminoes, 208, 295);
 		ctx.fillText("" + this.holds, 208, 315);
 		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
+	}
+
+	renderInFront(timePassed) {
+		super.renderInFront(timePassed);
 
 		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
 			ctx.font = "12px Segoe UI";
@@ -1244,10 +1249,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 			ctx.fillRect(235, 4 + 16 * (this.lockScoreStartLine - 17), 1, (this.lockScoreEndLine - this.lockScoreStartLine + 1) * 16);
 			ctx.fillText(this.lockScore + "", 231, 16 + 16 * (this.lockScoreEndLine - 17));
 		}
-	}
 
-	renderInFront(timePassed) {
-		super.renderInFront(timePassed);
 		switch (this.state) {
 			case GameState.playing:
 				break;
