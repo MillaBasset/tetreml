@@ -598,9 +598,9 @@ class PlayScreenBase {
 	lockDown(timestamp) {
 		if (this.current == null) return;
 		this.lock(false);
-		this.processInstaFall(timestamp);
 		if (!this.isSeeking) sfx.lock.play();
 		this.recordAction("lockDown", timestamp);
+		this.processInstaFall(timestamp);
 	}
 
 	move(offset, isInitialPress, timestamp) {
@@ -613,8 +613,8 @@ class PlayScreenBase {
 				if (this.moveCounter++ < 15) this.lockTime = 0;
 				if (isInitialPress || this.wasNull) this.addKeypress();
 				this.wasNull = false;
-				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 				this.recordAction(offset == 1 ? "moveRight" : "moveLeft", timestamp);
+				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 				return true;
 			}
 		}
@@ -629,8 +629,8 @@ class PlayScreenBase {
 			this.addKeypress();
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			this.processInstaFall(timestamp);
 			this.recordAction("rotateClockwise", timestamp);
+			this.processInstaFall(timestamp);
 		}
 	}
 
@@ -641,8 +641,8 @@ class PlayScreenBase {
 			this.addKeypress();
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			this.processInstaFall(timestamp);
 			this.recordAction("rotateCounterClockwise", timestamp);
+			this.processInstaFall(timestamp);
 		}
 	}
 
@@ -689,8 +689,8 @@ class PlayScreenBase {
 			(count ? sfx.hardDrop : sfx.softLock).play();
 		}
 		this.lock(true);
-		this.processInstaFall(timestamp);
 		this.recordAction("hardDrop", timestamp);
+		this.processInstaFall(timestamp);
 		return count;
 	}
 
@@ -710,8 +710,8 @@ class PlayScreenBase {
 			if (!this.isSeeking) sfx.hold.play();
 			if (this.moveLock) this.wasNull = true;
 			this.holdSwitched = true;
-			this.processInstaFall(timestamp);
 			this.recordAction("hold", timestamp);
+			this.processInstaFall(timestamp);
 		}
 	}
 
