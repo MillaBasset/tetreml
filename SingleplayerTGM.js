@@ -353,7 +353,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	}
 
 	readStateData(state) {
-		if (this.level999Time > -1) this.musicLevel999.pause();
+		if (this.level999Time > -1) this.musicLevel999.pause(); else stopCurrentMusic();
 		super.readStateData(state);
 		if (this.speedStepNext == null) this.speedStepNext = Infinity;
 		if (this.timingStepNext == null) this.timingStepNext = Infinity;

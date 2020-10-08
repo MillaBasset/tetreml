@@ -388,6 +388,7 @@ var fileSelector = document.getElementById("fileSelector");
 function loadReplay() {
 	let reader = new FileReader();
 	reader.addEventListener("load", (event) => {
+		stopCurrentMusic();
 		openGui(new ReplayScreen(JSON.parse(pako.inflate(event.target.result, {to: "string"}))));
 	});
 	reader.readAsBinaryString(fileSelector.files[0]);
