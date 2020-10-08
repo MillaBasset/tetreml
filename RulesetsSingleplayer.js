@@ -474,7 +474,7 @@ class PlayScreenBase {
 			ctx.fillText(this.rewardName, 406, 348, 221 - ctx.measureText(this.rewardAmount).width);
 		}
 
-		if (this.totalMinos == 0 && this.clearTime > 0 && (this.isReplay || this.state == GameState.playing)) {
+		if (this.totalMinos == 0 && this.clearTime > 0 && ((this.isReplay && this.state != GameState.over) || this.state == GameState.playing)) {
 			ctx.textAlign = "center";
 			ctx.fillText("ALL CLEAR", 320, 40);
 			ctx.fillText("1000 points", 320, 65);
