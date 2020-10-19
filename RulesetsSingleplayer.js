@@ -364,11 +364,11 @@ class PlayScreenBase {
 		ctx.drawImage(playScreenImage, 0, 0);
 		
 		ctx.fillStyle = "#FFF";
-		ctx.font = "16px Segoe UI";
+		ctx.font = "16px Tetreml";
 		ctx.textAlign = "center";
 		ctx.fillText("HOLD", 198, 23);
 		ctx.fillText("NEXT", 440, 23);
-		ctx.font = "350 24px Segoe UI";
+		ctx.font = "350 24px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("STATS", 19, 86);
 
@@ -433,7 +433,7 @@ class PlayScreenBase {
 
 			ctx.textAlign = "center";
 			ctx.fillStyle = "#FFF";
-			ctx.font = "12px Segoe UI";
+			ctx.font = "12px Tetreml";
 			ctx.fillText(keyNames.hardDrop, this.gridX + 239, this.gridY + 224, 30);
 			ctx.fillText(keyNames.left, this.gridX + 205, this.gridY + 258, 30);
 			ctx.fillText(keyNames.softDrop, this.gridX + 239, this.gridY + 258, 30);
@@ -463,7 +463,7 @@ class PlayScreenBase {
 		}
 
 		ctx.fillStyle = "#FFF";
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.textAlign = "right";
 		if (this.rewardTime != 0) ctx.fillText(this.rewardAmount, 632, 348);
 		if (this.combo > 0) ctx.fillText("" + this.combo, 632, 323);
@@ -480,7 +480,7 @@ class PlayScreenBase {
 			ctx.fillText("1000 points", 320, 65);
 		}
 
-		ctx.font = "9px Segoe UI";
+		ctx.font = "9px Tetreml";
 		ctx.textAlign = "left";
 		if (this.volumeDisplayTime > 0) {
 			ctx.fillText(`Volume: ${volume} / 10`, 20, this.isReplay ? 15 : 351);
@@ -497,17 +497,17 @@ class PlayScreenBase {
 				ctx.fillStyle = "#FF0";
 				if (this.warmupLeft > 2) {
 					if (this.warmupLeft == 3) ctx.globalAlpha = this.warmupSecond / 1000;
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("READY", 320, 195);
 				} else {
-					ctx.font = "45px Segoe UI Light";
+					ctx.font = "300 45px Tetreml";
 					ctx.fillText("" + this.warmupLeft, 320, 205);
 				}
 				break;
 			case GameState.playing:
 				if (this.isReplay) break;
 				ctx.textAlign = "left";
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.fillText(buttonStatus.quitModifier ? keyNames.quitModifier + "+" + keyNames.esc + " Quit" : keyNames.esc + " Pause", 10, 17);
 				break;
 			case GameState.paused:
@@ -515,9 +515,9 @@ class PlayScreenBase {
 				ctx.textAlign = "center";
 				ctx.globalAlpha = 1;
 				ctx.fillStyle = "#FFF";
-				ctx.font = "20px Segoe UI";
+				ctx.font = "20px Tetreml";
 				ctx.fillText("PAUSED", 320, 121);
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.fillText(keyNames.esc + " to continue.", 320, 141);
 				ctx.textAlign = "left";
 				if (buttonStatus.quitModifier) ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " Quit", 10, 17);
@@ -529,10 +529,10 @@ class PlayScreenBase {
 				ctx.fillRect(240, 4, 160, 352);
 				ctx.globalAlpha = 1;
 				ctx.fillStyle = "#FFF";
-				ctx.font = "20px Segoe UI";
+				ctx.font = "20px Tetreml";
 				ctx.fillText("GAME OVER", 320, 40);
 				if (this.isReplay) break;
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 333);
 				ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " to save replay.", 320, 348);
 				break;
@@ -835,7 +835,7 @@ class PlayScreenBase {
 	pushToQueue() {
 		let bag = [new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoZ(), new TetriminoT()];
 		for (let i = 0; i < 7; i++) {
-			this.queue.push(bag.splice(Math.floor(this.random.random() * (bag.length - 0.00001)), 1)[0]);
+			this.queue.push(bag.splice(Math.floor(this.random.random() * bag.length), 1)[0]);
 		}
 	}
 
@@ -1037,7 +1037,7 @@ class GameScreenTengen extends PlayScreenBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 85);
@@ -1080,7 +1080,7 @@ class GameScreenTengen extends PlayScreenBase {
 			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -1088,7 +1088,7 @@ class GameScreenTengen extends PlayScreenBase {
 		super.renderInFront(timePassed);
 
 		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
-			ctx.font = "12px Segoe UI";
+			ctx.font = "12px Tetreml";
 			ctx.textAlign = "right";
 			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillText(this.lockScore == 1000 ? "1k" : "" + this.lockScore, 233, 16 + 16 * (this.lockScoreLine - 17));
@@ -1098,10 +1098,10 @@ class GameScreenTengen extends PlayScreenBase {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
 					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
-					ctx.font = "12px Segoe UI";
+					ctx.font = "12px Tetreml";
 					ctx.textAlign = "center";
 					ctx.fillText("LEVEL UP", 320, 130);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 160);
 				}
 				break;
@@ -1217,7 +1217,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 
 		ctx.fillText("Zero-line", 20, 155);
@@ -1243,7 +1243,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		super.renderInFront(timePassed);
 
 		if ((this.state != GameState.paused || this.isReplay) && this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
-			ctx.font = "12px Segoe UI";
+			ctx.font = "12px Tetreml";
 			ctx.textAlign = "right";
 			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillRect(235, 4 + 16 * (this.lockScoreStartLine - 17), 1, (this.lockScoreEndLine - this.lockScoreStartLine + 1) * 16);
@@ -1313,7 +1313,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -1332,7 +1332,7 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -1342,17 +1342,17 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
 					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
-					ctx.font = "12px Segoe UI";
+					ctx.font = "12px Tetreml";
 					ctx.textAlign = "center";
 					ctx.fillText("LEVEL UP", 320, 130);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 160);
 				}
 				break;
 			case GameState.paused:
 				break;
 			case GameState.over:
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "center";
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;
@@ -1486,7 +1486,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -1505,7 +1505,7 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -1515,17 +1515,17 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
 					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
-					ctx.font = "12px Segoe UI";
+					ctx.font = "12px Tetreml";
 					ctx.textAlign = "center";
 					ctx.fillText("LEVEL UP", 320, 130);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 160);
 				}
 				break;
 			case GameState.paused:
 				break;
 			case GameState.over:
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "center";
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;
@@ -1670,7 +1670,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -1689,7 +1689,7 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -1699,17 +1699,17 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
 					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
-					ctx.font = "12px Segoe UI";
+					ctx.font = "12px Tetreml";
 					ctx.textAlign = "center";
 					ctx.fillText("LEVEL UP", 320, 130);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 160);
 				}
 				break;
 			case GameState.paused:
 				break;
 			case GameState.over:
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "center";
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;
@@ -1849,7 +1849,7 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 85);
@@ -1874,7 +1874,7 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 			ctx.fillRect(485, 115, this.maxLines == 0 ? 147 : Math.min(147, 147 * this.lines / this.maxLines), 10);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -1884,10 +1884,10 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 			case GameState.playing:
 				if (this.isNewLevel && this.clearTime > 0) {
 					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
-					ctx.font = "12px Segoe UI";
+					ctx.font = "12px Tetreml";
 					ctx.textAlign = "center";
 					ctx.fillText("LEVEL UP", 320, 130);
-					ctx.font = "30px Segoe UI Light";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 160);
 				}
 				break;
@@ -2018,7 +2018,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Time", 485, 30);
 		ctx.fillText("Lines: " + this.lines, 485, 85);
@@ -2044,7 +2044,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 			ctx.fillText("" + this.keypresses, 208, 335);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText(this.state == GameState.over ? formatDurationWithMilliseconds(this.actionTime / 1000) : formatDuration(Math.floor(this.actionTime / 1000)), 632, 30);
 	}
 
@@ -2056,7 +2056,7 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 			case GameState.paused:
 				break;
 			case GameState.over:
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "center";
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;
@@ -2166,7 +2166,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Lines", 485, 85);
@@ -2190,7 +2190,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 			ctx.fillText("" + this.keypresses, 208, 335);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.fillText("" + this.score, 632, 30);
 	}
 
@@ -2202,7 +2202,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 			case GameState.paused:
 				break;
 			case GameState.over:
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "center";
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;

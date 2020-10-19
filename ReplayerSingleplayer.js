@@ -241,7 +241,7 @@ class ReplayScreen {
 		ctx.lineWidth = 1;
 		ctx.strokeRect(20.5, 345.5, 187, 9);
 		ctx.fillRect(21, 346, 186 * Math.min(1, this.playScreen.playTime / this.length), 8);
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		switch (this.playScreen.state) {
 			case GameState.playing:
@@ -336,7 +336,7 @@ class ReplayScreen {
 class InitialScreen {
 	init() { }
 	render() {
-		ctx.font = "14px Segoe UI";
+		ctx.font = "14px Tetreml";
 		ctx.fillStyle = "#FFF";
 		ctx.textAlign = "center";
 		ctx.fillText("Select a replay file below and", 320, 165);

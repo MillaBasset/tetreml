@@ -533,15 +533,15 @@ class PlayScreen {
 		}
 		
 		ctx.fillStyle = "#FFF";
-		ctx.font = "16px Segoe UI";
+		ctx.font = "16px Tetreml";
 		ctx.textAlign = "center";
 		ctx.fillText("HOLD", 198, 23);
 		ctx.fillText("NEXT", 440, 23);
-		ctx.font = "350 24px Segoe UI";
+		ctx.font = "350 24px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("KEYS", 14, 86);
 		
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		this.keyY = 110;
 		if (buttonStatus.quitModifier) {
@@ -598,7 +598,7 @@ class PlayScreen {
 
 		ctx.textAlign = "left";
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		if (this.rewardTime != 0) {
 			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
 			ctx.fillText(this.rewardName, 406, 348);
@@ -670,12 +670,12 @@ class PlayScreen {
 				break;
 			case GameState.paused:
 				ctx.textAlign = "center";
-				ctx.font = "20px Segoe UI";
+				ctx.font = "20px Tetreml";
 				ctx.fillText("PAUSED", 521, 230);
 				break;
 			case GameState.over:
 				ctx.textAlign = "center";
-				ctx.font = "20px Segoe UI";
+				ctx.font = "20px Tetreml";
 				ctx.fillText("OVER", 521, 230);
 				break;
 		}
@@ -949,7 +949,7 @@ class PlayScreen {
 	pushToQueue() {
 		let bag = [new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoZ(), new TetriminoT()];
 		for (let i = 0; i < 7; i++) {
-			this.queue.push(bag.splice(Math.floor(Math.random() * (bag.length - 0.00001)), 1)[0]);
+			this.queue.push(bag.splice(Math.floor(Math.random() * bag.length), 1)[0]);
 		}
 	}
 
@@ -999,7 +999,7 @@ class PaneButton {
 			ctx.globalAlpha = 1;
 		}
 		ctx.strokeRect(this.x + 0.5, this.y + 0.5, 195, 20);
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText(this.getText(), this.x + 7, this.y + 15, 155);
 		ctx.textAlign = "right";
@@ -1085,7 +1085,7 @@ class PaneDrawAndMain {
 
 	render(mouseX, mouseY) {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("No modifier key", 210, 94);
 		ctx.fillText("Shift", 210, 109);
@@ -1121,7 +1121,7 @@ class PaneDrawAndMain {
 			ctx.globalAlpha = 1;
 		}
 
-		ctx.font = "350 15px Segoe UI";
+		ctx.font = "350 15px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Colors", 196, 183);
 		
@@ -1172,12 +1172,12 @@ class PaneTetriminoes {
 
 	render(mouseX, mouseY) {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "350 15px Segoe UI";
+		ctx.font = "350 15px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Hold", 348, 61);
 		ctx.fillText("Sequence", 196, 124);
 
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("[None.]", 356, 80);
 		ctx.fillText("S", 273, 124);
 		ctx.fillText("Clear", 304, 124);
@@ -1202,7 +1202,7 @@ class PaneTetriminoes {
 			ctx.globalAlpha = 1;
 		}
 
-		ctx.font = "italic 12px Segoe UI";
+		ctx.font = "italic 12px Tetreml";
 		ctx.textAlign = "right";
 		ctx.globalAlpha = 0.5;
 		ctx.fillText("Tetriminoes afterwards are random.", 624, 124);
@@ -1496,15 +1496,15 @@ class EditScreen {
 			}
 		}
 		// Render text.
-		ctx.font = "300 26px Segoe UI";
+		ctx.font = "300 26px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Tetreml sandbox", 194, 36);
-		ctx.font = "350 15px Segoe UI";
+		ctx.font = "350 15px Tetreml";
 		ctx.fillText(this.paneFlag ? "Tetriminoes" : "Draw & main", 201, 70);
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "right";
 		ctx.fillText("=", 324, 68);
-		ctx.font = "italic 12px Segoe UI";
+		ctx.font = "italic 12px Tetreml";
 		ctx.globalAlpha = 0.5;
 		ctx.fillText("Press Enter to start.", 624, 36);
 		ctx.globalAlpha = 1;

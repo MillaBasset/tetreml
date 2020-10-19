@@ -135,7 +135,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	renderBehind(timePassed) {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Time", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 72);
@@ -149,14 +149,14 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 
 		ctx.fillRect(485, 76, this.gameOverFromTorikan ? 147 : 147 * (this.level % 100) / (this.level > 899 ? 99 : 100), 10);
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		let time = this.level == 999 ? this.lastRegretMarkTime : this.playTime;
 		ctx.fillText(this.state == GameState.over || this.level == 999 ? formatDurationWithMilliseconds(time / 1000) : formatDuration(Math.floor(time / 1000)), 632, 30);
 
 		if (this.coolRegretTime != 0) {
 			ctx.fillStyle = this.coolRegretColor;
 			if (this.isReplay) {
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.textAlign = "left";
 				ctx.fillText(this.coolRegretText, 485, 159);
 			} else {
@@ -170,11 +170,11 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	renderInFront(timePassed) {
 		super.renderInFront(timePassed);
 		if (this.state == GameState.over) {
-			ctx.font = "350 20px Segoe UI";
+			ctx.font = "350 20px Tetreml";
 			ctx.fillStyle = "#FFF";
 			ctx.textAlign = "center";
 			ctx.fillText("Grade", 320, 105, 160);
-			ctx.font = "300 50px Segoe UI";
+			ctx.font = "300 50px Tetreml";
 			ctx.fillStyle = "#FF0";
 			ctx.fillText(this.gradeText, 320, 160, 150);
 		}

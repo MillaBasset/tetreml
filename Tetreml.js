@@ -352,11 +352,11 @@ class OptionsScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Game options", 15, 50);
 
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("\u25c4", 220, 100 + 28 * this.selectedProperty);
 		ctx.fillText("\u25ba", 455, 100 + 28 * this.selectedProperty);
 		this.renderOption(0, "Mode", this.modeNames[this.mode], 100);
@@ -435,10 +435,10 @@ class MainScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "center";
 		ctx.fillText("Tetreml", 320, 100);
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("Tetris written with pure HTML and JS.", 320, 125);
 
 		ctx.fillText("Singleplayer version", 320, 200);

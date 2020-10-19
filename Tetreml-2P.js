@@ -300,7 +300,7 @@ class GameOverScreen {
 	render() {
 		this.playScreen.render();
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		for (let i = 0; i < 2; i++) {
 			let content = this.content[i];
 			let startPos = this.scrollPos[i];
@@ -336,7 +336,7 @@ class PlayScreen {
 			let bag = [...zeroToNine];
 			let minos = 6 + (Math.random() > 0.5 ? 2 : 0); // The number of minos must be even so that the "ALL CLEAR" can happen.
 			for (let i = 0; i < minos; i++) {
-				let minoIndex = bag.splice(Math.floor(Math.random() * bag.length - 0.00001), 1);
+				let minoIndex = bag.splice(Math.floor(Math.random() * bag.length), 1);
 				for (let j = 0; j < 2; j++) this.playfields[j].board[minoIndex][line] = new Mino(0, 0);
 			}
 			for (let j = 0; j < 2; j++) {
@@ -442,7 +442,7 @@ class PlayScreen {
 		for (let i = 0; i < 2; i++) this.playfields[i].render(timePassed);
 		
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 
 		ctx.textAlign = "left";
 		ctx.fillText("Level " + this.level, 230, 170);
@@ -482,11 +482,11 @@ class PlayScreen {
 				ctx.fillStyle = "#FF0";
 				if (this.warmupLeft > 2) {
 					if (this.warmupLeft == 3) ctx.globalAlpha = this.warmupSecond / 1000;
-					ctx.font = "300 30px Segoe UI";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("READY", 320, 105);
 					ctx.globalAlpha = 1;
 				} else {
-					ctx.font = "300 45px Segoe UI";
+					ctx.font = "300 45px Tetreml";
 					ctx.fillText("" + this.warmupLeft, 320, 113);
 				}
 				break;
@@ -499,16 +499,16 @@ class PlayScreen {
 				} else ctx.fillText(this.playfields[0].buttonStatus.quitModifier ? `${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit` : `${keyNamesPlayer1.esc} Pause`, 320, 17);
 				if (this.levelUpTime > 0) {
 					ctx.fillText("LEVEL", 320, 75);
-					ctx.font = "300 30px Segoe UI";
+					ctx.font = "300 30px Tetreml";
 					ctx.fillText("" + this.level, 320, 105);
 					this.levelUpTime -= timePassed;
 				}
 				break;
 			case GameState.paused:
 				ctx.textAlign = "center";
-				ctx.font = "20px Segoe UI";
+				ctx.font = "20px Tetreml";
 				ctx.fillText("PAUSED", 320, 75);
-				ctx.font = "12px Segoe UI";
+				ctx.font = "12px Tetreml";
 				ctx.fillText(keyNamesPlayer1.esc + " to continue.", 320, 90);
 				if (this.volumeDisplayTime > 0) {
 					ctx.fillText(`Volume: ${volume} / 10`, 320, 17);
@@ -865,7 +865,7 @@ class Playfield {
 			if (this.totalMinos == 0 && this.clearTime > 0) {
 				ctx.fillStyle = "#FFF";
 				ctx.textAlign = "center";
-				ctx.font = "16px Segoe UI";
+				ctx.font = "16px Tetreml";
 				ctx.fillText("ALL CLEAR", this.xPos + 60, this.yPos + 40);
 				ctx.fillText("1000 points", this.xPos + 60, this.yPos + 61);
 			}
@@ -873,7 +873,7 @@ class Playfield {
 
 		// Actually render things on the screen.
 		ctx.fillStyle = "#FFF";
-		ctx.font = "350 13px Segoe UI";
+		ctx.font = "350 13px Tetreml";
 		ctx.textAlign = "center";
 		ctx.fillText("HOLD", this.xPos-32, this.yPos+15);
 		ctx.fillText("NEXT", this.xPos+152, this.yPos+15);
@@ -977,7 +977,7 @@ class Playfield {
 		}
 
 		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.textAlign = "right";
 		if (this.combo > 0) ctx.fillText("" + this.combo, this.xPos + 122, this.yPos + 326);
 		ctx.textAlign = "left";
@@ -989,7 +989,7 @@ class Playfield {
 			if (this.rewardTime != 0) ctx.fillText(this.rewardAmount, this.xPos + 122, this.yPos + 311);
 		}
 
-		ctx.font = "20px Segoe UI";
+		ctx.font = "20px Tetreml";
 		ctx.textAlign = "right";
 		ctx.fillText(this.score + "", this.xPos + 122, this.yPos + 290);
 
@@ -999,7 +999,7 @@ class Playfield {
 			ctx.fillRect(this.xPos, this.yPos, 120, 264);
 			ctx.globalAlpha = 1;
 			ctx.fillStyle = "#FFF";
-			ctx.font = "16px Segoe UI";
+			ctx.font = "16px Tetreml";
 			ctx.textAlign = "center";
 			ctx.fillText(this.parent.loser == this.player ? "GAME OVER" : "WINNER", this.xPos + 60, this.yPos + 40);
 		}
@@ -1186,7 +1186,7 @@ class Playfield {
 	pushToQueue() {
 		let bag = [new TetriminoI(), new TetriminoJ(), new TetriminoL(), new TetriminoO(), new TetriminoS(), new TetriminoZ(), new TetriminoT()];
 		for (let i = 0; i < 7; i++) {
-			this.queue.push(bag.splice(Math.floor(this.random.random() * (bag.length - 0.00001)), 1)[0]);
+			this.queue.push(bag.splice(Math.floor(this.random.random() * bag.length), 1)[0]);
 		}
 	}
 
@@ -1300,7 +1300,7 @@ class ScoringTengen {
 	renderLockScore(timePassed, rootX, rootY) {
 		if (this.lockScoreTime != 0 && this.lockScoreLine > 17) {
 			ctx.textAlign = "left";
-			ctx.font = "12px Segoe UI";
+			ctx.font = "12px Tetreml";
 			this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillText("" + this.lockScore, rootX+125, rootY + 12 * (this.lockScoreLine - 17));
 		}
@@ -1339,7 +1339,7 @@ class ScoringGuideline {
 	renderLockScore(timePassed, rootX, rootY) {
 		if (this.lockScoreTime != 0 && this.lockScoreEndLine > 17) {
 			ctx.textAlign = "left";
-			ctx.font = "12px Segoe UI";
+			ctx.font = "12px Tetreml";
 			this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
 			ctx.fillRect(rootX+123, rootY + 12 * (this.lockScoreStartLine - 18), 1, (this.lockScoreEndLine - this.lockScoreStartLine + 1) * 12);
 			ctx.fillText(this.lockScore + "", rootX+127, rootY + 12 * (this.lockScoreEndLine - 17));
@@ -1429,12 +1429,12 @@ class KeymappingScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Game controls", 15, 50);
 
 		ctx.textAlign = "center";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("Move left", 320, 100);
 		ctx.fillText("Move right", 320, 130);
 		ctx.fillText("Soft drop", 320, 160);
@@ -1751,12 +1751,12 @@ class OptionsScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Game options", 15, 50);
 
 		ctx.textAlign = "center";
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("Scoring type", 320, 90);
 		ctx.fillText("Speed curve", 320, 115);
 		ctx.fillText("Handicapped lines", 320, 140);
@@ -1818,10 +1818,10 @@ class MainScreen {
 
 	render() {
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "center";
 		ctx.fillText("Tetreml", 320, 100);
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 		ctx.fillText("Tetris written with pure HTML and JS.", 320, 125);
 
 		ctx.fillText("Two-player version", 320, 215);

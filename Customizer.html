@@ -4,7 +4,8 @@
 		<meta charset=utf-8>
 		<title>Tetreml – Customize</title>
 		<link rel="manifest" href="manifest.json">
-		<script src="ProgressiveInstaller.js"></script><style>
+		<script src="ProgressiveInstaller.js"></script>
+		<style>
 			body, input, select, button {
 				font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
 				font-size: 12px;
@@ -54,10 +55,10 @@
 	<body>
 		<p><a href="index.html">Back to home</a></p>
 		<h1>Customize</h1>
-		<p>Here you can apply your own textures, sound effects and music tracks for use in <i>Tetreml</i>.</p>
+		<p>Here you can apply your own textures, fonts, sound effects and music tracks for use in <i>Tetreml</i>.</p>
 		<br>
 		<select id=categorySelector onchange="onCategoryChange()">
-			<option value="categoryTextures" selected>Textures</option>
+			<option value="categoryTextures" selected>Textures and fonts</option>
 			<option value="categorySoundEffects">Sound effects</option>
 			<option value="categoryMusic">Music</option>
 		</select>
@@ -111,42 +112,57 @@
 			}
 		</script>
 		<div id=categoryTextures>
-			<label for=textures_selector>Texture type: </label>
+			<label for=textures_selector>Asset: </label>
 			<select id=textures_selector onchange="textures_updateInfo()">
-				<option selected>Play screen – Singleplayer & sandbox</option>
-				<option>Play screen – Two-player</option>
-				<option>Edit screen – Sandbox</option>
-				<option>Sprite 1 – Singleplayer & Sandbox</option>
-				<option>Sprite 2 – Singleplayer & Sandbox</option>
-				<option>Sprite 1 – Two-player</option>
-				<option>Sprite 2 – Two-player</option>
-				<option>GIF background – Sandbox</option>
+				<optgroup label="Textures">
+					<option selected>Play screen – Singleplayer & sandbox</option>
+					<option>Play screen – Two-player</option>
+					<option>Edit screen – Sandbox</option>
+					<option>Sprite 1 – Singleplayer & Sandbox</option>
+					<option>Sprite 2 – Singleplayer & Sandbox</option>
+					<option>Sprite 1 – Two-player</option>
+					<option>Sprite 2 – Two-player</option>
+					<option>GIF background – Sandbox</option>
+				</optgroup>
+				<optgroup label="Fonts">
+					<option>Regular font</option>
+					<option>Italic font</option>
+					<option>Semi-light font</option>
+					<option>Light font</option>
+				</optgroup>
 			</select>
 			<p>
-				<b>Description: </b><span id=textures_description></span><br>
-				<b>Texture size: </b><span id=textures_size></span>
+				<b>Description: </b><span id=textures_description></span>
+				<span id=textures_sizeWrapper>
+					<br>
+					<b>Texture size: </b><span id=textures_size></span>
+				</span>
 			</p>
 			<label for=textures_fileInput>File to apply: </label>
 			<input type=file id=textures_fileInput accept="image/*" oninput="textures_fileInputChange()">
 			<br>
-			<p>Before applying, please make sure your texture has the size matching the above.</p>
+			<p><span id=textures_notice>Before applying, please make sure your texture has the size matching the above.</span></p>
 			<button id=textures_buttonApply disabled=true onclick="textures_apply()">Apply</button>
 			<button onclick="textures_reset()">Reset</button>
 			<button onclick="textures_viewCurrent()">View current</button>
 			<button onclick="textures_viewDefault()">View default</button>
 			<br><br>
-			<button onclick="textures_resetAll()">Reset all textures</button>
+			<button onclick="textures_resetAll()">Reset all assets</button>
 
 			<script>
 				const textures_fileNames = [
-					"Play screen singleplayer.png",
-					"Play screen two-player.png",
-					"Sandbox edit screen.png",
-					"Sprite singleplayer.png",
-					"Outline sprite singleplayer.png",
-					"Sprite two-player.png",
-					"Outline sprite two-player.png",
-					"GIF background.png"
+					"Textures/Play screen singleplayer.png",
+					"Textures/Play screen two-player.png",
+					"Textures/Sandbox edit screen.png",
+					"Textures/Sprite singleplayer.png",
+					"Textures/Outline sprite singleplayer.png",
+					"Textures/Sprite two-player.png",
+					"Textures/Outline sprite two-player.png",
+					"Textures/GIF background.png",
+					"Font/Tetreml.ttf",
+					"Font/Tetreml italic.ttf",
+					"Font/Tetreml semilight.ttf",
+					"Font/Tetreml light.ttf"
 				];
 				const textures_fileDescriptions = [
 					"The in-game background texture in singleplayer and sandbox.",
@@ -156,7 +172,11 @@
 					"The sprite #2 for singleplayer and sandbox. Contains ghost minoes and stack outlines.",
 					"The sprite #1 for two-player. Contains 8 colors of minoes, each with 16 possible states; block out mark; hard drop particle; garbage indicator with 4 states and keystroke shapes.",
 					"The sprite #2 for two-player. Contains ghost minoes and stack outlines.",
-					"The generated GIF's background when rendered in sandbox."
+					"The generated GIF's background when rendered in sandbox.",
+					"The regular font. Used for normal UI text.",
+					"The italic font. Used for minor text.",
+					"The semilight font. Used for labels.",
+					"The light font. Used for titles, counters,..."
 				];
 				const textures_fileSizes = [
 					"640 . 360",
@@ -166,7 +186,11 @@
 					"256 . 256",
 					"256 . 256",
 					"256 . 256",
-					"160 . 352"
+					"160 . 352",
+					"",
+					"",
+					"",
+					""
 				];
 
 				function textures_getIndex() {
@@ -176,11 +200,13 @@
 				function textures_updateInfo() {
 					let index = textures_getIndex();
 					document.getElementById("textures_description").innerHTML = textures_fileDescriptions[index];
+					document.getElementById("textures_sizeWrapper").style.display = document.getElementById("textures_notice").style.display = textures_fileSizes[index] == "" ? "none" : null;
+					document.getElementById("textures_fileInput").accept = textures_fileSizes[index] == "" ? ".ttf,.otf,.woff,.woff2" : "image/*";
 					document.getElementById("textures_size").innerHTML = textures_fileSizes[index];
 				}
 
 				function textures_getPath(index = textures_getIndex()) {
-					return "Textures/" + textures_fileNames[index];
+					return textures_fileNames[index];
 				}
 
 				function textures_fileInputChange() {
@@ -192,13 +218,13 @@
 					let files = document.getElementById("textures_fileInput").files;
 					if (files.length == 0) return;
 					theCache.put(textures_getPath(), new Response(files[0]));
-					alert("The texture has been applied.");
+					alert("The asset has been applied.");
 				}
 
 				function textures_reset() {
 					if (theCache == null) return;
 					theCache.delete(textures_getPath());
-					alert("The texture has been reset to default.");
+					alert("The asset has been reset to default.");
 				}
 
 				function textures_viewCurrent() {
@@ -211,9 +237,9 @@
 
 				function textures_resetAll() {
 					if (theCache == null) return;
-					if (!confirm("Are you sure you want to reset all textures? This will revert them to default.")) return;
+					if (!confirm("Are you sure you want to reset all assets? This will revert them to default.")) return;
 					for (let i = 0; i < 7; i++) theCache.delete(textures_getPath(i));
-					alert("All textures have been reset to default.");
+					alert("All assets have been reset to default.");
 				}
 
 				textures_updateInfo();

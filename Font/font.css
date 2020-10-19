@@ -1,22 +1,22 @@
 @font-face {
-	font-family: "Segoe UI";
-	src: url("segoeui.ttf") format("truetype");
+	font-family: "Tetreml";
+	src: url("Tetreml.ttf");
 }
 
 @font-face {
-	font-family: "Segoe UI";
-	src: url("segoeuii.ttf") format("truetype");
+	font-family: "Tetreml";
+	src: url("Tetreml italic.ttf");
 	font-style: italic;
 }
 
 @font-face {
-	font-family: "Segoe UI";
-	src: url("segoeuisl.woff2") format("woff2");
+	font-family: "Tetreml";
+	src: url("Tetreml semilight.ttf");
 	font-weight: 350;
 }
 
 @font-face {
-	font-family: "Segoe UI";
-	src: url("segoeuil.ttf") format("truetype");
+	font-family: "Tetreml";
+	src: url("Tetreml light.ttf");
 	font-weight: 300;
 }
