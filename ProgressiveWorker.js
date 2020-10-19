@@ -1,14 +1,14 @@
-// Version: 18
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
 	event.waitUntil(caches.delete("Tetreml"));
 	event.waitUntil(caches.open("Tetreml").then(function(cache) { return cache.addAll([
 		'Font/font.css',
-		'Font/segoeui.ttf',
-		'Font/segoeuii.ttf',
-		'Font/segoeuil.ttf',
-		'Font/segoeuisl.woff2',
+		'Font/Tetreml.ttf',
+		'Font/Tetreml italic.ttf',
+		'Font/Tetreml semilight.ttf',
+		'Font/Tetreml light.ttf',
 
 		'GIF/gif.js',
 		'GIF/gif.worker.js',
