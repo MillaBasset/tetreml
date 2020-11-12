@@ -47,7 +47,7 @@ var originalSoundEffectConfig = {};
 
 async function loadOriginalSoundEffectConfig() {
 	let request = new XMLHttpRequest();
-	request.open('GET', 'SFX/sfxconfig.json', true);
+	request.open('GET', 'SFX/sfxconfig.json?state=original', true);
 	request.responseType = 'json';
 	request.onload = () => {
 		if (request.status != 200) {
@@ -64,7 +64,7 @@ var soundEffectConfig = {};
 
 function loadSoundEffectConfig(callback) {
 	let request = new XMLHttpRequest();
-	request.open('GET', 'SFX/sfxconfig.json?state=original', true);
+	request.open('GET', 'SFX/sfxconfig.json', true);
 	request.responseType = 'json';
 	request.onload = async () => {
 		if (request.status != 200) {
