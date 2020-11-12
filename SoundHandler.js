@@ -45,7 +45,7 @@ class SFX {
 
 var originalSoundEffectConfig = {};
 
-async function loadOriginalSoundEffectConfig() {
+function loadOriginalSoundEffectConfig(callback) {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'SFX/sfxconfig.json?state=original', true);
 	request.responseType = 'json';
@@ -55,6 +55,7 @@ async function loadOriginalSoundEffectConfig() {
 			return;
 		}
 		originalSoundEffectConfig = request.response;
+		callback();
 	};
 	request.onerror = () => {};
 	request.send();
@@ -66,22 +67,23 @@ function loadSoundEffectConfig(callback) {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'SFX/sfxconfig.json', true);
 	request.responseType = 'json';
-	request.onload = async () => {
+	request.onload = () => {
 		if (request.status != 200) {
 			request.onerror();
 			return;
 		}
 		soundEffectConfig = request.response;
-		await loadOriginalSoundEffectConfig();
-		let changed = false;
-		for (let entry in originalSoundEffectConfig) if (!(entry in soundEffectConfig)) {
-			soundEffectConfig[entry] = originalSoundEffectConfig[entry];
-			changed = true;
-		}
-		if (changed) {
-			(await caches.open("TetremlCustomAssets")).put('SFX/sfxconfig.json', new Response(JSON.stringify(soundEffectConfig)));
-		}
-		callback();
+		loadOriginalSoundEffectConfig(async () => {
+			let changed = false;
+			for (let entry in originalSoundEffectConfig) if (!(entry in soundEffectConfig)) {
+				soundEffectConfig[entry] = originalSoundEffectConfig[entry];
+				changed = true;
+			}
+			if (changed) {
+				(await caches.open("TetremlCustomAssets")).put('SFX/sfxconfig.json', new Response(JSON.stringify(soundEffectConfig)));
+			}
+			callback();
+		});
 	};
 	request.onerror = () => {
 		console.warn("Tetreml: Failed to retrieve sound effect configuration. No sound effects will be played.");
@@ -179,7 +181,7 @@ class Music {
 
 var originalMusicConfig = {};
 
-async function loadOriginalMusicConfig() {
+function loadOriginalMusicConfig(callback) {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'Music/musicconfig.json?state=original', true);
 	request.responseType = 'json';
@@ -189,6 +191,7 @@ async function loadOriginalMusicConfig() {
 			return;
 		}
 		originalMusicConfig = request.response;
+		callback();
 	};
 	request.onerror = () => {};
 	request.send();
@@ -206,16 +209,17 @@ function loadMusicConfig(callback = () => {}) {
 			return;
 		}
 		musicConfig = request.response;
-		await loadOriginalMusicConfig();
-		let changed = false;
-		for (let entry in originalMusicConfig) if (!(entry in musicConfig)) {
-			musicConfig[entry] = originalMusicConfig[entry];
-			changed = true;
-		}
-		if (changed) {
-			(await caches.open("TetremlCustomAssets")).put('Music/musicconfig.json', new Response(JSON.stringify(musicConfig)));
-		}
-		callback();
+		loadOriginalMusicConfig(async () => {
+			let changed = false;
+			for (let entry in originalMusicConfig) if (!(entry in musicConfig)) {
+				musicConfig[entry] = originalMusicConfig[entry];
+				changed = true;
+			}
+			if (changed) {
+				(await caches.open("TetremlCustomAssets")).put('Music/musicconfig.json', new Response(JSON.stringify(musicConfig)));
+			}
+			callback();
+		});
 	};
 	request.onerror = () => {
 		console.warn("Tetreml: Failed to retrieve music configuration. No music will be played.");
