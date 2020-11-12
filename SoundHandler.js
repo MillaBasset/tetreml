@@ -200,7 +200,7 @@ function loadMusicConfig(callback = () => {}) {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'Music/musicconfig.json', true);
 	request.responseType = 'json';
-	request.onload = () => {
+	request.onload = async () => {
 		if (request.status != 200) {
 			request.onerror();
 			return;
