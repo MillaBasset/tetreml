@@ -338,7 +338,7 @@ class PlayScreenBase {
 	isMinoVisible(x, y) {
 		if (x < 0 || x > 9 || y < 0 || y > 39) return;
 		let mino = this.board[x][y];
-		return mino != undefined && (this.isReplay || mino.shouldRender(this.playTime));
+		return mino != undefined && (this.isReplay || mino.shouldRender(this.playTime)) && mino.textureY != -1;
 	}
 
 	render() {
@@ -381,7 +381,11 @@ class PlayScreenBase {
 				ctx.fillRect(this.gridX, this.gridY + this.minoSize * 2 - 1, this.minoSize * 10, 2);
 				if (this.state != GameState.over) {
 					ctx.globalAlpha = 0.6;
-					for (let mino of this.queue[0].states[0]) ctx.drawImage(sprite, 64, 128, 16, 16, this.gridX + this.minoSize * (4 + mino[0]), this.gridY + this.minoSize * (1 + mino[1]), this.minoSize, this.minoSize);
+					let next = this.getNextSpawn();
+					for (let mino of next.states[0]) {
+						let y = next.y - 18 + mino[1];
+						if (y > -1) ctx.drawImage(sprite, 64, 128, 16, 16, this.gridX + this.minoSize * (next.x + mino[0]), this.gridY + this.minoSize * y, this.minoSize, this.minoSize);
+					}
 				}
 			}
 
@@ -394,13 +398,15 @@ class PlayScreenBase {
 						if (!shouldRender) ctx.globalAlpha = 0.2;
 						let minoX = this.gridX + x * this.minoSize;
 						let minoY = this.gridY + this.minoSize * (y - 18);
-						let uldr = this.isMinoVisible(x + 1, y) << 3 | this.isMinoVisible(x, y - 1) << 2 | this.isMinoVisible(x - 1, y) << 1 | this.isMinoVisible(x, y + 1); // Up left down right.
 						this.renderMino(x, y, mino.directions, mino.textureY);
-						ctx.drawImage(outlineSprite, 16 * uldr, 128, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
-						if (!this.isMinoVisible(x-1, y-1) && (uldr & 0b0110) == 0b0110) ctx.drawImage(outlineSprite, 0, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
-						if (!this.isMinoVisible(x+1, y-1) && (uldr & 0b1100) == 0b1100) ctx.drawImage(outlineSprite, 16, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
-						if (!this.isMinoVisible(x+1, y+1) && (uldr & 0b1001) == 0b1001) ctx.drawImage(outlineSprite, 32, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
-						if (!this.isMinoVisible(x-1, y+1) && (uldr & 0b0011) == 0b0011) ctx.drawImage(outlineSprite, 48, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+						if (mino.textureY != -1) {
+							let uldr = this.isMinoVisible(x + 1, y) << 3 | this.isMinoVisible(x, y - 1) << 2 | this.isMinoVisible(x - 1, y) << 1 | this.isMinoVisible(x, y + 1); // Up left down right.
+							ctx.drawImage(outlineSprite, 16 * uldr, 128, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+							if (!this.isMinoVisible(x - 1, y - 1) && (uldr & 0b0110) == 0b0110) ctx.drawImage(outlineSprite, 0, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+							if (!this.isMinoVisible(x + 1, y - 1) && (uldr & 0b1100) == 0b1100) ctx.drawImage(outlineSprite, 16, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+							if (!this.isMinoVisible(x + 1, y + 1) && (uldr & 0b1001) == 0b1001) ctx.drawImage(outlineSprite, 32, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+							if (!this.isMinoVisible(x - 1, y + 1) && (uldr & 0b0011) == 0b0011) ctx.drawImage(outlineSprite, 48, 144, 16, 16, minoX, minoY, this.minoSize, this.minoSize);
+						}
 						ctx.globalAlpha = 0.7;
 					}
 				}
@@ -541,6 +547,10 @@ class PlayScreenBase {
 		this.renderInFront(timePassed);
 	}
 
+	getNextSpawn() {
+		return this.queue[0];
+	}
+
 	renderBehind(timePassed) { };
 
 	renderInFront(timePassed) { };
@@ -551,14 +561,20 @@ class PlayScreenBase {
 
 	renderMino(x, y, directions, textureY) {
 		if (y < 18 || y > 39) return;
-		ctx.drawImage(sprite, 16 * directions, textureY * 16, 16, 16, this.gridX + x * this.minoSize, this.gridY + this.minoSize*(y-18), this.minoSize, this.minoSize);
+		if (textureY == -1)
+			ctx.drawImage(spriteElectronika, 0, 0, 16, 16, this.gridX + x * this.minoSize, this.gridY + this.minoSize * (y - 18), this.minoSize, this.minoSize);
+		else
+			ctx.drawImage(sprite, 16 * directions, textureY * 16, 16, 16, this.gridX + x * this.minoSize, this.gridY + this.minoSize * (y - 18), this.minoSize, this.minoSize);
 	}
 
 	renderTetrimino(tetrimino, x, y, gray = false) {
 		if (!(tetrimino instanceof TetriminoI) && !(tetrimino instanceof TetriminoO)) x += this.minoSize/2;
 		if (tetrimino instanceof TetriminoI) y -= this.minoSize/2;
 		for (let mino of tetrimino.states[0]) {
-			ctx.drawImage(sprite, 16 * mino[2], gray ? 0 : tetrimino.textureY * 16, 16, 16, x + this.minoSize * mino[0], y + this.minoSize * mino[1], this.minoSize, this.minoSize);
+			if (tetrimino.textureY == -1)
+				ctx.drawImage(spriteElectronika, gray ? 16 : 0, 0, 16, 16, x + this.minoSize * mino[0], y + this.minoSize * mino[1], this.minoSize, this.minoSize);
+			else
+				ctx.drawImage(sprite, 16 * mino[2], gray ? 0 : tetrimino.textureY * 16, 16, 16, x + this.minoSize * mino[0], y + this.minoSize * mino[1], this.minoSize, this.minoSize);
 		}
 	}
 
@@ -603,11 +619,11 @@ class PlayScreenBase {
 		this.processInstaFall(timestamp);
 	}
 
-	move(offset, isInitialPress, timestamp) {
+	move(offset, isInitialPress, timestamp, playSound = true) {
 		if (this.state == GameState.playing && this.current != null) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
-				if (!this.isSeeking) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
+				if (!this.isSeeking && playSound) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
 				this.current.x = newX;
 				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
@@ -860,7 +876,7 @@ class PlayScreenBase {
 		}
 		if (this.current.canFall(this.board)) this.current.y++;
 		this.maxY = this.current.Y;
-		if (!this.isSeeking && this.shouldHintTetrimino) sfx["tetrimino" + this.queue[0].code].play();
+		if (!this.isSeeking && this.shouldHintTetrimino) sfx["tetrimino" + this.queue[0].code.toUpperCase()].play();
 	}
 
 	gameOver() {
@@ -882,7 +898,6 @@ class PlayScreenBase {
 
 	recordAction(action, timestamp = this.playTime) {
 		if (this.doSaveReplay) {
-			if (timestamp > this.latestTime || (this.oldTimestamp != undefined && timestamp < this.oldTimestamp)) console.warn(`${timestamp} | ${this.playTime} | ${this.latestTime} | ${action}`);
 			this.replay.actions.push([timestamp, action]);
 			this.oldTimestamp = timestamp;
 		}

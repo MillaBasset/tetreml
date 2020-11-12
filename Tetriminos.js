@@ -1,5 +1,5 @@
 /* Kick data for tetriminoes J; S; L; T; Z.
-– First level: originsal state.
+– First level: original state.
 – Second level: destination state.
 */
 const kickJSLTZ = {
@@ -133,22 +133,22 @@ class TetriminoI extends Tetrimino {
 		this.width = [4, 1, 4, 1];
 		this.kickData = {
 			0: {
-				1: [[0, 0], [-2, 0], [1, 0], [1, -2], [-2, 1]],
-				3: [[0, 0], [2, 0], [-1, 0], [-1, -2], [2, 1]]
+				1: [[0, 0], [-2, 0], [1, 0], [-2, 1], [1, -2]],
+				3: [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]]
 			},
 			1: {
 				2: [[0, 0], [-1, 0], [2, 0], [-1, -2], [2, 1]],
 				0: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]]
 			},
 			2: {
-				3: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 1]],
-				1: [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 1]]
+				3: [[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]],
+				1: [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]]
 			},
 			3: {
-				0: [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
-				2: [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]
+				0: [[0, 0], [1, 0], [-2, 0], [1, 2], [-2, -1]],
+				2: [[0, 0], [2, 0], [1, 0], [-2, -1], [1, -2]]
 			}
-		}
+		};
 		this.textureY = 1;
 		this.outlineColor = "#009898"; // Used for drawing ghost pieces.
 		this.code = "I"; // Used for saving replays.
@@ -270,7 +270,6 @@ class TetriminoT extends Tetrimino {
 		return point;
 	}
 
-	// abcd: 0A 1B 2C 3D
 	getCorners(board) {
 		let res = [];
 		for (let i = 0; i < 4; i++) {
@@ -331,7 +330,7 @@ const tetriminoTypeMapping = {
 	J: TetriminoJ,
 	L: TetriminoL,
 	S: TetriminoS,
-	Z: TetriminoZ,
+	Z: TetriminoZ
 };
 
 class Mino {

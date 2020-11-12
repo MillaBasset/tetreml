@@ -21,6 +21,11 @@ self.addEventListener('install', function (event) {
 		'Music/-6.mp3',
 		'Music/-7.mp3',
 		'Music/-8.mp3',
+		'Music/-9.mp3',
+		'Music/-10.mp3',
+		'Music/-11.mp3',
+		'Music/-12.mp3',
+		'Music/-13.mp3',
 		'Music/Level 999.mp3',
 		'Music/musicconfig.json',
 
@@ -74,6 +79,7 @@ self.addEventListener('install', function (event) {
 		'SFX/-33.mp3',
 		'SFX/-34.mp3',
 		'SFX/-35.mp3',
+		'SFX/-36.mp3',
 		'SFX/sfxconfig.json',
 
 		'Textures/GIF background.png',

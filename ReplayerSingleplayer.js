@@ -50,7 +50,8 @@ const sfx = {
 	tetriminoI: new SFX("tetriminoI", gainNode),
 	bell: new SFX("bell", gainNode),
 	grandMasterLevelUp: new SFX("grandMasterLevelUp", gainNode),
-	level999Trigger: new SFX("level999", gainNode)
+	level999Trigger: new SFX("level999", gainNode),
+	garbageRise: new SFX("garbageRise", gainNode)
 };
 
 loadSoundEffectConfig(() => {
@@ -131,6 +132,7 @@ class ReplayScreen {
 			"Marathon variable": GameScreenGuidelineMarathonVariable,
 			"Marathon tetris.com": GameScreenGuidelineMarathonTetrisDotCom,
 			"Grand master": GameScreenTGM,
+			"Shirase": GameScreenShirase,
 			"40-line": GameScreenGuideline40Line,
 			"2-minute": GameScreenGuideline2Minute
 		}[replay.mode](null, false, false);
@@ -352,6 +354,9 @@ sprite.src = "Textures/Sprite singleplayer.png";
 
 var outlineSprite = new Image();
 outlineSprite.src = "Textures/Outline sprite singleplayer.png";
+
+var spriteElectronika = new Image();
+spriteElectronika.src = "Textures/Electronika.png?state=original";
 
 var ctx = mainWindow.getContext("2d");
 

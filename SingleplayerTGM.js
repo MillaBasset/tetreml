@@ -155,7 +155,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 
 		if (this.coolRegretTime != 0) {
 			ctx.fillStyle = this.coolRegretColor;
-			if (this.isReplay) {
+			if (this.isReplay || this.showKeystrokes) {
 				ctx.font = "12px Tetreml";
 				ctx.textAlign = "left";
 				ctx.fillText(this.coolRegretText, 485, 159);

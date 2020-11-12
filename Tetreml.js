@@ -48,7 +48,8 @@ const sfx = {
 	tetriminoI: new SFX("tetriminoI", gainNode),
 	bell: new SFX("bell", gainNode),
 	grandMasterLevelUp: new SFX("grandMasterLevelUp", gainNode),
-	level999Trigger: new SFX("level999", gainNode)
+	level999Trigger: new SFX("level999", gainNode),
+	garbageRise: new SFX("garbageRise", gainNode)
 };
 
 loadSoundEffectConfig(() => {
@@ -127,12 +128,13 @@ const zeroToNine = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // For generating handicapped
 class OptionsScreen {
 	constructor(parent) {
 		this.parent = parent;
-		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Endless (Tengen-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)"];
-		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenTengen, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute];
+		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Shirase", "Endless (Tengen-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)"];
+		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenShirase, GameScreenTengen, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute];
 		this.optionEnablingMap = [
 			[true, false, true, false, true, true, true, true],
 			[true, false, true, false, true, true, true, true],
 			[true, false, true, false, true, true, true, true],
+			[true, false, false, false, false, false, true, true],
 			[true, false, false, false, false, false, true, true],
 			[true, true, true, true, true, true, true, true],
 			[true, true, true, true, true, true, true, true],
@@ -191,7 +193,7 @@ class OptionsScreen {
 				if (this.mode < 3) {
 					gui.level = gui.replay.modeParameters.startingLevel = localStorage.tetrisStartingLevel = this.startingLevel;
 				}
-				else if (this.mode == 4 || this.mode == 5) {
+				else if (this.mode == 5 || this.mode == 6) {
 					gui.levels = gui.replay.modeParameters.levels = this.speedCurves[localStorage.tetrisSpeedCurve = this.speedCurve];
 					gui.level = gui.replay.modeParameters.startingLevel = localStorage.tetrisStartingLevel = this.startingLevel;
 					gui.speedCurve = localStorage.tetrisSpeedCurve = this.speedCurve;
@@ -206,7 +208,7 @@ class OptionsScreen {
 					}
 					gui.stackMinY = 40 - this.handicappedLines;
 				}
-				if (this.mode != 3) {
+				if (this.mode != 3 && this.mode != 4) {
 					gui.autoRepeatDelay = localStorage.tetrisAutoRepeatDelay = this.autoRepeatDelay;
 					gui.autoRepeatPeriod = localStorage.tetrisAutoRepeatPeriod = this.autoRepeatPeriod;
 				}
@@ -393,6 +395,9 @@ sprite.src = "Textures/Sprite singleplayer.png";
 
 var outlineSprite = new Image();
 outlineSprite.src = "Textures/Outline sprite singleplayer.png";
+
+var spriteElectronika = new Image();
+spriteElectronika.src = "Textures/Electronika.png?state=original";
 
 class MainScreen {
 	constructor(parent) {

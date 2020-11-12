@@ -238,7 +238,7 @@
 				function textures_resetAll() {
 					if (theCache == null) return;
 					if (!confirm("Are you sure you want to reset all assets? This will revert them to default.")) return;
-					for (let i = 0; i < 7; i++) theCache.delete(textures_getPath(i));
+					for (let i = 0; i < textures_fileNames.length; i++) theCache.delete(textures_getPath(i));
 					alert("All assets have been reset to default.");
 				}
 
@@ -290,7 +290,7 @@
 						<option value=combo9>Combo 9</option>
 						<option value=combo10>Combo 10+</option>
 					</optgroup>
-					<optgroup label="Grand master">
+					<optgroup label="Grand master & Shirase">
 						<option value=tetriminoI>Next tetrimino I</option>
 						<option value=tetriminoJ>Next tetrimino J</option>
 						<option value=tetriminoL>Next tetrimino L</option>
@@ -298,9 +298,10 @@
 						<option value=tetriminoS>Next tetrimino S</option>
 						<option value=tetriminoT>Next tetrimino T</option>
 						<option value=tetriminoZ>Next tetrimino Z</option>
+						<option value=garbageRise>Garbage rise</option>
 						<option value=bell>Bell</option>
 						<option value=grandMasterLevelUp>Level x99 → x00</option>
-						<option value=level999>Level 999 trigger</option>
+						<option value=level999>Level 999/1300 trigger</option>
 					</optgroup>
 					<optgroup label="Two-player">
 						<option value=attack>Attack – Send</option>
@@ -506,6 +507,19 @@
 						<option value="grandMaster_level800Trigger">Level 800 trigger</option>
 						<option value="grandMaster_level800Opening">Level 800 ÷ 998 – Opening</option>
 						<option value="grandMaster_level800Loop">Level 800 ÷ 998 – Loop</option>
+					</optgroup>
+					<optgroup label="Shirase">
+						<option value="shirase_level0Opening">Level 0 ÷ 499 – Opening</option>
+						<option value="shirase_level0Loop">Level 0 ÷ 499 – Loop</option>
+						<option value="shirase_level500Trigger">Level 500 trigger</option>
+						<option value="shirase_level500Opening">Level 500 ÷ 799 – Opening</option>
+						<option value="shirase_level500Loop">Level 500 ÷ 799 – Loop</option>
+						<option value="shirase_level700Trigger">Level 700 trigger</option>
+						<option value="shirase_level700Opening">Level 700 ÷ 999 – Opening</option>
+						<option value="shirase_level700Loop">Level 700 ÷ 999 – Loop</option>
+						<option value="shirase_level1000Trigger">Level 1000 trigger</option>
+						<option value="shirase_level1000Opening">Level 1000 ÷ 1299 – Opening</option>
+						<option value="shirase_level1000Loop">Level 1000 ÷ 1299 – Loop</option>
 					</optgroup>
 					<optgroup label="Endless">
 						<option value="endless_level1Opening">Level 1 ÷ 5 – Opening</option>

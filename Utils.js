@@ -35,6 +35,10 @@ function formatDurationWithMilliseconds(s) {
 	return (day > 0 ? day + 'd' : '') + (secs > 3599 && (secs < 86400 || secs%86400 != 0) ? hour + 'h' : '') + (secs > 59 && (secs < 3600 || secs%3600 != 0) ? (secs > 3599 && min < 10 ? '0' : '') + min + (sec < 10 ? ':0' : ':') + sec + millis : secs < 60 ? sec + millis + "\"" : '');
 }
 
+function formatNumber(number, decimalDigits = 3) {
+	return number.toFixed(decimalDigits).replace(".", ",");
+}
+
 const formatKeycodeNames = {
 	null: "[None.]",
 	Enter: "\u21B5",

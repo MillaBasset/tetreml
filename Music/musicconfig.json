@@ -35,6 +35,18 @@
 	"grandMaster_level800Opening": -6,
 	"grandMaster_level800Loop": -7,
 
+	"shirase_level0Opening": 0,
+	"shirase_level0Loop": -9,
+	"shirase_level500Trigger": 0,
+	"shirase_level500Opening": -10,
+	"shirase_level500Loop": -11,
+	"shirase_level700Trigger": 0,
+	"shirase_level700Opening": 0,
+	"shirase_level700Loop": -12,
+	"shirase_level1000Trigger": 0,
+	"shirase_level1000Opening": 0,
+	"shirase_level1000Loop": -13,
+
 	"endless_level1Opening": -1,
 	"endless_level1Loop": -2,
 	"endless_level6Trigger": -3,

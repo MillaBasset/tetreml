@@ -145,7 +145,7 @@ class Music {
 	}
 
 	setCurrent() {
-		if (currentSong != null && (currentSong.next == undefined ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
+		if (currentSong != null && (this.id == 0 ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
 		currentSong = this;
 		this.reset();
 	}
