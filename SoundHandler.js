@@ -179,7 +179,7 @@ class Music {
 
 var originalMusicConfig = {};
 
-async function loadMusicConfig() {
+async function loadOriginalMusicConfig() {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'Music/musicconfig.json', true);
 	request.responseType = 'json';
