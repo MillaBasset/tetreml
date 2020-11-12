@@ -43,9 +43,9 @@ class SFX {
 	}
 }
 
-var soundEffectConfig = {};
+var originalSoundEffectConfig = {};
 
-function loadSoundEffectConfig(callback) {
+async function loadOriginalSoundEffectConfig() {
 	let request = new XMLHttpRequest();
 	request.open('GET', 'SFX/sfxconfig.json', true);
 	request.responseType = 'json';
@@ -54,7 +54,33 @@ function loadSoundEffectConfig(callback) {
 			request.onerror();
 			return;
 		}
+		originalSoundEffectConfig = request.response;
+	};
+	request.onerror = () => {};
+	request.send();
+}
+
+var soundEffectConfig = {};
+
+function loadSoundEffectConfig(callback) {
+	let request = new XMLHttpRequest();
+	request.open('GET', 'SFX/sfxconfig.json', true);
+	request.responseType = 'json';
+	request.onload = async () => {
+		if (request.status != 200) {
+			request.onerror();
+			return;
+		}
 		soundEffectConfig = request.response;
+		await loadOriginalSoundEffectConfig();
+		let changed = false;
+		for (let entry in originalSoundEffectConfig) if (!(entry in soundEffectConfig)) {
+			soundEffectConfig[entry] = originalSoundEffectConfig[entry];
+			changed = true;
+		}
+		if (changed) {
+			(await caches.open("TetremlCustomAssets")).put('SFX/sfxconfig.json', new Response(JSON.stringify(soundEffectConfig)));
+		}
 		callback();
 	};
 	request.onerror = () => {
@@ -151,6 +177,23 @@ class Music {
 	}
 }
 
+var originalMusicConfig = {};
+
+async function loadMusicConfig() {
+	let request = new XMLHttpRequest();
+	request.open('GET', 'Music/musicconfig.json', true);
+	request.responseType = 'json';
+	request.onload = () => {
+		if (request.status != 200) {
+			request.onerror();
+			return;
+		}
+		originalMusicConfig = request.response;
+	};
+	request.onerror = () => {};
+	request.send();
+}
+
 var musicConfig = {};
 
 function loadMusicConfig(callback = () => {}) {
@@ -163,6 +206,15 @@ function loadMusicConfig(callback = () => {}) {
 			return;
 		}
 		musicConfig = request.response;
+		await loadOriginalMusicConfig();
+		let changed = false;
+		for (let entry in originalMusicConfig) if (!(entry in musicConfig)) {
+			musicConfig[entry] = originalMusicConfig[entry];
+			changed = true;
+		}
+		if (changed) {
+			(await caches.open("TetremlCustomAssets")).put('Music/musicconfig.json', new Response(JSON.stringify(musicConfig)));
+		}
 		callback();
 	};
 	request.onerror = () => {
