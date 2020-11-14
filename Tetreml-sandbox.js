@@ -288,7 +288,7 @@ class PlayScreen {
 							this.softDropCounter %= this.softDropPeriod;
 						} else {
 							this.softDropCounter += timePassed;
-							if (this.current != null) for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.softDrop()) break;
+							if (this.current != null) for (let i = this.oldSoftDropCounter; i < Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (this.softDrop()) break;
 							this.oldSoftDropCounter = Math.max(0, Math.floor((this.softDropCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
 						}
 					}

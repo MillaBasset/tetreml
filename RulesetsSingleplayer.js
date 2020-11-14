@@ -619,17 +619,17 @@ class PlayScreenBase {
 		this.processInstaFall(timestamp);
 	}
 
-	move(offset, isInitialPress, timestamp, playSound = true) {
+	move(offset, isInitialPress, timestamp) {
 		if (this.state == GameState.playing && this.current != null) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
-				if (!this.isSeeking && playSound) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
+				if (!this.isSeeking) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
 				this.current.x = newX;
 				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
 				if (isInitialPress || this.wasNull) this.addKeypress();
 				this.wasNull = false;
-				this.recordAction(offset == 1 ? "moveRight" : "moveLeft", timestamp);
+				this.recordAction(offset > 0 ? "moveRight" : "moveLeft", timestamp);
 				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
 				return true;
 			}

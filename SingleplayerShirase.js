@@ -220,11 +220,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 	}
 
 	move(offset, isInitialPress, timestamp) {
-		if (super.move(offset, isInitialPress, timestamp)) {
-			if (!this.isReplay && this.level == 1300) super.move(offset, isInitialPress, timestamp, false);
-			return true;
-		}
-		return false;
+		return super.move(this.level == 1300 ? offset * 2 : offset, isInitialPress, timestamp);
 	}
 
 	nextTetrimino() {
