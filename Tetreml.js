@@ -239,17 +239,17 @@ class OptionsScreen {
 	}
 
 	setMode(mode) {
-		this.mode = Math.max(0, Math.min(7, mode));
+		this.mode = Math.max(0, Math.min(8, mode));
 		this.setStartingLevel(this.startingLevel);
 	}
 
 	handleModeChange(keycode) {
 		switch (keycode) {
 			case "ArrowLeft":
-				this.setMode((this.mode + 7) % 8);
+				this.setMode((this.mode + 8) % 9);
 				break;
 			case "ArrowRight":
-				this.setMode((this.mode + 1) % 8);
+				this.setMode((this.mode + 1) % 9);
 				break;
 		}
 	}
