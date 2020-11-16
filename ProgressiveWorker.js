@@ -1,4 +1,4 @@
-// Version: 9
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -102,6 +102,7 @@ self.addEventListener('install', function (event) {
 		'ReplayerSingleplayer.html',
 		'ReplayerSingleplayer.js',
 		'RulesetsSingleplayer.js',
+		'SingleplayerShirase.js',
 		'SingleplayerTGM.js',
 		'SoundHandler.js',
 		'Tetreml.html',
