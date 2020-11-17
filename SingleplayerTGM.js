@@ -327,7 +327,11 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		if (this.level999Time > -1) {
 			this.musicLevel999.currentTime = (55000 - this.level999Time) / 1000;
 			this.musicLevel999.play();
-		} else if (this.level != 999 && (this.speedLevel + (this.level % 100 > 69 && this.lastWasCool ? 120 : 20) < this.musicSegments[this.musicPointer][0])) currentSong.resume();
+		} else if (this.level != 999 && (this.speedLevel + (this.level % 100 > 69 && this.lastWasCool ? 120 : 20) < this.musicSegments[this.musicPointer][0])) {
+			if (currentSong == this.musicEmpty)
+				this.musicSegments[this.musicPointer][2].play();
+			else currentSong.resume();
+		} else this.musicEmpty.play();
 	}
 
 	gameOver(victory = false) {
