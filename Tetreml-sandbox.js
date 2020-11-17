@@ -645,7 +645,8 @@ class PlayScreen {
 			this.current.render(this);
 		}
 		if (this.hold != null && this.hold != -1) this.renderTetrimino(this.hold, 182, 54, this.holdSwitched);
-		for (let i = 0; i < 3; i++) this.renderTetrimino(this.queue[i], 424, 48 + 48 * i);
+		let queueDrawLimit = Math.min(3, this.tetriminoesLeft);
+		for (let i = 0; i < queueDrawLimit; i++) this.renderTetrimino(this.queue[i], 424, 48 + 48 * i);
 
 		ctx.imageSmoothingEnabled = true;
 
