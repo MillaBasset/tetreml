@@ -93,6 +93,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		this.musicLevel999 = new Audio("Music/Level 999.mp3?state=original");
 		this.musicLevel999.preload = "auto";
 		this.musicLevel999.load();
+		this.musicEmpty = new Music(0, undefined, false);
 		audioContext.createMediaElementSource(this.musicLevel999).connect(gainNode);
 
 		this.singleSaveableFields.push("level", "speedLevel", "speedStepPointer", "speedStepNext", "fallPeriod", "timingStepPointer", "timingStepNext", "tetriminoDelay", "clearDelay", "autoRepeatDelay", "autoRepeatPeriod", "lockDelay", "shouldRingTheBell", "lastRegretMarkTime", "invisibleRollEligible", "lastWasCool", "coolDisplayLevel", "internalGrade", "internalGradePoints", "decayCounter", "coolRegretBoost", "internalCombo", "gameOverFromTorikan", "level999Score", "level999Time", "minoVisibilityLifetime");
@@ -206,13 +207,14 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 	processLeveling(oldLevel) {
 		oldLevel %= 100;
 		let newLevel = this.level % 100;
-		if (this.level < 900 && oldLevel < 70 && newLevel >= 70) {
+		if (this.level < 900 && oldLevel < 70 && newLevel > 69) {
 			let coolSectionTime = this.playTime - this.lastRegretMarkTime;
 			if (this.lastWasCool = (coolSectionTime < (this.lastWasCool ? this.oldCoolSectionTime + 2001 : this.coolTimes[Math.floor(this.level / 100)])))
 				this.coolDisplayLevel = 82 + Math.floor(Math.random() * 17);
 			else this.invisibleRollEligible = false;
 			this.oldCoolSectionTime = coolSectionTime;
 		}
+		if (oldLevel < 80 && newLevel > 79 && this.speedLevel + (this.lastWasCool ? 200 : 100) > this.musicSegments[this.musicPointer][0]) this.musicEmpty.play();
 		if (!this.isSeeking && this.level < 900 && this.lastWasCool && oldLevel < this.coolDisplayLevel && (newLevel >= this.coolDisplayLevel || newLevel < oldLevel)) {
 			this.coolRegretText = "COOL!";
 			this.coolRegretColor = "#FF0";
@@ -226,6 +228,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 					this.coolRegretColor = "#FFB2B2";
 					this.coolRegretTime = 5000;
 				}
+				if (this.lastWasCool) this.speedLevel += 100;
 				this.lastWasCool = false;
 				this.invisibleRollEligible = false;
 			} else if (this.lastWasCool) {
@@ -324,7 +327,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		if (this.level999Time > -1) {
 			this.musicLevel999.currentTime = (55000 - this.level999Time) / 1000;
 			this.musicLevel999.play();
-		} else if (this.level != 999) currentSong.resume();
+		} else if (this.level != 999 && (this.speedLevel + (this.level % 100 > 69 && this.lastWasCool ? 120 : 20) < this.musicSegments[this.musicPointer][0])) currentSong.resume();
 	}
 
 	gameOver(victory = false) {

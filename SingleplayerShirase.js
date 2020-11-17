@@ -32,10 +32,14 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 		let level500 = new Music("shirase_level500Opening", new Music("shirase_level500Loop"));
 		let level700 = new Music("shirase_level700Opening", new Music("shirase_level700Loop"));
 		let level1000 = new Music("shirase_level1000Opening", new Music("shirase_level1000Loop"));
+		let noMusic = new Music(0, undefined, false);
 		this.musicSegments = [
-			[500, null, new Music("shirase_level0Opening", new Music("shirase_level0Loop"))],
-			[700, new Music("shirase_level500Trigger", level500), level500],
-			[1000, new Music("shirase_level700Trigger", level700), level700],
+			[480, null, new Music("shirase_level0Opening", new Music("shirase_level0Loop"))],
+			[500, noMusic, noMusic],
+			[680, new Music("shirase_level500Trigger", level500), level500],
+			[700, noMusic, noMusic],
+			[980, new Music("shirase_level700Trigger", level700), level700],
+			[1000, noMusic, noMusic],
 			[Infinity, new Music("shirase_level1000Trigger", level1000), level1000]
 		];
 		this.musicLevel1300 = new Audio("Music/Level 999.mp3?state=original");
@@ -83,6 +87,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 	start() {
 		super.start();
 		this.musicPointer = 0;
+		this.musicNext = this.musicSegments[0][0];
 		currentSong = this.musicSegments[0][2];
 		if (!this.isReplay) currentSong.play();
 	}
@@ -193,15 +198,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 				}
 			}
 			this.lastRegretMarkTime = this.playTime;
-			if (!this.isSeeking) {
-				let musicIndex = this.getMusicIndex();
-				if (this.state != GameState.over && musicIndex != this.musicPointer) {
-					this.musicPointer = musicIndex;
-					let music = this.musicSegments[musicIndex][1];
-					music.play(music.id == 0);
-				}
-				if (this.state != GameState.over && this.level < 1300) sfx.grandMasterLevelUp.play();
-			}
+			if (!this.isSeeking && this.state != GameState.over && this.level < 1300) sfx.grandMasterLevelUp.play();
 		}
 
 		while (this.level >= this.timingStepNext) {
@@ -216,6 +213,17 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 			this.garbageStepPointer++;
 			this.garbageStepNext = this.garbageSteps[this.garbageStepPointer][0];
 			this.garbageThreshold = this.garbageSteps[this.garbageStepPointer][1];
+		}
+		if (!this.isSeeking && this.state != GameState.over) {
+			let musicChanged = false;
+			while (this.level >= this.musicNext) {
+				this.musicNext = this.musicSegments[++this.musicPointer][0];
+				musicChanged = true;
+			}
+			if (musicChanged) {
+				let music = this.musicSegments[this.musicPointer][1];
+				music.play(music.id == 0);
+			}
 		}
 	}
 

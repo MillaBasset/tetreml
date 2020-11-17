@@ -136,7 +136,7 @@ class Music {
 	}
 
 	play(keepable = false) {
-		if (keepable && currentSong != null && (currentSong.next == undefined ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
+		if (keepable && currentSong != null && currentSong.id != 0 && (currentSong.next == undefined ? this.next != undefined && this.next.id == currentSong.id : this.id == currentSong.id)) return;
 		if (this.id == 0 && this.next != undefined) {
 			this.next.play(keepable);
 			return;
