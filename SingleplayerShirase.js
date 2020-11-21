@@ -34,11 +34,11 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 		let level1000 = new Music("shirase_level1000Opening", new Music("shirase_level1000Loop"));
 		let noMusic = new Music(0, undefined, false);
 		this.musicSegments = [
-			[480, null, new Music("shirase_level0Opening", new Music("shirase_level0Loop"))],
+			[485, null, new Music("shirase_level0Opening", new Music("shirase_level0Loop"))],
 			[500, noMusic, noMusic],
-			[680, new Music("shirase_level500Trigger", level500), level500],
+			[685, new Music("shirase_level500Trigger", level500), level500],
 			[700, noMusic, noMusic],
-			[980, new Music("shirase_level700Trigger", level700), level700],
+			[985, new Music("shirase_level700Trigger", level700), level700],
 			[1000, noMusic, noMusic],
 			[Infinity, new Music("shirase_level1000Trigger", level1000), level1000]
 		];
@@ -505,6 +505,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 		let musicIndex = this.getMusicIndex();
 		if (this.level != 1300 && musicIndex != this.musicPointer) {
 			this.musicPointer = musicIndex;
+			this.musicNext = this.musicSegments[musicIndex][0];
 			this.musicSegments[musicIndex][2].setCurrent();
 		}
 	}

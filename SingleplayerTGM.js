@@ -214,7 +214,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 			else this.invisibleRollEligible = false;
 			this.oldCoolSectionTime = coolSectionTime;
 		}
-		if (oldLevel < 80 && newLevel > 79 && this.speedLevel + (this.lastWasCool ? 200 : 100) > this.musicSegments[this.musicPointer][0]) this.musicEmpty.play();
+		if (oldLevel < 85 && newLevel > 84 && this.speedLevel + (this.lastWasCool ? 200 : 100) > this.musicSegments[this.musicPointer][0]) this.musicEmpty.play();
 		if (!this.isSeeking && this.level < 900 && this.lastWasCool && oldLevel < this.coolDisplayLevel && (newLevel >= this.coolDisplayLevel || newLevel < oldLevel)) {
 			this.coolRegretText = "COOL!";
 			this.coolRegretColor = "#FF0";
@@ -327,7 +327,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		if (this.level999Time > -1) {
 			this.musicLevel999.currentTime = (55000 - this.level999Time) / 1000;
 			this.musicLevel999.play();
-		} else if (this.level != 999 && (this.speedLevel + (this.level % 100 > 69 && this.lastWasCool ? 120 : 20) < this.musicSegments[this.musicPointer][0])) {
+		} else if (this.level != 999 && (this.speedLevel + (this.level % 100 > 84 && this.lastWasCool ? 115 : 15) < this.musicSegments[this.musicPointer][0])) {
 			if (currentSong == this.musicEmpty)
 				this.musicSegments[this.musicPointer][2].play();
 			else currentSong.resume();
