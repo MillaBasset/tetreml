@@ -172,6 +172,7 @@ class PlayScreen {
 		this.moveRightCounter = -1;
 		this.oldMoveRightCounter = -1;
 		this.moveLock = 0;
+		this.moveDisabledLeft = this.moveDisabledRight = false;
 		this.autoRepeatDelay = localStorage.tetrisAutoRepeatDelay == null ? 150 : Number.parseInt(localStorage.tetrisAutoRepeatDelay);
 		this.autoRepeatPeriod = localStorage.tetrisAutoRepeatPeriod == null ? 40 : Number.parseInt(localStorage.tetrisAutoRepeatPeriod);
 		this.softDropPeriod = localStorage.tetrisSoftDropPeriod == null ? 25 : Number.parseInt(localStorage.tetrisSoftDropPeriod);
@@ -409,7 +410,7 @@ class PlayScreen {
 			} else this.buttonReset = false;
 
 			if (buttonStatus.left) {
-				if (!this.buttonMoveLeft || this.moveLock != 2) {
+				if (!this.moveDisabledLeft && (!this.buttonMoveLeft || this.moveLock != 2)) {
 					if (this.moveLeftCounter == -1) {
 						this.move(-1);
 						this.moveLeftCounter = this.oldMoveLeftCounter = 0;
@@ -425,6 +426,7 @@ class PlayScreen {
 				this.moveLeftCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveLeft = true;
+				this.moveDisabledLeft = false;
 			}
 
 			if (buttonStatus.right) {
@@ -434,7 +436,7 @@ class PlayScreen {
 					this.handleMove = false;
 					this.buttonMoveRight = true;
 				}
-				if (handleMove && !this.buttonMoveRight || this.moveLock != 1) {
+				if (handleMove && !this.moveDisabledRight && (!this.buttonMoveRight || this.moveLock != 1)) {
 					if (this.moveRightCounter == -1) {
 						this.move(1);
 						this.moveRightCounter = this.oldMoveRightCounter = 0;
@@ -450,6 +452,7 @@ class PlayScreen {
 				this.moveRightCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveRight = true;
+				this.moveDisabledRight = false;
 			}
 		} else {
 			if (buttonStatus.right) {
@@ -920,7 +923,8 @@ class PlayScreen {
 		}
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 
-		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
+		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 
 	processInstaFall() {

@@ -630,6 +630,7 @@ class Playfield {
 		this.moveRightCounter = -1;
 		this.oldMoveRightCounter = -1;
 		this.moveLock = 0; // 0: None; 1: Left; 2: Right.
+		this.moveDisabledLeft = this.moveDisabledRight = false;
 		this.autoRepeatDelay = 150;
 		this.autoRepeatPeriod = 40;
 		this.softDropPeriod = 25;
@@ -828,13 +829,13 @@ class Playfield {
 						this.processInstaFall();
 						this.playSfx(sfx.hold);
 						this.holdSwitched = true;
+						this.buttonHold = true;
 					}
-					this.buttonHold = true;
 				}
 			} else this.buttonHold = false;
 
 			if (this.buttonStatus.left) {
-				if (!this.buttonMoveLeft || this.moveLock != 2) {
+				if (!this.moveDisabledLeft && (!this.buttonMoveLeft || this.moveLock != 2)) {
 					if (this.moveLeftCounter == -1) {
 						this.move(-1);
 						this.moveLeftCounter = this.oldMoveLeftCounter = 0;
@@ -850,10 +851,11 @@ class Playfield {
 				this.moveLeftCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveLeft = true;
+				this.moveDisabledLeft = false;
 			}
 
 			if (this.buttonStatus.right) {
-				if (!this.buttonMoveRight || this.moveLock != 1) {
+				if (!this.moveDisabledRight && (!this.buttonMoveRight || this.moveLock != 1)) {
 					if (this.moveRightCounter == -1) {
 						this.move(1);
 						this.moveRightCounter = this.oldMoveRightCounter = 0;
@@ -869,6 +871,7 @@ class Playfield {
 				this.moveRightCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveRight = true;
+				this.moveDisabledRight = false;
 			}
 
 			if (this.allClearTime > 0) {
@@ -1120,7 +1123,8 @@ class Playfield {
 			this.clearTime = 0;
 			this.afterClear();
 		}
-		if (this.clearTime > 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
+		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 
 	processInstaFall() {

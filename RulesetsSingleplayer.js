@@ -89,6 +89,7 @@ class PlayScreenBase {
 		this.keypresses = 0;
 		this.wasNull = true;
 		this.moveLock = 0; // 0: None; 1: Left; 2: Right.
+		this.moveDisabledLeft = this.moveDisabledRight = false;
 		this.lineClearDelayEnabled = lineClearDelayEnabled;
 		if (this.doSaveReplay = doSaveReplay) this.replay = {
 			states: [],
@@ -206,14 +207,13 @@ class PlayScreenBase {
 							this.actionQueue.push([6, "doHold", latestTime]);
 							this.buttonHold = true;
 						}
-						this.buttonHold = true;
 					}
 				} else this.buttonHold = false;
 			}
 			
 			let moveEvents = [];
 			if (buttonStatus.left) {
-				if (!this.buttonMoveLeft || this.moveLock != 2) {
+				if (!this.moveDisabledLeft && (!this.buttonMoveLeft || this.moveLock != 2)) {
 					if (this.moveLeftCounter == -1) {
 						moveEvents.push([8, "moveLeft", latestTime]);
 						this.moveLeftCounter = this.oldMoveLeftCounter = 0;
@@ -237,9 +237,10 @@ class PlayScreenBase {
 				this.moveLeftCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveLeft = false;
+				this.moveDisabledLeft = false;
 			}
 			if (buttonStatus.right) {
-				if (!this.buttonMoveRight || this.moveLock != 1) {
+				if (!this.moveDisabledRight && (!this.buttonMoveRight || this.moveLock != 1)) {
 					moveEvents = [];
 					if (this.moveRightCounter == -1) {
 						moveEvents.push([10, "moveRight", latestTime]);
@@ -264,6 +265,7 @@ class PlayScreenBase {
 				this.moveRightCounter = -1;
 				this.moveLock = 0;
 				this.buttonMoveRight = false;
+				this.moveDisabledRight = false;
 			}
 			this.actionQueue.push(...moveEvents);
 			
@@ -787,7 +789,8 @@ class PlayScreenBase {
 			this.clearTime = 0;
 			this.afterClear(timestamp);
 		}
-		if (this.clearTime > 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
+		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 		
 		return baseline;
 	}

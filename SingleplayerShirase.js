@@ -2,7 +2,7 @@
 
 class GameScreenShirase extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay, false);
+		super(parent, showKeystrokes, doSaveReplay, true);
 		
 		this.shouldHintTetrimino = true;
 		this.level = 0;
