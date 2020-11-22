@@ -2,7 +2,7 @@
 
 class GameScreenTGM extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+		super(parent, showKeystrokes, doSaveReplay, false);
 		this.shouldHintTetrimino = true;
 		this.level = 0;
 		this.speedLevel = 0;
@@ -311,9 +311,8 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 		} else this.internalCombo = -1;
 	}
 
-	pause() {
-		super.pause();
-		if (!this.isReplay) sfx.pause.play();
+	pause(playSound = true) {
+		super.pause(playSound);
 		if (this.level999Time > -1) this.musicLevel999.pause(); else currentSong.pause();
 	}
 

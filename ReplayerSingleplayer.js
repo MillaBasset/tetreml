@@ -127,6 +127,7 @@ class ReplayScreen {
 		this.parent = null;
 		this.playScreen = new {
 			"Endless Tengen": GameScreenTengen,
+			"Endless NES": GameScreenNES,
 			"Endless guideline": GameScreenGuidelineEndless,
 			"Marathon": GameScreenGuidelineMarathon,
 			"Marathon variable": GameScreenGuidelineMarathonVariable,
@@ -135,7 +136,7 @@ class ReplayScreen {
 			"Shirase": GameScreenShirase,
 			"40-line": GameScreenGuideline40Line,
 			"2-minute": GameScreenGuideline2Minute
-		}[replay.mode](null, false, false);
+		}[replay.mode](null, false, false, replay.lineClearDelayEnabled ?? true);
 		this.actionsMapping = {
 			"moveLeft": () => { this.playScreen.move(-1, false, this.playScreen.playTime); },
 			"moveRight": () => { this.playScreen.move(1, false, this.playScreen.playTime); },

@@ -312,7 +312,8 @@ class GameOverScreen {
 			ctx.fillRect(this.scrollbarX[i], this.top - 10 + (157 - scrollbarHeight) * startPos / (content.length - 5), 1, scrollbarHeight);
 		}
 		ctx.textAlign = "center";
-		ctx.fillText(`Press ${keyNamesPlayer1.esc} to continue.`, 320, 340);
+		ctx.fillText(`Press ${keyNamesPlayer1.esc} to continue.`, 320, 325);
+		ctx.fillText(`Press ${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.hold} to restart.`, 320, 340);
 	}
 
 	close() {
@@ -323,7 +324,7 @@ class GameOverScreen {
 }
 
 class PlayScreen {
-	constructor(parent, scoring, levels, handicappedLines, garbageType, autoRepeatDelay, autoRepeatPeriod, softDropPeriod, showKeystrokes, stereoSeparation) {
+	constructor(parent, scoring, levels, handicappedLines, garbageType, autoRepeatDelay, autoRepeatPeriod, softDropPeriod, lineClearDelayEnabled, showKeystrokes, stereoSeparation) {
 		this.parent = parent;
 		this.levels = levels;
 		this.level = 1;
@@ -348,6 +349,7 @@ class PlayScreen {
 			playfield.autoRepeatDelay = autoRepeatDelay[i];
 			playfield.autoRepeatPeriod = autoRepeatPeriod[i];
 			playfield.softDropPeriod = softDropPeriod[i];
+			playfield.lineClearDelayEnabled = lineClearDelayEnabled;
 			playfield.showKeystrokes = showKeystrokes[i];
 			playfield.stackMinY = 40 - handicappedLines;
 		}
@@ -397,10 +399,7 @@ class PlayScreen {
 							goBack();
 							break;
 						}
-						this.state = GameState.paused;
-						currentSong.pause();
-						if (this.warning) sfx.warning.pause();
-						sfx.pause.play();
+						this.pause();
 						break;
 					case GameState.paused:
 						if (this.playfields[0].buttonStatus.quitModifier) {
@@ -435,6 +434,8 @@ class PlayScreen {
 				this.buttonVolumeDown = true;
 			}
 		} else this.buttonVolumeDown = false;
+
+		if (this.playfields[0].buttonStatus.quitModifier && this.playfields[0].buttonStatus.hold && (this.state == GameState.paused || this.state == GameState.over)) this.keymappingScreen.openGameScreen();
 
 		ctx.globalAlpha = 1;
 		ctx.imageSmoothingEnabled = false;
@@ -496,7 +497,10 @@ class PlayScreen {
 				if (this.volumeDisplayTime > 0) {
 					ctx.fillText(`Volume: ${volume} / 10`, 320, 17);
 					this.volumeDisplayTime -= timePassed;
-				} else ctx.fillText(this.playfields[0].buttonStatus.quitModifier ? `${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit` : `${keyNamesPlayer1.esc} Pause`, 320, 17);
+				} else {
+					ctx.fillText(this.playfields[0].buttonStatus.quitModifier ? `${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit` : `${keyNamesPlayer1.esc} Pause`, 320, 17);
+					if (this.playfields[0].buttonStatus.quitModifier) ctx.fillText(`${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.hold} Restart`, 320, 32);
+				}
 				if (this.levelUpTime > 0) {
 					ctx.fillText("LEVEL", 320, 75);
 					ctx.font = "300 30px Tetreml";
@@ -513,7 +517,10 @@ class PlayScreen {
 				if (this.volumeDisplayTime > 0) {
 					ctx.fillText(`Volume: ${volume} / 10`, 320, 17);
 					this.volumeDisplayTime -= timePassed;
-				} else if (this.playfields[0].buttonStatus.quitModifier) ctx.fillText(`${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit`, 320, 17);
+				} else if (this.playfields[0].buttonStatus.quitModifier) {
+					ctx.fillText(`${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.esc} Quit`, 320, 17);
+					ctx.fillText(`${keyNamesPlayer1.quitModifier}+${keyNamesPlayer1.hold} Restart`, 320, 32);
+				}
 				break;
 			case GameState.over:
 				ctx.textAlign = "center";
@@ -523,6 +530,13 @@ class PlayScreen {
 				}
 				break;
 		}
+	}
+
+	pause(playSound = true) {
+		this.state = GameState.paused;
+		currentSong.pause();
+		if (this.warning) sfx.warning.pause();
+		if (playSound) sfx.pause.play();
 	}
 
 	close() {
@@ -634,6 +648,7 @@ class Playfield {
 		this.lockScore = 0;
 		this.lockScoreLine = 0;
 		this.lockScoreTime = 0;
+		this.allClearTime = 0;
 		this.holdSwitched = false;
 		this.clearedLines = [];
 		this.clearEffectTime = 1000;
@@ -704,19 +719,7 @@ class Playfield {
 		if (this.parent.state == GameState.playing) {
 			this.clearTime -= timePassed;
 			this.fallTime -= Math.min(0, this.clearTime);
-			if (this.clearTime < 1 && this.current == null) {
-				if (this.clearedLines.length != 0) this.playSfx(sfx.afterClear);
-				for (let line of this.clearedLines) {
-					for (let i = 0; i < 10; i++) {
-						this.board[i].splice(line, 1);
-						this.board[i] = [undefined].concat(this.board[i]);
-					}
-					this.minos.splice(line, 1);
-					this.minos = [0].concat(this.minos);
-				}
-				this.clearedLines = [];
-				this.nextTetrimino();
-			}
+			if (this.clearTime < 1 && this.current == null) this.afterClear();
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.garbageQueue.length != 0) {
 				this.garbageTime += timePassed;
@@ -806,21 +809,27 @@ class Playfield {
 				}
 			} else this.buttonRotateCounterClockwise = false;
 			if (this.buttonStatus.hold) {
-				if (this.current != null && !this.buttonHold && !this.holdSwitched) {
-					this.oldHold = this.hold;
-					this.hold = this.current;
-					if (this.oldHold == null) this.nextTetrimino(); else {
-						this.current = this.oldHold;
-						this.current.reset();
-						this.fallTime = 0;
-						this.lockTime = 0;
-						this.moveCounter = 0;
-						this.holds++;
-						this.checkGameOver();
+				if (!this.buttonHold) {
+					if (this.buttonStatus.quitModifier) {
+						this.parent.pause(false);
+						this.parent.keymappingScreen.openGameScreen();
+					} else if (this.current != null && !this.holdSwitched) {
+						this.oldHold = this.hold;
+						this.hold = this.current;
+						if (this.oldHold == null) this.nextTetrimino(); else {
+							this.current = this.oldHold;
+							this.current.reset();
+							this.fallTime = 0;
+							this.lockTime = 0;
+							this.moveCounter = 0;
+							this.holds++;
+							this.checkGameOver();
+						}
+						this.processInstaFall();
+						this.playSfx(sfx.hold);
+						this.holdSwitched = true;
 					}
-					this.processInstaFall();
-					this.playSfx(sfx.hold);
-					this.holdSwitched = true;
+					this.buttonHold = true;
 				}
 			} else this.buttonHold = false;
 
@@ -862,12 +871,13 @@ class Playfield {
 				this.buttonMoveRight = true;
 			}
 
-			if (this.totalMinos == 0 && this.clearTime > 0) {
+			if (this.allClearTime > 0) {
 				ctx.fillStyle = "#FFF";
 				ctx.textAlign = "center";
 				ctx.font = "16px Tetreml";
 				ctx.fillText("ALL CLEAR", this.xPos + 60, this.yPos + 40);
 				ctx.fillText("1000 points", this.xPos + 60, this.yPos + 61);
+				this.allClearTime -= timePassed;
 			}
 		}
 
@@ -1023,6 +1033,20 @@ class Playfield {
 		}
 	}
 
+	afterClear() {
+		if (this.lineClearDelayEnabled && this.clearedLines.length != 0) this.playSfx(sfx.afterClear);
+		for (let line of this.clearedLines) {
+			for (let i = 0; i < 10; i++) {
+				this.board[i].splice(line, 1);
+				this.board[i] = [undefined].concat(this.board[i]);
+			}
+			this.minos.splice(line, 1);
+			this.minos = [0].concat(this.minos);
+		}
+		this.clearedLines = [];
+		this.nextTetrimino();
+	}
+
 	move(offset) {
 		if (this.parent.state != GameState.playing || this.current == null) return false;
 		let newX = this.current.x + offset;
@@ -1092,7 +1116,11 @@ class Playfield {
 		}
 		this.parent.updateWarning();
 
-		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
+		if (!this.lineClearDelayEnabled && this.clearTime > 0) {
+			this.clearTime = 0;
+			this.afterClear();
+		}
+		if (this.clearTime > 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 
 	processInstaFall() {
@@ -1152,6 +1180,7 @@ class Playfield {
 			this.clearTime = 1000;
 			this.garbageLines += 4;
 			this.allClears++;
+			this.allClearTime = 1000;
 			this.playSfx(sfx.allClear);
 		}
 		this.current = null;
@@ -1385,17 +1414,14 @@ class KeymappingScreen {
 	onKeyDown(keycode) {
 		switch (keycode) {
 			case "Enter":
-				let pan = this.parent.stereoSeparation / 100;
-				panNodes[0].pan.value = -pan;
-				panNodes[1].pan.value = pan;
-				openGui(new PlayScreen(new MainScreen(), this.parent.scorings[this.parent.scoringType], this.parent.speedCurves[this.parent.speedCurve], this.parent.handicappedLines, this.parent.garbageType, this.parent.autoRepeatDelay, this.parent.autoRepeatPeriod, this.parent.softDropPeriod, this.parent.showKeystrokes, pan));
+				this.openGameScreen();
 				break;
 			case "KeyC":
 				openGui(new ControlsEditScreen(this, [
 					[
 						"General",
 						["Pause", configuredControlsPlayer1.esc],
-						["Quit modifier", configuredControlsPlayer1.quitModifier],
+						["Special functions", configuredControlsPlayer1.quitModifier],
 						["Volume down", configuredControlsPlayer1.volumeDown],
 						["Volume up", configuredControlsPlayer1.volumeUp]
 					],
@@ -1425,6 +1451,15 @@ class KeymappingScreen {
 				goBack();
 				break;
 		}
+	}
+
+	openGameScreen() {
+		let pan = this.parent.stereoSeparation / 100;
+		panNodes[0].pan.value = -pan;
+		panNodes[1].pan.value = pan;
+		let gui = new PlayScreen(new MainScreen(), this.parent.scorings[this.parent.scoringType], this.parent.speedCurves[this.parent.speedCurve], this.parent.handicappedLines, this.parent.garbageType, this.parent.autoRepeatDelay, this.parent.autoRepeatPeriod, this.parent.softDropPeriod, this.parent.lineClearDelayEnabled, this.parent.showKeystrokes, pan);
+		gui.keymappingScreen = this;
+		openGui(gui);
 	}
 
 	render() {
@@ -1478,13 +1513,13 @@ class OptionsScreen {
 		this.parent = parent;
 		this.scoringTypeNames = ["Tengen-like", "Guideline"];
 		this.scorings = [ScoringTengen, ScoringGuideline];
-		this.speedCurveNames = ["Normal", "Moderate", "Speedy", "tetris.com"];
 		this.garbageTypeNames = ["Tetris 99", "Aligned two-hole", "Handicapped line"];
+		this.speedCurveNames = ["tetris.com", "Tengen", "NES (NTSC)", "NES (PAL)"];
 		this.speedCurves = [
-			[[0, 550, 1000], [45, 467, 1000], [45, 400, 1000], [45, 333, 1000], [45, 283, 1000], [45, 233, 1000], [45, 183, 1000], [60, 150, 1000], [60, 117, 1000], [60, 100, 1000], [60, 92, 1000], [60, 83, 1000], [60, 75, 1000], [60, 67, 1000], [60, 63, 1000], [60, 58, 1000], [60, 54, 1000], [60, 50, 1000], [60, 46, 1000], [60, 42, 1000], [60, 39, 1000], [60, 36, 1000], [60, 33, 1000], [60, 30, 1000], [60, 27, 1000], [60, 24, 1000], [60, 22, 1000], [60, 20, 1000]],
-			[[0, 550, 1000], [45, 450, 1000], [45, 375, 1000], [45, 300, 1000], [45, 250, 1000], [45, 200, 1000], [45, 160, 1000], [60, 120, 1000], [60, 100, 1000], [60, 85, 1000], [60, 70, 1000], [60, 60, 1000], [60, 50, 1000], [60, 42, 1000], [60, 33, 1000], [60, 25, 1000], [60, 20, 1000], [60, 16, 1000], [60, 12, 1000], [60, 10, 1000]],
-			[[0, 550, 1000], [20, 467, 1000], [20, 400, 1000], [20, 333, 1000], [20, 283, 1000], [20, 233, 1000], [20, 183, 1000], [20, 150, 1000], [20, 117, 1000], [20, 100, 1000], [20, 92, 1000], [20, 83, 1000], [20, 75, 1000], [20, 67, 1000], [20, 63, 1000], [20, 58, 1000], [20, 54, 1000], [20, 50, 1000], [20, 46, 1000], [20, 42, 1000], [20, 39, 1000], [20, 36, 1000], [20, 33, 1000], [20, 30, 1000], [20, 27, 1000], [20, 24, 1000], [20, 22, 1000], [20, 20, 1000], [20, 18, 1000], [20, 16, 1000], [20, 14, 1000], [20, 12, 1000], [20, 10, 1000]],
-			[[20, 1000, 500], [20, 793, 500], [20, 618, 500], [20, 473, 500], [20, 355, 500], [20, 262, 500], [20, 190, 500], [20, 135, 500], [20, 94, 500], [20, 64, 500], [20, 43, 500], [20, 28, 500], [20, 18, 500], [20, 11, 500], [20, 7, 500], [20, 4, 500], [20, 3, 500], [20, 2, 500], [20, 1, 500], [20, 0, 450], [20, 0, 400], [20, 0, 350], [20, 0, 300], [20, 0, 250], [20, 0, 200], [20, 0, 190], [20, 0, 180], [20, 0, 170], [20, 0, 160], [20, 0, 150]]
+			[[10, 1000, 500], [10, 793, 500], [10, 618, 500], [10, 473, 500], [10, 355, 500], [10, 262, 500], [10, 190, 500], [10, 135, 500], [10, 94, 500], [10, 64, 500], [10, 43, 500], [10, 28, 500], [10, 18, 500], [10, 11, 500], [10, 7, 500], [10, 4, 500], [10, 3, 500], [10, 2, 500], [10, 1, 500], [10, 0, 450], [10, 0, 400], [10, 0, 350], [10, 0, 300], [10, 0, 250], [10, 0, 200], [10, 0, 190], [10, 0, 180], [10, 0, 170], [10, 0, 160], [10, 0, 150]],
+			[[0, 550, 550], [30, 467, 467], [30, 400, 400], [30, 333, 333], [30, 283, 283], [30, 233, 233], [50, 183, 183], [50, 150, 150], [50, 117, 117], [50, 100, 100], [50, 92, 92], [50, 83, 83], [50, 75, 75], [50, 67, 67], [50, 63, 63], [50, 58, 58], [50, 54, 54], [50, 50, 50], [50, 46, 46], [50, 42, 42], [50, 39, 39], [50, 36, 36], [50, 33, 33], [50, 30, 30], [50, 27, 27], [50, 24, 24], [50, 22, 22], [50, 20, 20]],
+			[[0, 800, 800], [10, 717, 717], [10, 633, 633], [10, 550, 500], [10, 467, 467], [10, 383, 383], [10, 300, 300], [10, 217, 217], [10, 133, 133], [10, 100, 100], [10, 83, 83], [30, 67, 67], [30, 50, 50], [30, 33, 33], [100, 17, 17]],
+			[[0, 720, 720], [10, 640, 640], [10, 580, 580], [10, 500, 500], [10, 440, 440], [10, 360, 360], [10, 300, 300], [10, 220, 220], [10, 140, 140], [10, 100, 100], [10, 80, 80], [30, 60, 60], [30, 40, 40], [30, 20, 20]]
 		];
 		this.speedCurve = 0;
 		this.handicappedLines = 0;
@@ -1493,6 +1528,7 @@ class OptionsScreen {
 		this.autoRepeatPeriod = [0, 0];
 		this.softDropPeriod = [0, 0];
 		this.showKeystrokes = [false, false];
+		this.lineClearDelayEnabled = true;
 		this.stereoSeparation = 0;
 		this.selectedProperty = [0, 0];
 
@@ -1505,6 +1541,7 @@ class OptionsScreen {
 			(player, keycode) => this.handleAutoRepeatDelayChange(player, keycode),
 			(player, keycode) => this.handleAutoRepeatPeriodChange(player, keycode),
 			(player, keycode) => this.handleSoftDropPeriodChange(player, keycode),
+			(player, keycode) => this.handleLineClearDelayEnabledChange(player, keycode),
 			(player, keycode) => this.handleShowKeystrokesChange(player, keycode),
 			(player, keycode) => this.handleStereoSeparationChange(player, keycode)
 		];
@@ -1521,6 +1558,7 @@ class OptionsScreen {
 			this.setSoftDropPeriod(i, localStorage.tetris2PSoftDropPeriod == null ? 25 : JSON.parse("[" + localStorage.tetris2PSoftDropPeriod + "]")[i]);
 			this.setShowKeystrokes(i, localStorage.tetris2PShowKeystrokes == null ? false : JSON.parse("[" + localStorage.tetris2PShowKeystrokes + "]")[i]);
 		}
+		this.setLineClearDelayEnabled(localStorage.tetris2PLineClearDelayEnabled == undefined ? true : localStorage.tetris2PLineClearDelayEnabled == true);
 		this.setStereoSeparation(localStorage.tetris2PStereoSeparation == null ? 0 : Number.parseInt(localStorage.tetris2PStereoSeparation));
 		document.addEventListener("keydown", this.keyDownHandler = (key) => this.onKeyDown(key));
 		document.addEventListener("keyup", this.keyUpHandler = (key) => this.onKeyUp(key));
@@ -1529,19 +1567,19 @@ class OptionsScreen {
 	onKeyDown(key) {
 		switch (key.code) {
 			case "KeyS":
-				this.selectedProperty[0] = (this.selectedProperty[0] + 1) % 9;
+				this.selectedProperty[0] = (this.selectedProperty[0] + 1) % 10;
 				key.preventDefault();
 				break;
 			case "KeyW":
-				this.selectedProperty[0] = (this.selectedProperty[0] + 8) % 9;
+				this.selectedProperty[0] = (this.selectedProperty[0] + 9) % 10;
 				key.preventDefault();
 				break;
 			case "ArrowDown":
-				this.selectedProperty[1] = (this.selectedProperty[1] + 1) % 9;
+				this.selectedProperty[1] = (this.selectedProperty[1] + 1) % 10;
 				key.preventDefault();
 				break;
 			case "ArrowUp":
-				this.selectedProperty[1] = (this.selectedProperty[1] + 8) % 9;
+				this.selectedProperty[1] = (this.selectedProperty[1] + 9) % 10;
 				key.preventDefault();
 				break;
 			case "Enter":
@@ -1552,6 +1590,7 @@ class OptionsScreen {
 				localStorage.tetris2PAutoRepeatDelay = this.autoRepeatDelay;
 				localStorage.tetris2PAutoRepeatPeriod = this.autoRepeatPeriod;
 				localStorage.tetris2PSoftDropPeriod = this.softDropPeriod;
+				localStorage.tetris2PLineClearDelayEnabled = this.lineClearDelayEnabled;
 				localStorage.tetris2PShowKeystrokes = this.showKeystrokes;
 				localStorage.tetris2PStereoSeparation = this.stereoSeparation;
 				openGui(new KeymappingScreen(this));
@@ -1729,6 +1768,14 @@ class OptionsScreen {
 		this.handleNumericPropertyChange(player, keycode, (player, amount) => this.setSoftDropPeriod(player, amount), this.softDropPeriod);
 	}
 
+	setLineClearDelayEnabled(lineClearDelayEnabled) {
+		this.lineClearDelayEnabled = lineClearDelayEnabled;
+	}
+
+	handleLineClearDelayEnabledChange(player, keycode) {
+		if (keycode == "ArrowLeft" || keycode == "ArrowRight" || keycode == "KeyA" || keycode == "KeyD") this.setLineClearDelayEnabled(!this.lineClearDelayEnabled);
+	}
+
 	setShowKeystrokes(player, showKeystrokes) {
 		this.showKeystrokes[player] = showKeystrokes;
 	}
@@ -1758,37 +1805,39 @@ class OptionsScreen {
 		ctx.textAlign = "center";
 		ctx.font = "12px Tetreml";
 		ctx.fillText("Scoring type", 320, 90);
-		ctx.fillText("Speed curve", 320, 115);
-		ctx.fillText("Handicapped lines", 320, 140);
-		ctx.fillText("Garbage type", 320, 165);
-		ctx.fillText("Auto repeat delay", 320, 190);
-		ctx.fillText("Auto repeat period", 320, 215);
-		ctx.fillText("Soft drop period", 320, 240);
-		ctx.fillText("Show keystrokes", 320, 265);
-		ctx.fillText("Stereo separation", 320, 290);
+		ctx.fillText("Speed curve", 320, 112);
+		ctx.fillText("Handicapped lines", 320, 134);
+		ctx.fillText("Garbage type", 320, 156);
+		ctx.fillText("Auto repeat delay", 320, 178);
+		ctx.fillText("Auto repeat period", 320, 200);
+		ctx.fillText("Soft drop period", 320, 222);
+		ctx.fillText("Tetrimino delays", 320, 244);
+		ctx.fillText("Show keystrokes", 320, 266);
+		ctx.fillText("Stereo separation", 320, 288);
 
 		ctx.fillText("Press Enter to review controls and start or Esc to cancel.", 320, 340);
 
 		for (let i = 0; i < 2; i++) {
 			let posX = i == 0 ? 134 : 506;
 			ctx.fillText(this.scoringTypeNames[this.scoringType], posX, 90);
-			ctx.fillText(this.speedCurveNames[this.speedCurve], posX, 115);
-			ctx.fillText(this.handicappedLines + "", posX, 140);
-			ctx.fillText(this.garbageTypeNames[this.garbageType], posX, 165);
-			ctx.fillText(this.autoRepeatDelay[i] + " ms", posX, 190);
-			ctx.fillText(this.autoRepeatPeriod[i] + " ms", posX, 215);
-			ctx.fillText(this.softDropPeriod[i] + " ms", posX, 240);
-			ctx.fillText(this.showKeystrokes[i] ? "On" : "Off", posX, 265);
-			ctx.fillText(this.stereoSeparation + "%", posX, 290);
+			ctx.fillText(this.speedCurveNames[this.speedCurve], posX, 112);
+			ctx.fillText(this.handicappedLines + "", posX, 134);
+			ctx.fillText(this.garbageTypeNames[this.garbageType], posX, 156);
+			ctx.fillText(this.autoRepeatDelay[i] + " ms", posX, 178);
+			ctx.fillText(this.autoRepeatPeriod[i] + " ms", posX, 200);
+			ctx.fillText(this.softDropPeriod[i] + " ms", posX, 222);
+			ctx.fillText(this.lineClearDelayEnabled ? "On" : "Off", posX, 244);
+			ctx.fillText(this.showKeystrokes[i] ? "On" : "Off", posX, 266);
+			ctx.fillText(this.stereoSeparation + "%", posX, 288);
 		}
 
 		ctx.textAlign = "left";
-		ctx.fillText("\u25c4", 55, 90 + 25 * this.selectedProperty[0]);
-		ctx.fillText("\u25c4", 426, 90 + 25 * this.selectedProperty[1]);
+		ctx.fillText("\u25c4", 55, 90 + 22 * this.selectedProperty[0]);
+		ctx.fillText("\u25c4", 426, 90 + 22 * this.selectedProperty[1]);
 		if ((this.selectedProperty[0] > 3 && this.selectedProperty[0] < 7) || this.selectedProperty[0] == 8) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 30, 320);
 		ctx.textAlign = "right";
-		ctx.fillText("\u25ba", 214, 90 + 25 * this.selectedProperty[0]);
-		ctx.fillText("\u25ba", 585, 90 + 25 * this.selectedProperty[1]);
+		ctx.fillText("\u25ba", 214, 90 + 22 * this.selectedProperty[0]);
+		ctx.fillText("\u25ba", 585, 90 + 22 * this.selectedProperty[1]);
 		if ((this.selectedProperty[1] > 3 && this.selectedProperty[1] < 7) || this.selectedProperty[1] == 8) ctx.fillText("None: \u00b1 1 | Shift: \u00b1 10 | Ctrl: \u00b1 100", 610, 320);
 	}
 
@@ -1824,7 +1873,7 @@ class MainScreen {
 		ctx.font = "12px Tetreml";
 		ctx.fillText("Tetris written with pure HTML and JS.", 320, 125);
 
-		ctx.fillText("Two-player version", 320, 215);
+		ctx.fillText("Two-player", 320, 215);
 		ctx.fillText("Press Enter to set options, controls and start the game.", 320, 340);
 	}
 

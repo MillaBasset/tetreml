@@ -2,7 +2,7 @@
 
 class GameScreenShirase extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+		super(parent, showKeystrokes, doSaveReplay, false);
 		
 		this.shouldHintTetrimino = true;
 		this.level = 0;
@@ -420,9 +420,8 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 		}
 	}
 
-	pause() {
-		super.pause();
-		if (!this.isReplay) sfx.pause.play();
+	pause(playSound = true) {
+		super.pause(playSound);
 		if (this.level1300Time > -1) this.musicLevel1300.pause(); else currentSong.pause();
 	}
 

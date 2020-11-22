@@ -365,7 +365,8 @@ class PlayScreen {
 			if (buttonStatus.hold) {
 				if (!this.buttonHold) {
 					if (buttonStatus.quitModifier) {
-						this.generateGIF();
+						this.pause(false);
+						this.parent.openGameScreen();
 						this.buttonHold = true;
 					} else if (this.current != null && this.hold != -1 && !this.holdSwitched) {
 						this.current.reset();
@@ -427,7 +428,13 @@ class PlayScreen {
 			}
 
 			if (buttonStatus.right) {
-				if (!this.buttonMoveRight || this.moveLock != 1) {
+				let handleMove = true;
+				if (!this.buttonMoveRight && this.quitModifier) {
+					this.generateGIF();
+					this.handleMove = false;
+					this.buttonMoveRight = true;
+				}
+				if (handleMove && !this.buttonMoveRight || this.moveLock != 1) {
 					if (this.moveRightCounter == -1) {
 						this.move(1);
 						this.moveRightCounter = this.oldMoveRightCounter = 0;
@@ -445,6 +452,14 @@ class PlayScreen {
 				this.buttonMoveRight = true;
 			}
 		} else {
+			if (buttonStatus.right) {
+				if (!this.buttonMoveRight) {
+					if (buttonStatus.quitModifier) {
+						this.generateGIF();
+					}
+					this.buttonMoveRight = true;
+				}
+			} else this.buttonMoveRight = false;
 			if (buttonStatus.rotateClockwise) {
 				if (!this.buttonRotateClockwise) {
 					if (buttonStatus.quitModifier) {
@@ -464,7 +479,7 @@ class PlayScreen {
 			if (buttonStatus.hold) {
 				if (!this.buttonHold) {
 					if (buttonStatus.quitModifier) {
-						this.generateGIF();
+						this.parent.openGameScreen();
 					}
 					this.buttonHold = true;
 				}
@@ -478,9 +493,7 @@ class PlayScreen {
 						currentSong.pause();
 						goBack();
 					} else {
-						currentSong.pause();
-						sfx.pause.play();
-						this.state = GameState.paused;
+						this.pause();
 					}
 					break;
 				case GameState.paused:
@@ -546,12 +559,12 @@ class PlayScreen {
 		this.keyY = 110;
 		if (buttonStatus.quitModifier) {
 			this.renderKeyLine(keyNames.left, "Move left");
-			this.renderKeyLine(keyNames.right, "Move right");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.right, "Render GIF");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.softDrop, "Firm drop");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hardDrop, "Add intermediate frame");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateCounterClockwise, "Render image");
 			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.rotateClockwise, "Get Fumen URL");
-			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hold, "Render GIF");
+			this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.hold, "Restart");
 			this.renderKeyLine(keyNames.reset, "Reset current tetrimino");
 			if (this.state != GameState.over) this.renderKeyLine(keyNames.quitModifier + "+" + keyNames.esc, "Return to edit screen"); else this.keyY += 15;
 			this.keyY += 15;
@@ -805,6 +818,12 @@ class PlayScreen {
 		});
 
 		gif.render();
+	}
+
+	pause(playSound = true) {
+		currentSong.pause();
+		if (playSound) sfx.pause.play();
+		this.state = GameState.paused;
 	}
 
 	close() {
@@ -1462,12 +1481,16 @@ class EditScreen {
 				this.togglePane();
 				break;
 			case "Enter":
-				openGui(new PlayScreen(this, this.board, this.sequence, this.hold, this.maxTetriminoes, this.fallPeriod, this.lockDelay));
+				this.openGameScreen();
 				event.preventDefault();
 				break;
 		}
 		this.updateModifierKey(event.code, true);
 		this.currentPane.onKeyPress(event.code);
+	}
+
+	openGameScreen() {
+		openGui(new PlayScreen(this, this.board, this.sequence, this.hold, this.maxTetriminoes, this.fallPeriod, this.lockDelay));
 	}
 
 	onKeyUp(event) {

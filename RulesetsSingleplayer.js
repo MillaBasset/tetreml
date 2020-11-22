@@ -16,7 +16,7 @@ const rewardIndexMapping = [-1, 4, 7];
 const doesRewardTriggerBackToBack = [false, false, false, true, false, false, true, false, true, true, true];
 
 class PlayScreenBase {
-	constructor(parent, gridX, gridY, nextX, nextY, holdX, holdY, minoSize, showKeystrokes, doSaveReplay) {
+	constructor(parent, gridX, gridY, nextX, nextY, holdX, holdY, minoSize, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
 		this.parent = parent;
 		this.gridX = gridX;
 		this.gridY = gridY;
@@ -72,6 +72,7 @@ class PlayScreenBase {
 		this.rewardName = "";
 		this.rewardAmount = 0;
 		this.rewardTime = 0;
+		this.allClearTime = 0;
 		this.holdSwitched = false;
 		this.playTime = 0;
 		this.stats = [[null, 0, null], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, null, null]]; // First level: number of lines cleared; Second level: normal, by T-spin, total.
@@ -87,12 +88,14 @@ class PlayScreenBase {
 		this.holds = 0;
 		this.keypresses = 0;
 		this.wasNull = true;
-		this.moveLock = 0; // 0: None; 1: Left 2: Right.
+		this.moveLock = 0; // 0: None; 1: Left; 2: Right.
+		this.lineClearDelayEnabled = lineClearDelayEnabled;
 		if (this.doSaveReplay = doSaveReplay) this.replay = {
 			states: [],
 			actions: [],
 			mode: this.getModeName(),
-			modeParameters: {}
+			modeParameters: {},
+			lineClearDelayEnabled: this.lineClearDelayEnabled
 		};
 		this.singleSaveableFields = ["score", "lines", "combo", "backToBack", "holdSwitched", "clearTime", "clearedLines", "tetriminoes", "holds", "keypressed", "wasNull", "moveLock", "isClearing"];
 		this.isReplay = false;
@@ -195,8 +198,14 @@ class PlayScreenBase {
 					}
 				} else this.buttonRotateCounterClockwise = false;
 				if (buttonStatus.hold) {
-					if (this.current != null && !this.buttonHold) {
-						this.actionQueue.push([6, "doHold", latestTime]);
+					if (!this.buttonHold) {
+						if (buttonStatus.quitModifier) {
+							this.pause(false);
+							this.optionsScreen.openGameScreen();
+						} else if (this.current != null) {
+							this.actionQueue.push([6, "doHold", latestTime]);
+							this.buttonHold = true;
+						}
 						this.buttonHold = true;
 					}
 				} else this.buttonHold = false;
@@ -309,6 +318,8 @@ class PlayScreenBase {
 			}
 		} else this.buttonEsc = false;
 
+		if (buttonStatus.quitModifier && buttonStatus.hold && (this.state == GameState.paused || this.state == GameState.over)) this.optionsScreen.openGameScreen();
+
 		if (buttonStatus.volumeUp) {
 			if (!this.buttonVolumeUp) {
 				setVolume(volume + 1);
@@ -373,6 +384,15 @@ class PlayScreenBase {
 		ctx.fillText("STATS", 19, 86);
 
 		this.renderBehind(timePassed);
+
+		if (this.allClearTime > 0 && ((this.isReplay && this.state != GameState.over) || this.state == GameState.playing)) {
+			ctx.fillStyle = "#FFF";
+			ctx.font = "20px Tetreml";
+			ctx.textAlign = "center";
+			ctx.fillText("ALL CLEAR", 320, 40);
+			ctx.fillText("1000 points", 320, 65);
+			this.allClearTime -= timePassed;
+		}
 
 		if (this.isReplay || this.state != GameState.paused) {
 			if (this.stackMinY < 24) {
@@ -461,7 +481,7 @@ class PlayScreenBase {
 			this.particles = newParticles;
 		}
 
-		if (this.clearEffectTime < 151) {
+		if (this.lineClearDelayEnabled && this.clearEffectTime < 151) {
 			let ratio = this.clearEffectTime / 150;
 			ctx.fillStyle = "rgb(255, 255, " + (255 * (1-ratio)) + ")";
 			for (let line of this.clearedLines) ctx.fillRect(this.gridX - 2 * this.minoSize * ratio, this.gridY + this.minoSize * (line - 18) + this.minoSize / 2 * ratio, this.minoSize * (10 + 4 * ratio), this.minoSize * (1 - ratio));
@@ -478,12 +498,6 @@ class PlayScreenBase {
 		if (this.rewardTime != 0) {
 			this.rewardTime = Math.max(0, this.rewardTime - timePassed);
 			ctx.fillText(this.rewardName, 406, 348, 221 - ctx.measureText(this.rewardAmount).width);
-		}
-
-		if (this.totalMinos == 0 && this.clearTime > 0 && ((this.isReplay && this.state != GameState.over) || this.state == GameState.playing)) {
-			ctx.textAlign = "center";
-			ctx.fillText("ALL CLEAR", 320, 40);
-			ctx.fillText("1000 points", 320, 65);
 		}
 
 		ctx.font = "9px Tetreml";
@@ -515,6 +529,7 @@ class PlayScreenBase {
 				ctx.textAlign = "left";
 				ctx.font = "12px Tetreml";
 				ctx.fillText(buttonStatus.quitModifier ? keyNames.quitModifier + "+" + keyNames.esc + " Quit" : keyNames.esc + " Pause", 10, 17);
+				if (buttonStatus.quitModifier) ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " Restart", 10, 32);
 				break;
 			case GameState.paused:
 				if (this.isReplay) break;
@@ -526,7 +541,10 @@ class PlayScreenBase {
 				ctx.font = "12px Tetreml";
 				ctx.fillText(keyNames.esc + " to continue.", 320, 141);
 				ctx.textAlign = "left";
-				if (buttonStatus.quitModifier) ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " Quit", 10, 17);
+				if (buttonStatus.quitModifier) {
+					ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " Quit", 10, 17);
+					ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " Restart", 10, 32);
+				}
 				break;
 			case GameState.over:
 				ctx.textAlign = "center";
@@ -539,8 +557,9 @@ class PlayScreenBase {
 				ctx.fillText("GAME OVER", 320, 40);
 				if (this.isReplay) break;
 				ctx.font = "12px Tetreml";
-				ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 333);
-				ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " to save replay.", 320, 348);
+				ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 318);
+				ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " to save replay.", 320, 333);
+				ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " to restart.", 320, 348);
 				break;
 		}
 		ctx.globalAlpha = 1;
@@ -579,7 +598,7 @@ class PlayScreenBase {
 	}
 
 	afterClear(time) {
-		if (!this.isSeeking && this.clearedLines.length != 0) sfx.afterClear.play();
+		if (!this.isSeeking && this.lineClearDelayEnabled && this.clearedLines.length != 0) sfx.afterClear.play();
 		for (let line of this.clearedLines) {
 			for (let i = 0; i < 10; i++) {
 				this.board[i].splice(line, 1);
@@ -597,7 +616,7 @@ class PlayScreenBase {
 	}
 
 	fall(timestamp) {
-		if (this.current == null || !this.current.canFall(this.board)) return;
+		if (this.current == null || !this.current.canFall(this.board)) return false;
 		this.current.onMove();
 		if (++this.current.y > this.maxY) {
 			this.lockTime = 0;
@@ -609,13 +628,14 @@ class PlayScreenBase {
 			this.lockTime = this.fallTime;
 		}
 		this.recordAction("fall", timestamp);
+		return true;
 	}
 
 	lockDown(timestamp) {
 		if (this.current == null) return;
-		this.lock(false);
-		if (!this.isSeeking) sfx.lock.play();
 		this.recordAction("lockDown", timestamp);
+		this.lock(false, timestamp);
+		if (!this.isSeeking) sfx.lock.play();
 		this.processInstaFall(timestamp);
 	}
 
@@ -704,8 +724,8 @@ class PlayScreenBase {
 			for (let i = 0; i < 3; i++) this.spawnParticle();
 			(count ? sfx.hardDrop : sfx.softLock).play();
 		}
-		this.lock(true);
 		this.recordAction("hardDrop", timestamp);
+		this.lock(true, timestamp);
 		this.processInstaFall(timestamp);
 		return count;
 	}
@@ -734,8 +754,8 @@ class PlayScreenBase {
 	getBaseline() {
 		return this.current.y + this.current.baseY[this.current.state];
 	}
-
-	lock(isDrop) {
+	
+	lock(isDrop, timestamp) {
 		if (this.current == null) return;
 		let toClear = [];
 		this.tetriminoes++;
@@ -763,7 +783,11 @@ class PlayScreenBase {
 			this.nextTetrimino();
 		}
 
-		this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false;
+		if (!this.isReplay && !this.lineClearDelayEnabled && this.clearTime > 0) {
+			this.clearTime = 0;
+			this.afterClear(timestamp);
+		}
+		if (this.clearTime > 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 		
 		return baseline;
 	}
@@ -791,6 +815,7 @@ class PlayScreenBase {
 		if ((this.totalMinos -= toClear.length * 10) == 0) {
 			this.score += 1000;
 			this.clearTime = 1000;
+			this.allClearTime = 1000;
 			if (!this.isSeeking) sfx.allClear.play();
 		}
 		this.current = null;
@@ -884,8 +909,9 @@ class PlayScreenBase {
 		this.state = GameState.over;
 	}
 
-	pause() {
+	pause(playSound = true) {
 		this.state = GameState.paused;
+		if (playSound && !this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -1003,14 +1029,15 @@ class PlayScreenBase {
 	finalizeSeek() {
 		this.particles = [];
 		this.clearEffectTime = 200;
+		this.allClearTime = 0;
 	}
 }
 
 // --------------------------
 
 class GameScreenTengen extends PlayScreenBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, 240, 4, 424, 48, 182, 54, 16, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, 240, 4, 424, 48, 182, 54, 16, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.levels = [[0, 550, 1000], [30, 467, 1000], [30, 400, 1000], [30, 333, 1000], [30, 283, 1000], [30, 233, 1000], [50, 183, 1000], [50, 150, 1000], [50, 117, 1000], [50, 100, 1000], [50, 92, 1000], [50, 83, 1000], [50, 75, 1000], [50, 67, 1000], [50, 63, 1000], [50, 58, 1000], [50, 54, 1000], [50, 50, 1000], [50, 46, 1000], [50, 42, 1000], [50, 39, 1000], [50, 36, 1000], [50, 33, 1000], [50, 30, 1000], [50, 27, 1000], [50, 24, 1000], [50, 22, 1000], [50, 20, 1000]];
 		this.linesOfCurrentLevel = 0;
 		this.totalLinesToNextLevel = 0;
@@ -1020,7 +1047,7 @@ class GameScreenTengen extends PlayScreenBase {
 		this.lockScoreTime = 0;
 		this.level = 1;
 		this.singleSaveableFields.push("linesOfCurrentLevel", "totalLinesToNextLevel", "isNewLevel", "lockScore", "lockScoreTime", "level");
-		this.speedCurveNames = ["Normal", "Moderate", "Speedy", "TetrisDotCom"];
+		this.speedCurveNames = ["TetrisDotCom", "Tengen", "NESNTSC", "NESPAL"];
 		let level6 = new Music("endless_level6Opening", new Music("endless_level6Loop"));
 		let level11 = new Music("endless_level11Opening", new Music("endless_level11Loop"));
 		this.music = {
@@ -1127,11 +1154,12 @@ class GameScreenTengen extends PlayScreenBase {
 		}
 	}
 
-	lock(isDrop) {
-		let baseline = super.lock(isDrop);
+	lock(isDrop, timestamp) {
+		let baseline = super.lock(isDrop, timestamp)-1;
 		if (baseline == -1) return;
 		this.lockScoreLine = baseline;
 		this.lockScore = Math.floor(Math.min(1000, (isDrop ? 2 : 1) * this.level * (this.level + 39 - this.lockScoreLine)));
+		this.score += this.lockScore;
 		this.lockScoreTime = 1000;
 	}
 
@@ -1166,10 +1194,9 @@ class GameScreenTengen extends PlayScreenBase {
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -1188,6 +1215,10 @@ class GameScreenTengen extends PlayScreenBase {
 	quit() {
 		stopCurrentMusic();
 		super.quit();
+	}
+
+	getComboBonus() {
+		return 0;
 	}
 
 	getModeName() {
@@ -1218,9 +1249,255 @@ class GameScreenTengen extends PlayScreenBase {
 	}
 }
 
+class GameScreenNES extends PlayScreenBase {
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, 240, 4, 424, 48, 182, 54, 16, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
+		this.levels = [[0, 550, 1000], [30, 467, 1000], [30, 400, 1000], [30, 333, 1000], [30, 283, 1000], [30, 233, 1000], [50, 183, 1000], [50, 150, 1000], [50, 117, 1000], [50, 100, 1000], [50, 92, 1000], [50, 83, 1000], [50, 75, 1000], [50, 67, 1000], [50, 63, 1000], [50, 58, 1000], [50, 54, 1000], [50, 50, 1000], [50, 46, 1000], [50, 42, 1000], [50, 39, 1000], [50, 36, 1000], [50, 33, 1000], [50, 30, 1000], [50, 27, 1000], [50, 24, 1000], [50, 22, 1000], [50, 20, 1000]];
+		this.linesOfCurrentLevel = 0;
+		this.totalLinesToNextLevel = 0;
+		this.isNewLevel = false;
+		this.currentLockScore = 0;
+		this.lockScore = 0;
+		this.lockScoreLine = 0;
+		this.lockScoreTime = 0;
+		this.level = 1;
+		this.rewardAmounts = [40, 100, 300, 1200, 125, 250, 500, 500, 1000, 2000, 3000];
+		this.singleSaveableFields.push("linesOfCurrentLevel", "totalLinesToNextLevel", "isNewLevel", "lockScore", "lockScoreTime", "level");
+		this.speedCurveNames = ["TetrisDotCom", "Tengen", "NESNTSC", "NESPAL"];
+		let level6 = new Music("endless_level6Opening", new Music("endless_level6Loop"));
+		let level11 = new Music("endless_level11Opening", new Music("endless_level11Loop"));
+		this.music = {
+			level1: new Music("endless_level1Opening", new Music("endless_level1Loop")),
+			level6Trigger: new Music("endless_level6Trigger", level6),
+			level6: level6,
+			level11Trigger: new Music("endless_level11Trigger", level11),
+			level11: level11
+		};
+	}
+
+	init() {
+		super.init();
+		if (!this.isReplay) {
+			let highScoreName = "tetrisNESHighScore" + this.speedCurveNames[this.speedCurve];
+			let maxLinesName = "tetrisNESMaxLines" + this.speedCurveNames[this.speedCurve];
+			this.highScore = localStorage[highScoreName] == undefined ? 0 : localStorage[highScoreName];
+			this.maxLines = localStorage[maxLinesName] == undefined ? 0 : localStorage[maxLinesName];
+		}
+		if (this.level != this.levels.length) this.totalLinesToNextLevel = this.levels[this.level][0];
+	}
+
+	start() {
+		super.start();
+		currentSong = this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1;
+		if (!this.isReplay) currentSong.play();
+	}
+
+	renderBehind(timePassed) {
+		super.renderBehind(timePassed);
+		ctx.fillStyle = "#FFF";
+		ctx.font = "12px Tetreml";
+		ctx.textAlign = "left";
+		ctx.fillText("Score", 485, 30);
+		ctx.fillText("Level " + this.level, 485, 85);
+		ctx.fillText("Lines: " + this.lines, 485, 111);
+		ctx.fillText("Time elapsed", 485, 164);
+		if (!this.isReplay) {
+			ctx.fillText("Max lines", 485, 137);
+			ctx.fillText("High score", 485, 57);
+		}
+
+		ctx.fillText("Zero-line", 20, 155);
+		ctx.fillText("Single", 20, 180);
+		ctx.fillText("Double", 20, 205);
+		ctx.fillText("Triple", 20, 230);
+		ctx.fillText("Tetris", 20, 255);
+
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+
+		ctx.textAlign = "right";
+		ctx.fillText("Normal", 118, 130);
+		ctx.fillText("T-spin", 163, 130);
+		ctx.fillText("Total", 208, 130);
+
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
+
+		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
+		let isLastLevel = this.level == this.levels.length;
+		ctx.fillText("" + (isLastLevel ? "" : this.level + 1), 632, 85);
+		ctx.fillText("" + (isLastLevel ? "" : this.totalLinesToNextLevel), 632, 111);
+		if (!isLastLevel)
+			ctx.fillRect(485, 89, 147 * (this.linesOfCurrentLevel / this.levels[this.level][0]), 10);
+		ctx.fillText(formatDuration(Math.floor(this.playTime / 1000)), 632, 164);
+
+		if (!this.isReplay) {
+			ctx.fillText("" + this.highScore, 632, 57);
+			ctx.fillText("" + this.maxLines, 632, 137);
+			ctx.fillRect(485, 115, this.maxLines == 0 ? 147 : Math.min(147, 147 * this.lines / this.maxLines), 10);
+			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
+		}
+
+		ctx.font = "20px Tetreml";
+		ctx.fillText("" + this.score, 632, 30);
+	}
+
+	renderInFront(timePassed) {
+		super.renderInFront(timePassed);
+
+		if ((this.state != GameState.paused || this.isReplay) && this.lockScore != 0 && this.lockScoreTime != 0 && this.lockScoreLine > 17) {
+			ctx.font = "12px Tetreml";
+			ctx.textAlign = "right";
+			if (this.state != GameState.paused) this.lockScoreTime = Math.max(0, this.lockScoreTime - timePassed);
+			ctx.fillRect(235, 4 + 16 * (this.lockScoreLine - this.lockScore - 16), 1, this.lockScore * 16);
+			ctx.fillText(this.lockScore, 233, 16 + 16 * (this.lockScoreLine - 17));
+		}
+
+		switch (this.state) {
+			case GameState.playing:
+				if (this.isNewLevel && this.clearTime > 0) {
+					ctx.fillStyle = this.level == 6 || this.level == 11 ? "#FF0" : "#FFF";
+					ctx.font = "12px Tetreml";
+					ctx.textAlign = "center";
+					ctx.fillText("LEVEL UP", 320, 130);
+					ctx.font = "300 30px Tetreml";
+					ctx.fillText("" + this.level, 320, 160);
+				}
+				break;
+			case GameState.paused:
+				break;
+			case GameState.over:
+				break;
+		}
+	}
+
+	fall(timestamp) {
+		let res = super.fall(timestamp);
+		if (res) {
+			if (buttonStatus.softDrop) this.currentLockScore++; else this.currentLockScore = 0;
+		}
+		return res;
+	}
+
+	softDrop(timestamp) {
+		let res = super.softDrop(timestamp);
+		if (!res) this.currentLockScore++;
+		return res;
+	}
+
+	hardDrop(timestamp) {
+		if (this.current == null) return;
+		this.lockScoreStartLine = this.getBaseline();
+		let res = super.hardDrop(timestamp);
+		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;
+		this.lockScore += res;
+		this.score += res;
+		return res;
+	}
+
+	lock(isDrop, timestamp) {
+		let baseline = super.lock(isDrop, timestamp)-1;
+		if (baseline == -1) return;
+		this.lockScoreLine = baseline;
+		this.lockScore = this.currentLockScore;
+		this.score += this.lockScore;
+		this.lockScoreTime = 1000;
+		this.currentLockScore = 0;
+	}
+
+	clearLines(toClear) {
+		if (toClear.length == 0) return;
+		super.clearLines(toClear);
+		this.linesOfCurrentLevel += toClear.length;
+		if (this.level < this.levels.length && this.linesOfCurrentLevel >= this.levels[this.level][0]) {
+			this.linesOfCurrentLevel -= this.levels[this.level][0];
+			this.level++;
+			if (this.level != this.levels.length) this.totalLinesToNextLevel += this.levels[this.level][0];
+			this.isNewLevel = true;
+			if (!this.isSeeking) switch (this.level) {
+				case 6:
+					this.music.level6Trigger.play(this.music.level6Trigger.id == 0);
+					break;
+				case 11:
+					this.music.level11Trigger.play(this.music.level11Trigger.id == 0);
+					break;
+			}
+			this.clearTime = 1000;
+		}
+	}
+
+	gameOver() {
+		super.gameOver();
+		if (!this.isReplay) {
+			if (this.score > this.highScore) localStorage["tetrisNESHighScore" + this.speedCurveNames[this.speedCurve]] = this.score;
+			if (this.lines > this.maxLines) localStorage["tetrisNESMaxLines" + this.speedCurveNames[this.speedCurve]] = this.lines;
+		}
+		stopCurrentMusic();
+		if (!this.isSeeking) sfx.gameOver.play();
+	}
+
+	pause(playSound = true) {
+		super.pause(playSound);
+		stopCurrentMusic();
+	}
+
+	resume() {
+		super.resume();
+		currentSong.resume(true);
+	}
+
+	getFallInterval() {
+		return this.levels[this.level - 1][1];
+	}
+
+	getLockDelay() {
+		return this.levels[this.level - 1][2];
+	}
+
+	getComboBonus() {
+		return 0;
+	}
+
+	getRewardAmount(reward) {
+		return this.rewardAmounts[reward] * this.level;
+	}
+
+	quit() {
+		stopCurrentMusic();
+		super.quit();
+	}
+
+	getModeName() {
+		return "Endless NES";
+	}
+
+	getModeNameForDisplay() {
+		return "Endless (NES-like)";
+	}
+
+	loadModeParameters(parameters) {
+		super.loadModeParameters(parameters);
+		this.levels = parameters.levels;
+		this.level = parameters.startingLevel;
+	}
+
+	readStateData(state) {
+		this.oldLevel = this.level;
+		stopCurrentMusic();
+		super.readStateData(state);
+	}
+
+	finalizeSeek() {
+		super.finalizeSeek();
+		if (this.state != GameState.over && Math.floor((this.level - 1) / 5) != Math.floor((this.oldLevel - 1) / 5)) {
+			(this.level > 10 ? this.music.level11 : this.level > 5 ? this.music.level6 : this.music.level1).setCurrent();
+		}
+	}
+}
+
 class GameScreenGuidelineBase extends PlayScreenBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, 240, 4, 424, 48, 182, 54, 16, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, 240, 4, 424, 48, 182, 54, 16, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.lockScore = 0;
 		this.lockScoreStartLine = 0;
 		this.lockScoreEndLine = 0;
@@ -1294,8 +1571,8 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 }
 
 class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.level = 1;
 		this.fallIntervals = [0, 1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7];
 		this.linesOfCurrentLevel = 0;
@@ -1407,10 +1684,9 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -1467,8 +1743,8 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 }
 
 class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.level = 1;
 		this.fallIntervals = [0, 1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7];
 		this.linesOfCurrentLevel = 0;
@@ -1590,10 +1866,9 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -1650,8 +1925,8 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 }
 
 class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.level = 1;
 		this.fallIntervals = [0, 1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 		this.lockDelays = [0, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 450, 400, 350, 300, 250, 200, 190, 180, 170, 160, 150];
@@ -1765,10 +2040,9 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetrisMarathonTetrisDotComHighScore = this.score;
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -1825,8 +2099,8 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 }
 
 class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.level = 1;
 		this.linesOfCurrentLevel = 0;
 		this.totalLinesToNextLevel = 0;
@@ -1940,15 +2214,14 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
 		super.resume();
-		currentMusic.resume();
+		currentSong.resume();
 	}
 
 	getFallInterval() {
@@ -2001,14 +2274,14 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 }
 
 class GameScreenGuideline40Line extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.singleSaveableFields.push("actionTime");
-		currentSong = new Music("40Line_opening", new Music("40Line_loop"));
 	}
 
 	init() {
 		super.init();
+		currentSong = new Music("40Line_opening", new Music("40Line_loop"));
 		if (!this.isReplay) {
 			this.highScore = localStorage.tetris40LineHighScore == undefined ? 0 : parseInt(localStorage.tetris40LineHighScore);
 			this.shortestTime = localStorage.tetris40LineShortestTime == undefined ? -1 : parseInt(localStorage.tetris40LineShortestTime);
@@ -2093,10 +2366,9 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 		}
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
@@ -2137,14 +2409,14 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 }
 
 class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
-	constructor(parent, showKeystrokes, doSaveReplay) {
-		super(parent, showKeystrokes, doSaveReplay);
+	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
+		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.singleSaveableFields.push("timeLeft");
-		currentSong = new Music("40Line_opening", new Music("40Line_loop"));
 	}
 
 	init() {
 		super.init();
+		currentSong = new Music("2Minute_opening", new Music("2Minute_loop"));
 		if (!this.isReplay) {
 			this.highScore = localStorage.tetris2MinuteHighScore == undefined ? 0 : parseInt(localStorage.tetris2MinuteHighScore);
 			this.maxLines = localStorage.tetris2MinuteMaxLines == undefined ? 0 : parseInt(localStorage.tetris2MinuteMaxLines);
@@ -2224,10 +2496,9 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 		}
 	}
 
-	pause() {
-		super.pause();
+	pause(playSound = true) {
+		super.pause(playSound);
 		stopCurrentMusic();
-		if (!this.isReplay) sfx.pause.play();
 	}
 
 	resume() {
