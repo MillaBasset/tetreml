@@ -417,15 +417,16 @@ class PlayScreen {
 						this.moveLock = 1;
 					} else {
 						this.moveLeftCounter += timePassed;
-						for (let i = this.oldMoveLeftCounter; i < Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(-1)) break;
-						this.oldMoveLeftCounter = Math.max(0, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+						let newCounter = DASDiv(this.moveLeftCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
+						for (let i = this.oldMoveLeftCounter; i < newCounter; i++) if (!this.move(-1)) break;
+						this.oldMoveLeftCounter = newCounter;
 					}
 					this.buttonMoveLeft = true;
 				} else this.moveLeftCounter = -1;
 			} else {
 				this.moveLeftCounter = -1;
 				this.moveLock = 0;
-				this.buttonMoveLeft = true;
+				this.buttonMoveLeft = false;
 				this.moveDisabledLeft = false;
 			}
 
@@ -443,15 +444,16 @@ class PlayScreen {
 						this.moveLock = 2;
 					} else {
 						this.moveRightCounter += timePassed;
-						for (let i = this.oldMoveRightCounter; i < Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod); i++) if (!this.move(1)) break;
-						this.oldMoveRightCounter = Math.max(0, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+						let newCounter = DASDiv(this.moveRightCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
+						for (let i = this.oldMoveRightCounter; i < newCounter; i++) if (!this.move(1)) break;
+						this.oldMoveRightCounter = newCounter;
 					}
 					this.buttonMoveRight = true;
 				} else this.moveRightCounter = -1;
 			} else {
 				this.moveRightCounter = -1;
 				this.moveLock = 0;
-				this.buttonMoveRight = true;
+				this.buttonMoveRight = false;
 				this.moveDisabledRight = false;
 			}
 		} else {

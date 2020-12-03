@@ -112,10 +112,10 @@ class PlayScreenBase {
 			(timestamp) => { this.rotateClockwise(timestamp); },
 			(timestamp) => { this.rotateCounterClockwise(timestamp); },
 			(timestamp) => { this.doHold(timestamp); },
-			(timestamp) => { this.move(-1, false, timestamp); },
-			(timestamp) => { this.move(-1, true, timestamp); },
-			(timestamp) => { this.move(1, false, timestamp); },
-			(timestamp) => { this.move(1, true, timestamp); }
+			(timestamp) => { if (!this.moveDisabledLeft) this.move(-1, false, timestamp); },
+			(timestamp) => { if (!this.moveDisabledLeft) this.move(-1, true, timestamp); },
+			(timestamp) => { if (!this.moveDisabledRight) this.move(1, false, timestamp); },
+			(timestamp) => { if (!this.moveDisabledRight) this.move(1, true, timestamp); }
 		];
 		this.actionCompareFunc = (a, b) => {
 			if (a[2] - b[2]) return a[2] - b[2];
@@ -220,14 +220,15 @@ class PlayScreenBase {
 						this.moveLock = 1;
 					} else {
 						this.moveLeftCounter += timePassed;
-						let times = Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveLeftCounter;
+						let newCounter = DASDiv(this.moveLeftCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
+						let times = newCounter - this.oldMoveLeftCounter;
 						times = Math.min(9, times);
 						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveLeftCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - (times - 1) * this.autoRepeatPeriod;
 						for (let i = 0; i < times; i++) {
 							if (time >= afterClearTime) moveEvents.push([7, "moveLeft", time]);
 							time += this.autoRepeatPeriod;
 						}
-						this.oldMoveLeftCounter = this.autoRepeatPeriod == 0 ? 0 : Math.max(0, Math.floor((this.moveLeftCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+						this.oldMoveLeftCounter = newCounter;
 					}
 					this.buttonMoveLeft = true;
 				} else {
@@ -248,14 +249,15 @@ class PlayScreenBase {
 						this.moveLock = 2;
 					} else {
 						this.moveRightCounter += timePassed;
-						let times = Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod) - this.oldMoveRightCounter;
+						let newCounter = DASDiv(this.moveRightCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
+						let times = newCounter - this.oldMoveRightCounter;
 						let time = this.autoRepeatPeriod == 0 ? latestTime : latestTime - (this.moveRightCounter - this.autoRepeatDelay) % this.autoRepeatPeriod - (times - 1) * this.autoRepeatPeriod;
 						times = Math.min(9, times);
 						for (let i = 0; i < times; i++) {
 							if (time >= afterClearTime) moveEvents.push([9, "moveRight", time]);
 							time += this.autoRepeatPeriod;
 						}
-						this.oldMoveRightCounter = this.autoRepeatPeriod == 0 ? 0 : Math.max(0, Math.floor((this.moveRightCounter - this.autoRepeatDelay) / this.autoRepeatPeriod));
+						this.oldMoveRightCounter = newCounter;
 					}
 					this.buttonMoveRight = true;
 				} else {

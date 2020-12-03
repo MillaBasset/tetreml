@@ -91,3 +91,7 @@ function createAndDownloadFile(filename, data) {
 		document.body.removeChild(elem);
 	}
 }
+
+function DASDiv(dividend, divisor) {
+	return divisor == 0 ? dividend > 0 ? Infinity : 0 : Math.max(0, Math.floor(dividend / divisor));
+}
