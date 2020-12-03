@@ -844,7 +844,7 @@ class Playfield {
 						this.moveLeftCounter += timePassed;
 						let newCounter = DASDiv(this.moveLeftCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
 						for (let i = this.oldMoveLeftCounter; i < newCounter; i++) if (!this.move(-1)) break;
-						this.oldMoveLeftCounter = newCounter;
+						this.oldMoveLeftCounter = newCounter == Infinity ? 0 : newCounter;
 					}
 					this.buttonMoveLeft = true;
 				} else this.moveLeftCounter = -1;
@@ -865,7 +865,7 @@ class Playfield {
 						this.moveRightCounter += timePassed;
 						let newCounter = DASDiv(this.moveRightCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
 						for (let i = this.oldMoveRightCounter; i < newCounter; i++) if (!this.move(1)) break;
-						this.oldMoveRightCounter = newCounter;
+						this.oldMoveRightCounter = newCounter == Infinity ? 0 : newCounter;
 					}
 					this.buttonMoveRight = true;
 				} else this.moveRightCounter = -1;

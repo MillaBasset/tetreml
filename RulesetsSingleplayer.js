@@ -228,7 +228,7 @@ class PlayScreenBase {
 							if (time >= afterClearTime) moveEvents.push([7, "moveLeft", time]);
 							time += this.autoRepeatPeriod;
 						}
-						this.oldMoveLeftCounter = newCounter;
+						this.oldMoveLeftCounter = newCounter == Infinity ? 0 : newCounter;
 					}
 					this.buttonMoveLeft = true;
 				} else {
@@ -257,7 +257,7 @@ class PlayScreenBase {
 							if (time >= afterClearTime) moveEvents.push([9, "moveRight", time]);
 							time += this.autoRepeatPeriod;
 						}
-						this.oldMoveRightCounter = newCounter;
+						this.oldMoveRightCounter = newCounter == Infinity ? 0 : newCounter;
 					}
 					this.buttonMoveRight = true;
 				} else {
