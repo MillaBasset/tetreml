@@ -35,6 +35,7 @@ const sfx = {
 	softDrop: new SFX("softDrop", gainNode),
 	hardDrop: new SFX("hardDrop", gainNode),
 	lock: new SFX("lock", gainNode),
+	wall: new SFX("wall", gainNode),
 	land: new SFX("land", gainNode),
 	hold: new SFX("hold", gainNode),
 	pause: new SFX("pause", gainNode),
@@ -856,7 +857,7 @@ class PlayScreen {
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
+			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.wall.play();
 			return true;
 		}
 		return false;
@@ -925,7 +926,10 @@ class PlayScreen {
 		}
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 
-		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		if (this.clearTime == 0) {
+			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+		}
 		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 

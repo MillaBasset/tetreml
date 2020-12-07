@@ -33,6 +33,7 @@ const sfx = {
 	softDrop: new SFX("softDrop", gainNode),
 	hardDrop: new SFX("hardDrop", gainNode),
 	lock: new SFX("lock", gainNode),
+	wall: new SFX("wall", gainNode),
 	land: new SFX("land", gainNode),
 	hold: new SFX("hold", gainNode),
 	pause: new SFX("pause", gainNode),

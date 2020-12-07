@@ -169,6 +169,7 @@ const sfx = {
 	hardDrop: new SFX("hardDrop"),
 	lock: new SFX("lock"),
 	softLock: new SFX("softLock"),
+	wall: new SFX("wall"),
 	land: new SFX("land"),
 	hold: new SFX("hold"),
 	allClear: new SFX("allClear"),
@@ -1060,7 +1061,7 @@ class Playfield {
 			this.current.x = newX;
 			this.current.onMove();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
-			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.land);
+			if (!this.processInstaFall() && this.current.checkCollision(this.board, newX + offset, this.current.y)) this.playSfx(sfx.wall);
 			return true;
 		}
 		return false;
@@ -1125,7 +1126,10 @@ class Playfield {
 			this.clearTime = 0;
 			this.afterClear();
 		}
-		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		if (this.clearTime == 0) {
+			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+		}
 		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 

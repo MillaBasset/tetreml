@@ -654,7 +654,7 @@ class PlayScreenBase {
 				if (isInitialPress || this.wasNull) this.addKeypress();
 				this.wasNull = false;
 				this.recordAction(offset > 0 ? "moveRight" : "moveLeft", timestamp);
-				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.land.play();
+				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.wall.play();
 				return true;
 			}
 		}
@@ -791,7 +791,10 @@ class PlayScreenBase {
 			this.clearTime = 0;
 			this.afterClear(timestamp);
 		}
-		if (this.clearTime == 0) this.moveDisabledLeft = this.moveDisabledRight = true;
+		if (this.clearTime == 0) {
+			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+		}
 		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 		
 		return baseline;

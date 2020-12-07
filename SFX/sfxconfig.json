@@ -11,6 +11,7 @@
 	"gameOver": -10,
 	"hardDrop": -11,
 	"hold": -12,
+	"wall": -13,
 	"land": -13,
 	"level999": -14,
 	"lock": -15,
