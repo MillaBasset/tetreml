@@ -730,6 +730,10 @@ class PlayScreenBase {
 		}
 		this.recordAction("hardDrop", timestamp);
 		this.lock(true, timestamp);
+		if (this.clearTime == 0) {
+			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+		}
 		this.processInstaFall(timestamp);
 		return count;
 	}
@@ -791,11 +795,7 @@ class PlayScreenBase {
 			this.clearTime = 0;
 			this.afterClear(timestamp);
 		}
-		if (this.clearTime == 0) {
-			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
-			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
-		}
-		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
+		if (this.clearTime != 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 		
 		return baseline;
 	}

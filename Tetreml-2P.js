@@ -784,6 +784,10 @@ class Playfield {
 					this.playSfx(start != end ? sfx.hardDrop : sfx.softLock);
 					for (let i = 0; i < 3; i++) this.spawnParticle();
 					this.lock(true);
+					if (this.clearTime == 0) {
+						if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+						if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+					}
 					this.processInstaFall();
 					this.buttonHardDrop = true;
 				}
@@ -1126,11 +1130,7 @@ class Playfield {
 			this.clearTime = 0;
 			this.afterClear();
 		}
-		if (this.clearTime == 0) {
-			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
-			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
-		}
-		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
+		if (this.clearTime != 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 
 	processInstaFall() {

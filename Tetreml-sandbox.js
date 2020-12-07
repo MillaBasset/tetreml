@@ -327,6 +327,10 @@ class PlayScreen {
 						(fell ? sfx.hardDrop : sfx.softLock).play();
 						for (let i = 0; i < 3; i++) this.spawnParticle();
 						this.lock(2);
+						if (this.clearTime == 0) {
+							if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+							if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+						}
 						this.processInstaFall();
 					}
 					this.buttonHardDrop = true;
@@ -926,11 +930,7 @@ class PlayScreen {
 		}
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 
-		if (this.clearTime == 0) {
-			if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
-			if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
-		}
-		else this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
+		if (this.clearTime != 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.
 	}
 
 	processInstaFall() {
