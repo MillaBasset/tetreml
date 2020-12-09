@@ -139,6 +139,8 @@ class PlayScreenBase {
 
 	processGameLogic(timePassed) {
 		let latestTime = this.latestTime = this.playTime + timePassed;
+		if (buttonStatus.quitModifier && buttonStatus.hold && (this.state == GameState.paused || this.state == GameState.over)) this.optionsScreen.openGameScreen();
+
 		if (this.state == GameState.playing) {
 			this.clearTime -= timePassed;
 			let afterClearTime = this.playTime;
@@ -321,8 +323,6 @@ class PlayScreenBase {
 				this.buttonEsc = true;
 			}
 		} else this.buttonEsc = false;
-
-		if (buttonStatus.quitModifier && buttonStatus.hold && (this.state == GameState.paused || this.state == GameState.over)) this.optionsScreen.openGameScreen();
 
 		if (buttonStatus.volumeUp) {
 			if (!this.buttonVolumeUp) {
