@@ -437,7 +437,7 @@ class PlayScreen {
 
 			if (buttonStatus.right) {
 				let handleMove = true;
-				if (!this.buttonMoveRight && this.quitModifier) {
+				if (!this.buttonMoveRight && buttonStatus.quitModifier) {
 					this.generateGIF();
 					this.handleMove = false;
 					this.buttonMoveRight = true;
