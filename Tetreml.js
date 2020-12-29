@@ -217,7 +217,7 @@ class OptionsScreen {
 		if (this.mode < 3) {
 			gui.level = gui.replay.modeParameters.startingLevel = this.startingLevel;
 		}
-		else if (this.mode == 5 || this.mode == 6) {
+		else if (this.mode > 4 && this.mode < 8) {
 			gui.levels = gui.replay.modeParameters.levels = this.speedCurves[this.speedCurve];
 			gui.level = gui.replay.modeParameters.startingLevel = this.startingLevel;
 			gui.speedCurve = this.speedCurve;
