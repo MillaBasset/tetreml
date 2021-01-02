@@ -1,4 +1,4 @@
-// Version: 18
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -99,8 +99,11 @@ self.addEventListener('install', function (event) {
 		'index.html',
 		'MersenneTwister.js',
 		'ProgressiveInstaller.js',
+		'ReplayAnalyzer.html',
+		'ReplayAnalyzer.js',
 		'ReplayerSingleplayer.html',
 		'ReplayerSingleplayer.js',
+		'ReplayPlayfield.js',
 		'RulesetsSingleplayer.js',
 		'SingleplayerShirase.js',
 		'SingleplayerTGM.js',

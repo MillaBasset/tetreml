@@ -1051,7 +1051,7 @@ class Playfield {
 				this.board[i] = [undefined].concat(this.board[i]);
 			}
 			this.minos.splice(line, 1);
-			this.minos = [0].concat(this.minos);
+			this.minos.unshift(0);
 		}
 		this.clearedLines = [];
 		this.nextTetrimino();

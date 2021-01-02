@@ -15,24 +15,24 @@ Reward.doubleTSpin = 6;
 Reward.tripleTSpin = 7;
 
 function formatDuration(secs) {
-	sec = secs%60;
-	min = Math.floor(secs%3600/60);
-	hour = Math.floor(secs%86400/3600);
-	day = Math.floor(secs/86400);
+	let sec = secs%60;
+	let min = Math.floor(secs%3600/60);
+	let hour = Math.floor(secs%86400/3600);
+	let day = Math.floor(secs/86400);
 	
-	return (day > 0 ? day + 'd' : '') + (secs > 3599 && (secs < 86400 || secs%86400 != 0) ? hour + 'h' : '') + (secs > 59 && (secs < 3600 || secs%3600 != 0) ? (secs > 3599 && min < 10 ? '0' : '') + min + (sec < 10 ? ':0' : ':') + sec : secs < 60 ? sec + "\"" : '');
+	return (day > 0 ? day + "d" : "") + (secs > 3599 ? hour + "h" : "") + (secs > 59 ? (secs > 3599 && min < 10 ? "0" : "") + min + (sec < 10 ? ":0" : ":") + sec : secs < 60 ? sec + "\"" : "");
 }
 
-function formatDurationWithMilliseconds(s) {
-	let secs = Math.floor(s);
-	sec = secs%60;
-	min = Math.floor(secs%3600/60);
-	hour = Math.floor(secs%86400/3600);
-	day = Math.floor(secs / 86400);
-	millis = Math.floor((s * 1000) % 1000);
+function formatDurationWithMilliseconds(secs) {
+	let millis = Math.floor((secs * 1000) % 1000);
 	millis = "," + (millis < 100 ? "0" : "") + (millis < 10 ? "0" : "") + millis;
+	secs = Math.floor(secs);
+	let sec = secs%60;
+	let min = Math.floor(secs%3600/60);
+	let hour = Math.floor(secs%86400/3600);
+	let day = Math.floor(secs/86400);
 	
-	return (day > 0 ? day + 'd' : '') + (secs > 3599 && (secs < 86400 || secs%86400 != 0) ? hour + 'h' : '') + (secs > 59 && (secs < 3600 || secs%3600 != 0) ? (secs > 3599 && min < 10 ? '0' : '') + min + (sec < 10 ? ':0' : ':') + sec + millis : secs < 60 ? sec + millis + "\"" : '');
+	return (day > 0 ? day + "d" : "") + (secs > 3599 ? hour + "h" : "") + (secs > 59 ? (secs > 3599 && min < 10 ? "0" : "") + min + (sec < 10 ? ":0" : ":") + sec + millis : secs < 60 ? sec + millis + "\"" : "");
 }
 
 function formatNumber(number, decimalDigits = 3) {

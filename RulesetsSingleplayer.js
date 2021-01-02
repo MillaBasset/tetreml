@@ -609,7 +609,7 @@ class PlayScreenBase {
 				this.board[i] = [undefined].concat(this.board[i]);
 			}
 			this.minos.splice(line, 1);
-			this.minos = [0].concat(this.minos);
+			this.minos.unshift(0);
 		}
 		// Ensure that nextTetrimino always runs.
 		if (this.isReplay) this.clearTime = 0;

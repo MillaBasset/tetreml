@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Tetreml – Replay analyzer</title>
+		<link rel="manifest" href="manifest.json">
+		<script src="ProgressiveInstaller.js"></script>
+		<style>
+			body, input, select, button {
+				font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+				font-size: 12px;
+			}
+
+			body {
+				margin: 15px;
+			}
+
+			table {
+				border-collapse: collapse;
+				border-spacing: 0px;
+			}
+
+			.statsTable td {
+				padding-right: 0.5em;
+			}
+
+			.statsTable td.right {
+				text-align: right;
+			}
+			
+			.statsTable tr:hover {
+					background-color: rgba(0, 0, 0, 0.1);
+				}
+
+			h1, h2, h3 {
+				font-family: 'Segoe UI Light', Helvetica, Arial, sans-serif;
+				font-weight: normal;
+			}
+
+			h1 {
+				font-size: 40px;
+				margin-top: 5px;
+				margin-bottom: 3px;
+			}
+
+			h4 {
+				margin-top: 0px;
+			}
+			hr {
+				border-color: black;
+			}
+
+			.section {
+				margin-left: 50px;
+			}
+
+			p {
+				text-align: justify;
+			}
+
+			a {
+				text-decoration: none;
+			}
+
+			input[type="number"] {
+				text-align: right;
+				width: 60px;
+			}
+
+			button {
+				display: inline;
+			}
+
+			.minoCell {
+				width: 12px;
+				height: 12px;
+				padding: 0px;
+			}
+
+			.minoCell--1 {
+				background: none;
+			}
+
+			.minoCell-0 {
+				background: #ECECEC;
+			}
+
+			.minoCell-1 {
+				background: #00ECEC;
+			}
+
+			.minoCell-2 {
+				background: #5050EC;
+			}
+
+			.minoCell-3 {
+				background: #EC9D00;
+			}
+
+			.minoCell-4 {
+				background: #ECEC00;
+			}
+
+			.minoCell-5 {
+				background: #00EC00;
+			}
+
+			.minoCell-6 {
+				background: #A336EC;
+			}
+
+			.minoCell-7 {
+				background: #EC4B4B;
+			}
+		</style>
+	</head>
+	<body>
+		<p><a href="index.html">Back to home</a></p>
+		<h1>Replay analyzer</h1>
+		<p>This page analyzes a <i>Tetreml</i> replay and then computes stats and analytics which might be helpful for improving performance. Currently only 40-line (Sprint) is supported. Feedback is welcome on the <i>Hard drop</i> Discord server.</p>
+		<p style="display: flex">Choose replay file:&nbsp;<input id=fileInput type=file accept=".tetreml_replay" onchange="onReplayFileChange()" style="flex-grow: 1;"></p>
+		<p>Speed segment size: <input id=segmentSizeInput type=number min=1 max=20 value=10 step=1></p>
+		<button id=analyzeButton onclick="analyze()" disabled>Analyze</button>
+		<hr/>
+		<div id=report></div>
+
+		<script src="MersenneTwister.js"></script>
+		<script src="Utils.js"></script>
+		<script src="Pako/pako.min.js"></script>
+		<script src="Tetriminos.js"></script>
+		<script src="ReplayPlayfield.js"></script>
+		<script src="ReplayAnalyzer.js" defer></script>
+	</body>
+</html>

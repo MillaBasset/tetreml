@@ -236,7 +236,7 @@ class PlayScreen {
 						this.board[i] = [undefined].concat(this.board[i]);
 					}
 					this.minos.splice(line, 1);
-					this.minos = [0].concat(this.minos);
+					this.minos.unshift(0);
 				}
 				this.nextTetrimino();
 			}
@@ -441,6 +441,7 @@ class PlayScreen {
 					this.generateGIF();
 					this.handleMove = false;
 					this.buttonMoveRight = true;
+					this.moveLock = 1;
 				}
 				if (handleMove && !this.moveDisabledRight && (!this.buttonMoveRight || this.moveLock != 1)) {
 					if (this.moveRightCounter == -1) {
