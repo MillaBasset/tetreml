@@ -104,7 +104,9 @@ class ReplayPlayfield {
 		if (this.current != null && this.current.canFall(this.board)) {
 			this.current.y++;
 			this.current.onMove();
+			return false;
 		}
+		return true;
 	}
 
 	hardDrop(timestamp) {
@@ -115,26 +117,32 @@ class ReplayPlayfield {
 			count++;
 		}
 		if (count) this.current.onMove();
+		this.dropScore += this.getHardDropScore(count);
 		this.lock(timestamp);
 		return count;
+	}
+
+	getHardDropScore(count) {
+		return 0;
 	}
 
 	doHold(timestamp) {
 		if (this.current != null && !this.holdSwitched) {
 			this.oldHold = this.hold;
 			this.hold = this.current;
-			this.actionLog.push({
-				timestamp: timestamp,
-				type: "Hold",
-				tetrimino: this.hold.code,
-				score: this.dropScore,
-				time: timestamp - this.lastTimeMark
-			});
+			let holdTime = timestamp - this.lastTimeMark;
 			if (this.oldHold == null) this.nextTetrimino(timestamp); else {
 				this.current = this.oldHold;
 				this.current.reset();
 				this.checkGameOver();
 			}
+			this.actionLog.push({
+				timestamp: timestamp,
+				type: "Hold",
+				tetrimino: this.hold.code + " \u2192 " + this.current.code + (this.oldHold == null ? " (from queue)" : ""),
+				score: this.dropScore,
+				time: holdTime
+			});
 			this.holds++;
 			this.holdSwitched = true;
 			this.dropScore = 0;
@@ -154,7 +162,7 @@ class ReplayPlayfield {
 			timestamp: timestamp,
 			type: "Tetrimino",
 			tetrimino: this.current.code,
-			time: timestamp - this.lastTetriminoTime,
+			time: timestamp - this.lastTimeMark,
 			score: this.dropScore
 		});
 		this.dropScore = 0;
@@ -357,10 +365,12 @@ class ReplayPlayfieldGuideline extends ReplayPlayfield {
 	hardDrop(timestamp) {
 		if (this.current == null) return;
 		let res = super.hardDrop(timestamp);
-		let lockScore = 2 * res;
-		this.dropScore += lockScore;
-		this.score += lockScore;
+		this.score += 2 * res;
 		return res;
+	}
+
+	getHardDropScore(count) {
+		return 2 * count;
 	}
 }
 

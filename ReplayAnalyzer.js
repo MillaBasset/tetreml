@@ -45,13 +45,19 @@ async function analyze() {
 
 	//document.playfield = playfield; // Debug.
 
+	let averageSpeed = playfield.tetriminoes / (playfield.actionTime / 1000);
+
 	let segmentSize = Number.parseInt(document.getElementById("segmentSizeInput").value);
 	let peakSpeed = 0;
 	let currentSum = 0;
 	let timeLog = playfield.timeLog;
 	let heightData = [];
 	let speedSVGData = "";
+	let bucketsSVGData = "";
 	let i = -segmentSize;
+	let timeBuckets = []; // Tetriminoes in each bucket.
+	let highestBucket = -1, lowestBucket = 0, maxBucket = -1;
+
 	for (let dataPoint of timeLog) {
 		currentSum += dataPoint;
 		if (i > -2) {
@@ -61,18 +67,62 @@ async function analyze() {
 			peakSpeed = Math.max(speed, peakSpeed);
 			oldSpeed = speed;
 		}
+		let bucket = Math.floor(dataPoint / 100);
+		if (highestBucket == -1) {
+			timeBuckets.push(1);
+			highestBucket = lowestBucket = bucket;
+		} else {
+			while (bucket < lowestBucket) { timeBuckets.unshift(0); lowestBucket--; }
+			while (bucket > highestBucket) { timeBuckets.push(0); highestBucket++; }
+			timeBuckets[bucket - lowestBucket]++;
+		}
 		i++;
 	}
 	let horizontalPadding = i / 200, verticalPadding = peakSpeed / 200;
-	for (let j = 0; j <= peakSpeed + verticalPadding; j++) speedSVGData += `<line class="unit ${j % 5 == 0}" x1=0 x2=${i} y1=${peakSpeed-j} y2=${peakSpeed-j}></line>`
+	for (let j = 0; j <= peakSpeed + verticalPadding; j++) speedSVGData += `<line class="unit ${j % 5 == 0}" x1=0 x2=${i} y1=${peakSpeed - j} y2=${peakSpeed - j} />`;
 	i = -1;
 	let oldHeight = 0;
 	for (let height of heightData) {
 		height = peakSpeed - height;
-		if (i > -1) speedSVGData += `<line class=main x1=${i} x2=${i + 1} y1=${oldHeight} y2=${height}></line>`;
+		if (i > -1) speedSVGData += `<line class=main x1=${i} x2=${i + 1} y1=${oldHeight} y2=${height} />`;
 		oldHeight = height;
 		i++;
 	}
+	speedSVGData += `
+		<line class=average x1=0 x2=${i} y1=${peakSpeed - averageSpeed} y2=${peakSpeed - averageSpeed} />
+		<rect class=tooltip x=0 y=${peakSpeed - averageSpeed - 0.1} width=${i} height=0.2><title>Average tetrimino rate:&#10;${formatNumber(averageSpeed)} / second</title></rect>
+	`;
+	let speedChartSize = i;
+
+	function formatBucketsLabel(value) {
+		let lastDigit = value % 10;
+		return Math.floor(value / 10) + (lastDigit == 0 ? '"' : `,${lastDigit}"`);
+	}
+	i = 0; currentBucket = lowestBucket;
+	for (bucket of timeBuckets) {
+		if (bucket != 0) bucketsSVGData += `<rect class=bucket x=${i} y=${-bucket} width=14 height=${bucket}><title>${formatBucketsLabel(currentBucket)} ÷ ${formatBucketsLabel(currentBucket + 1)}&#10;${bucket} tetrimino${bucket == 1 ? "" : "es"}</title></rect>`;
+		currentBucket++;
+		i += 15;
+		maxBucket = Math.max(maxBucket, bucket);
+	}
+	let bucketsChartWidth = (highestBucket - lowestBucket + 1) * 15 - 1;
+	for (let j = 0; j <= maxBucket; j += 10) bucketsSVGData += `<line class="unit ${j % 50 == 0}" x1=0 x2=${bucketsChartWidth} y1=${-j} y2=${-j} />`;
+	let averageTetriminoTime = playfield.actionTime / playfield.tetriminoes;
+	let bucketAverageX = (averageTetriminoTime - lowestBucket * 100) * 0.15;
+	bucketsSVGData += `
+		<line class=average x1=${bucketAverageX} x2=${bucketAverageX} y1=${-maxBucket} y2=0 />
+		<rect class=tooltip x=${bucketAverageX - 1} y=${-maxBucket} width=2 height=${maxBucket}><title>Average tetrimino time:&#10;${formatDurationWithMilliseconds(averageTetriminoTime / 1000)}</title></rect>
+	`;
+
+	/* Buckets chart labels, not working well currently as there is no way to keep the text size from scaling along with the SVG.
+	let bucketsLabelsSVGData = "";
+	let maxBucketLabel = Math.floor((highestBucket - 1) / 10) + 1;
+	for (let j = Math.floor(lowestBucket / 10) + 1; j < maxBucketLabel; j++)
+		bucketsLabelsSVGData += `<text class=bucketsLabel x=${(j * 10 - lowestBucket) * 15} y=0.9 text-anchor=middle>${j}"</text>`;
+	bucketsLabelsSVGData += `
+		<text class=bucketsLabel x=0 y=0.9 text-anchor=start>${formatBucketsLabel(lowestBucket)}</text>
+		<text class=bucketsLabel x=${bucketsChartWidth} y=0.9 text-anchor=end>${formatBucketsLabel(highestBucket+1)}</text>
+	`;*/
 
 	let boardString = "";
 	let lastID = playfield.lastPlacedBoardID;
@@ -81,6 +131,53 @@ async function analyze() {
 		for (let color of playfield.placedBoard[i]) boardString += `<td class="minoCell minoCell-${color}"></td>`;
 		boardString += "</tr>";
 	}
+	
+	let actionTable = "";
+	let lastWasReward = true;
+	let maxActionTime = 0;
+	for (let action of playfield.actionLog) if (action.type == "Hold" || action.type == "Tetrimino") maxActionTime = Math.max(maxActionTime, action.time);
+	let totalActionTime = 0;
+	let totalActionScore = 0;
+	let totalRewardScore = 0;
+	for (let action of playfield.actionLog) {
+		switch (action.type) {
+			case "Tetrimino":
+			case "Hold":
+				if (!lastWasReward) actionTable += "<td></td><td></td>";
+				actionTable += `
+					</tr><tr>
+					<td>${formatDurationWithMilliseconds(action.timestamp / 1000)}</td>
+					<td>${action.tetrimino}</td>
+					<td>${formatDurationWithMilliseconds(action.time / 1000)}</td>
+					<td><div class=actionTimeRect style="width: ${action.time / maxActionTime * 100}px;"></div></td>
+					<td>${action.score}</td>
+				`;
+				lastWasReward = false;
+				totalActionTime += action.time;
+				totalActionScore += action.score;
+				break;
+			case "Reward":
+				if (lastWasReward) actionTable += `</tr><tr><td>${formatDurationWithMilliseconds(action.timestamp / 1000)}</td><td></td><td></td><td></td><td></td>`;
+				actionTable += `
+					<td>${action.rewardName}</td>
+					<td>${action.rewardAmount}</td>
+				`;
+				totalRewardScore += action.rewardAmount;
+				lastWasReward = true;
+				break;
+		}
+	}
+	actionTable = actionTable.substring(5) + `</tr>
+		<tr class=actionTableTotalRow>
+			<td>${formatDurationWithMilliseconds(oldTime / 1000)}</td>
+			<td></td>
+			<td>${formatDurationWithMilliseconds(totalActionTime / 1000)}</td>
+			<td></td>
+			<td>${totalActionScore}</td>
+			<td></td>
+			<td>${totalRewardScore}</td>
+		</tr>
+	`;
 
 	document.getElementById("report").innerHTML = `
 		<h1>Replay report</h1>
@@ -111,7 +208,7 @@ async function analyze() {
 			</tr>
 			<tr>
 				<td>Tetriminoes per second:</td>
-				<td>${formatNumber(playfield.tetriminoes / (playfield.actionTime / 1000))}</td>
+				<td>${formatNumber(averageSpeed)}</td>
 			</tr>
 			<tr>
 				<td>Score:</td>
@@ -177,11 +274,8 @@ async function analyze() {
 		<h2>Details</h2>
 		<p><b>Speed chart</b> (speed segment size: ${segmentSize})</p>
 		<div style="display: flex">
-			<svg style="flex-grow: 1; height: 300px;" preserveAspectRatio=none viewbox="${-horizontalPadding} ${-verticalPadding} ${i + 2 * horizontalPadding} ${peakSpeed + 2 * verticalPadding}">
+			<svg style="flex-grow: 1; height: 300px;" preserveAspectRatio=none viewbox="${-horizontalPadding} ${-verticalPadding} ${speedChartSize + 2 * horizontalPadding} ${peakSpeed + 2 * verticalPadding}">
 				<style>
-					* {
-						vector-effect: non-scaling-stroke;
-					}
 					.unit {
 						stroke-width: 1px;
 						shape-rendering: crispEdges;
@@ -192,18 +286,60 @@ async function analyze() {
 					.unit.true {
 						stroke: rgba(0, 0, 0, 0.7);
 					}
+					.average {
+						stroke: black;
+						stroke-width: 1px;
+						stroke-dasharray: 5, 5;
+					}
 					.main {
 						stroke: black;
 						stroke-width: 2px;
 						stroke-linecap: round;
 					}
+					.tooltip {
+						fill: rgba(0, 0, 0, 0);
+					}
 				</style>
 				${speedSVGData}
+			</svg>
+		</div>
+		<p><b>Tetrimino time distribution</b></p>
+		<div style="display: flex">
+			<svg style="flex-grow: 1; height: 300px;" preserveAspectRatio=none viewBox="0 ${-maxBucket} ${bucketsChartWidth} ${maxBucket + 1}">
+				<style>
+					* {
+						vector-effect: non-scaling-stroke;
+					}
+					.bucket {
+						fill: rgba(0, 0, 0, 0.6);
+					}
+				</style>
+				${bucketsSVGData}
 			</svg>
 		</div>
 		<p><b>Placed field</b></p>
 		<div>
 			<table>${boardString}</table>
 		</div>
+		<p><details>
+			<summary><b>Action log</b></summary>
+			<table class=actionTable>
+				<tr class=actionTableHeader>
+					<th>Timestamp</th>
+					<th colspan=4>Action</th>
+					<th colspan=2>Reward</th>
+				</tr>
+				<tr class=actionTableSubheader>
+					<td></td>
+					<td>Tetrimino</td>
+					<td>Time</td>
+					<td></td>
+					<td>Score</td>
+					<td>Name</td>
+					<td>Score</td>
+				</tr>
+				${actionTable}
+			</table>
+		</details></p>
 	`;
 }

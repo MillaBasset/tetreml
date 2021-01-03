@@ -20,17 +20,11 @@
 				border-spacing: 0px;
 			}
 
-			.statsTable td {
-				padding-right: 0.5em;
+			th {
+				font-weight: bold;
+				border: 1px solid black;
+				text-align: center;
 			}
-
-			.statsTable td.right {
-				text-align: right;
-			}
-			
-			.statsTable tr:hover {
-					background-color: rgba(0, 0, 0, 0.1);
-				}
 
 			h1, h2, h3 {
 				font-family: 'Segoe UI Light', Helvetica, Arial, sans-serif;
@@ -46,6 +40,7 @@
 			h4 {
 				margin-top: 0px;
 			}
+
 			hr {
 				border-color: black;
 			}
@@ -69,6 +64,53 @@
 
 			button {
 				display: inline;
+			}
+
+			summary {
+				-webkit-user-select: none;
+				width: fit-content;
+			}
+
+			.statsTable td {
+				padding-right: 0.5em;
+			}
+
+			.statsTable td.right {
+				text-align: right;
+			}
+			
+			.statsTable tr:hover, .actionTable tr:hover {
+				background-color: rgba(0, 0, 0, 0.1);
+			}
+
+			.actionTable td:first-child {
+				border-left: 1px solid black;
+				border-right: 1px solid black;
+			}
+
+			.actionTable td:nth-last-child(3), .actionTable td:last-child {
+				border-right: 1px solid black;
+			}
+
+			.actionTable tr:last-child, .actionTable tr:nth-last-child(2) {
+				border-bottom: 1px solid black;
+			}
+
+			.actionTable td:first-child, .actionTable td:nth-child(3), .actionTable td:nth-child(5), .actionTable td:nth-child(7) {
+				text-align: right;
+			}
+
+			.actionTimeRect {
+				height: 12px;
+				background: rgba(0, 0, 0, 0.6);
+			}
+
+			.actionTableTotalRow {
+				font-weight: bold;
+			}
+
+			.actionTable td, .actionTable .th {
+				padding: 1px 5px;
 			}
 
 			.minoCell {
