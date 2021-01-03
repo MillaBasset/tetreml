@@ -157,7 +157,7 @@ class ReplayPlayfield {
 	lock(timestamp) {
 		if (this.current == null) return;
 
-		this.timeLog.push(timestamp - this.lastTimeMark);
+		this.timeLog.push(timestamp - this.lastTetriminoTime);
 		this.actionLog.push({
 			timestamp: timestamp,
 			type: "Tetrimino",
