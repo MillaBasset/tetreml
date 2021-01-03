@@ -157,7 +157,7 @@ async function analyze() {
 				totalActionScore += action.score;
 				break;
 			case "Reward":
-				if (lastWasReward) actionTable += `</tr><tr><td>${formatDurationWithMilliseconds(action.timestamp / 1000)}</td><td></td><td></td><td></td><td></td>`;
+				if (lastWasReward) actionTable += `</tr><tr><td></td><td></td><td></td><td></td><td></td>`;
 				actionTable += `
 					<td>${action.rewardName}</td>
 					<td>${action.rewardAmount}</td>
