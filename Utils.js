@@ -41,6 +41,7 @@ function formatNumber(number, decimalDigits = 3) {
 
 const formatKeycodeNames = {
 	null: "[None.]",
+	undefined: "[None.]",
 	Enter: "\u21B5",
 	Escape: "Esc",
 	Space: "\u2423",

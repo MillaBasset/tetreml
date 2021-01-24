@@ -74,7 +74,7 @@ setVolume(localStorage.tetrisVolume == undefined ? 10 : Number.parseInt(localSto
 
 function loadControls() {
 	keyMapping = {};
-	for (let key of ["left", "right", "softDrop", "hardDrop", "rotateClockwise", "rotateCounterClockwise", "hold", "esc", "quitModifier", "volumeUp", "volumeDown"]) {
+	for (let key of ["left", "right", "softDrop", "hardDrop", "rotateClockwise", "rotateCounterClockwise", "hold", "esc", "quitModifier", "volumeUp", "volumeDown", "zone"]) {
 		keyMapping[configuredControls[key]] = key;
 		keyNames[key] = formatKeycode(configuredControls[key]);
 		buttonStatus[key] = false;
@@ -90,7 +90,8 @@ function onControlsSave(controlsList) {
 		rotateCounterClockwise: controlsList[1][5][1],
 		rotateClockwise: controlsList[1][6][1],
 		hold: controlsList[1][7][1],
-		reset: controlsList[1][8][1],
+		zone: controlsList[1][8][1],
+		reset: controlsList[1][9][1],
 		esc: controlsList[0][1][1],
 		quitModifier: controlsList[0][2][1],
 		volumeDown: controlsList[0][3][1],
@@ -454,6 +455,7 @@ class MainScreen {
 							["Rotate counterclockwise", configuredControls.rotateCounterClockwise],
 							["Rotate clockwise", configuredControls.rotateClockwise],
 							["Hold", configuredControls.hold],
+							["Activate zone (relax)", configuredControls.zone],
 							["Reset current tetrimino (sandbox)", configuredControls.reset]
 						]
 					], onControlsSave));

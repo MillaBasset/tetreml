@@ -19,8 +19,8 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	}
 
 	processGameLogic(timePassed) {
-		if (this.state == GameState.playing && !this.inZone && buttonStatus.hardDrop && buttonStatus.quitModifier && this.zoneTime != 0) {
-			buttonStatus.hardDrop = false;
+		if (this.state == GameState.playing && !this.inZone && buttonStatus.zone && this.zoneTime != 0) {
+			buttonStatus.zone = false;
 			this.inZone = true;
 			this.zoneLines = 0;
 			this.shouldPlayClearSounds = false;

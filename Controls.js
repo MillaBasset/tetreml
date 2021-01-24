@@ -11,6 +11,7 @@ const singleplayerControlsMapping = {
 	rotateClockwise: "KeyY",
 	hold: "Space",
 	reset: "KeyR",
+	zone: "Digit5",
 	esc: "Escape",
 	quitModifier: "KeyP",
 	volumeDown: "Minus",

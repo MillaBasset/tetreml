@@ -1,4 +1,4 @@
-const buttonList = ["left", "right", "softDrop", "hardDrop", "rotateCounterClockwise", "rotateClockwise"];
+const buttonList = ["left", "right", "softDrop", "hardDrop", "rotateCounterClockwise", "rotateClockwise", "zone"];
 const rewardNames = [
 	"Single",
 	"Double",
