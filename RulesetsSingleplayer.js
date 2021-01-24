@@ -121,6 +121,8 @@ class PlayScreenBase {
 			if (a[2] - b[2]) return a[2] - b[2];
 			else return a[0] - b[0];
 		};
+
+		this.shouldPlayClearSounds = true;
 	}
 
 	init() {
@@ -142,11 +144,12 @@ class PlayScreenBase {
 		if (buttonStatus.quitModifier && buttonStatus.hold && (this.state == GameState.paused || this.state == GameState.over)) this.optionsScreen.openGameScreen();
 
 		if (this.state == GameState.playing) {
+			let shouldAfterClear = this.clearTime > 0;
 			this.clearTime -= timePassed;
 			let afterClearTime = this.playTime;
 			let fallInterval = this.getFallInterval();
 			let iStart = fallInterval == 0 ? this.playTime : this.playTime + (fallInterval - this.fallTime) % fallInterval;
-			if (!this.isReplay && this.clearTime < 1 && this.current == null) {
+			if (!this.isReplay && shouldAfterClear && this.clearTime < 1) {
 				afterClearTime = latestTime + this.clearTime;
 				this.afterClear(afterClearTime);
 				iStart = afterClearTime + fallInterval;
@@ -155,7 +158,7 @@ class PlayScreenBase {
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.isNewLevel && this.clearTime == 0) this.isNewLevel = false;
 			if (!this.isReplay) {
-				if (this.current != null) if (this.current.canFall(this.board)) {
+				if (this.isMinoControllable()) if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
 						if (i >= afterClearTime) this.actionQueue.push([0, "fall", i]);
 					}
@@ -189,13 +192,13 @@ class PlayScreenBase {
 					}
 				} else this.buttonHardDrop = false;
 				if (buttonStatus.rotateClockwise) {
-					if (this.current != null && !this.buttonRotateClockwise) {
+					if (this.isMinoControllable() && !this.buttonRotateClockwise) {
 						this.actionQueue.push([4, "rotateClockwise", latestTime]);
 						this.buttonRotateClockwise = true;
 					}
 				} else this.buttonRotateClockwise = false;
 				if (buttonStatus.rotateCounterClockwise) {
-					if (this.current != null && !this.buttonRotateCounterClockwise) {
+					if (this.isMinoControllable() && !this.buttonRotateCounterClockwise) {
 						this.actionQueue.push([5, "rotateCounterClockwise", latestTime]);
 						this.buttonRotateCounterClockwise = true;
 					}
@@ -205,7 +208,7 @@ class PlayScreenBase {
 						if (buttonStatus.quitModifier) {
 							this.pause(false);
 							this.optionsScreen.openGameScreen();
-						} else if (this.current != null) {
+						} else if (this.isMinoControllable()) {
 							this.actionQueue.push([6, "doHold", latestTime]);
 							this.buttonHold = true;
 						}
@@ -341,13 +344,17 @@ class PlayScreenBase {
 		} else this.buttonVolumeDown = false;
 	}
 
+	isMinoControllable() {
+		return this.clearTime == 0 && this.current != null;
+	}
+
 	processInstaFall(timestamp) {
-		if (this.isReplay || this.state != GameState.playing || this.current == null || this.getFallInterval() != 0) return;
+		if (this.isReplay || this.state != GameState.playing || !this.isMinoControllable() || this.getFallInterval() != 0) return;
 		while (this.current.canFall(this.board)) this.fall(timestamp);
 	}
 
 	addKeypress() {
-		if (this.current != null) this.keypresses++;
+		if (this.isMinoControllable()) this.keypresses++;
 	}
 
 	isMinoVisible(x, y) {
@@ -561,9 +568,14 @@ class PlayScreenBase {
 				ctx.fillText("GAME OVER", 320, 40);
 				if (this.isReplay) break;
 				ctx.font = "12px Tetreml";
-				ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 318);
-				ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " to save replay.", 320, 333);
-				ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " to restart.", 320, 348);
+				if (this.doSaveReplay) {
+					ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 318);
+					ctx.fillText(keyNames.quitModifier + "+" + keyNames.esc + " to save replay.", 320, 333);
+					ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " to restart.", 320, 348);
+				} else {
+					ctx.fillText("Press " + keyNames.esc + " to continue.", 320, 333);
+					ctx.fillText(keyNames.quitModifier + "+" + keyNames.hold + " to restart.", 320, 348);
+				}
 				break;
 		}
 		ctx.globalAlpha = 1;
@@ -606,21 +618,21 @@ class PlayScreenBase {
 		for (let line of this.clearedLines) {
 			for (let i = 0; i < 10; i++) {
 				this.board[i].splice(line, 1);
-				this.board[i] = [undefined].concat(this.board[i]);
+				this.board[i].unshift(undefined);
 			}
 			this.minos.splice(line, 1);
 			this.minos.unshift(0);
 		}
 		// Ensure that nextTetrimino always runs.
 		if (this.isReplay) this.clearTime = 0;
-		this.nextTetrimino();
+		if (this.current == null) this.nextTetrimino();
 		this.isClearing = false;
-		this.clearedLines = [];
+		//this.clearedLines = [];
 		this.recordAction("afterClear", time);
 	}
 
 	fall(timestamp) {
-		if (this.current == null || !this.current.canFall(this.board)) return false;
+		if (!this.isMinoControllable() || !this.current.canFall(this.board)) return false;
 		this.current.onMove();
 		if (++this.current.y > this.maxY) {
 			this.lockTime = 0;
@@ -636,7 +648,7 @@ class PlayScreenBase {
 	}
 
 	lockDown(timestamp) {
-		if (this.current == null) return;
+		if (!this.isMinoControllable()) return;
 		this.recordAction("lockDown", timestamp);
 		this.lock(false, timestamp);
 		if (!this.isSeeking) sfx.lock.play();
@@ -644,7 +656,7 @@ class PlayScreenBase {
 	}
 
 	move(offset, isInitialPress, timestamp) {
-		if (this.state == GameState.playing && this.current != null) {
+		if (this.state == GameState.playing && this.isMinoControllable()) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
 				if (!this.isSeeking) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
@@ -658,12 +670,12 @@ class PlayScreenBase {
 				return true;
 			}
 		}
-		this.wasNull = this.current == null;
+		this.wasNull = !this.isMinoControllable();
 		return false;
 	}
 
 	rotateClockwise(timestamp) {
-		if (this.current != null) {
+		if (this.isMinoControllable()) {
 			let inAir = this.current.canFall(this.board);
 			if (!this.current.rotateClockwise(this.board)) return;
 			this.addKeypress();
@@ -675,7 +687,7 @@ class PlayScreenBase {
 	}
 
 	rotateCounterClockwise(timestamp) {
-		if (this.current != null) {
+		if (this.isMinoControllable()) {
 			let inAir = this.current.canFall(this.board);
 			if (!this.current.rotateCounterClockwise(this.board)) return;
 			this.addKeypress();
@@ -687,7 +699,7 @@ class PlayScreenBase {
 	}
 
 	softDrop(timestamp) {
-		if (this.current != null && this.current.canFall(this.board)) {
+		if (this.isMinoControllable() && this.current.canFall(this.board)) {
 			if (++this.current.y > this.maxY) {
 				this.lockTime = 0;
 				this.moveCounter = 0;
@@ -716,7 +728,7 @@ class PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (this.current == null) return;
+		if (!this.isMinoControllable()) return;
 		let count = 0;
 		while (this.current.canFall(this.board)) {
 			if (!this.isSeeking && Math.random() < 0.25) this.spawnParticle();
@@ -739,7 +751,7 @@ class PlayScreenBase {
 	}
 
 	doHold(timestamp) {
-		if (this.current != null && !this.holdSwitched) {
+		if (this.isMinoControllable() && !this.holdSwitched) {
 			this.oldHold = this.hold;
 			this.hold = this.current;
 			if (this.oldHold == null) this.nextTetrimino(); else {
@@ -764,7 +776,7 @@ class PlayScreenBase {
 	}
 	
 	lock(isDrop, timestamp) {
-		if (this.current == null) return;
+		if (!this.isMinoControllable()) return;
 		let toClear = [];
 		this.tetriminoes++;
 		let tSpinType = this.current.getTSpinType(this.board);
@@ -779,7 +791,7 @@ class PlayScreenBase {
 			return -1;
 		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
-		if (!this.isSeeking && tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
+		if (!this.isSeeking && this.shouldPlayClearSounds && tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		this.clearLines(toClear);
 		if (toClear.length != 0) {
@@ -801,7 +813,10 @@ class PlayScreenBase {
 	}
 
 	clearLines(toClear) {
-		if (toClear.length == 0) return;
+		if (toClear.length == 0) {
+			this.clearedLines = [];
+			return;
+		}
 		this.clearedLines = toClear.sort((a, b) => a - b);
 		this.stackMinY += this.clearedLines.length;
 		this.clearEffectTime = 0;
@@ -814,7 +829,7 @@ class PlayScreenBase {
 		}
 		this.lines += toClear.length;
 		this.clearTime = 500;
-		if (!this.isSeeking) switch (toClear.length) {
+		if (!this.isSeeking && this.shouldPlayClearSounds) switch (toClear.length) {
 			case 1: sfx.single.play(); break;
 			case 2: sfx.double.play(); break;
 			case 3: sfx.triple.play(); break;
@@ -824,7 +839,7 @@ class PlayScreenBase {
 			this.score += 1000;
 			this.clearTime = 1000;
 			this.allClearTime = 1000;
-			if (!this.isSeeking) sfx.allClear.play();
+			if (!this.isSeeking && this.shouldPlayClearSounds) sfx.allClear.play();
 		}
 		this.current = null;
 		this.isClearing = true;
@@ -842,13 +857,13 @@ class PlayScreenBase {
 				this.rewardAmount *= 1.5;
 				if (!this.isSeeking) {
 					this.rewardName += " BTB";
-					sfx.backToBack.play();
+					if (this.shouldPlayClearSounds) sfx.backToBack.play();
 				}
 			} else this.backToBack = true;
 		} else this.backToBack = this.backToBack && reward > 2;
 		if (reward != 4 && reward != 7 && ++this.combo > 0) {
 			this.rewardAmount += this.getComboBonus();
-			if (!this.isSeeking) sfx.combo[Math.min(10, this.combo)].play();
+			if (!this.isSeeking && this.shouldPlayClearSounds) sfx.combo[Math.min(10, this.combo)].play();
 		}
 		this.score += this.rewardAmount;
 	}
@@ -1394,7 +1409,7 @@ class GameScreenNES extends PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (this.current == null) return;
+		if (!this.isMinoControllable()) return;
 		this.lockScoreStartLine = this.getBaseline();
 		let res = super.hardDrop(timestamp);
 		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;
@@ -1567,7 +1582,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (this.current == null) return;
+		if (!this.isMinoControllable()) return;
 		this.lockScoreStartLine = this.getBaseline();
 		let res = super.hardDrop(timestamp);
 		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;

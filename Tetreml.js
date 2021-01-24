@@ -50,7 +50,8 @@ const sfx = {
 	bell: new SFX("bell", gainNode),
 	grandMasterLevelUp: new SFX("grandMasterLevelUp", gainNode),
 	level999Trigger: new SFX("level999", gainNode),
-	garbageRise: new SFX("garbageRise", gainNode)
+	garbageRise: new SFX("garbageRise", gainNode),
+	zoneEnd: new SFX("zoneEnd", gainNode)
 };
 
 loadSoundEffectConfig(() => {
@@ -129,8 +130,8 @@ const zeroToNine = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // For generating handicapped
 class OptionsScreen {
 	constructor(parent) {
 		this.parent = parent;
-		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Shirase", "Endless (Tengen-like scoring)", "Endless (NES-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)"];
-		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenShirase, GameScreenTengen, GameScreenNES, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute];
+		this.modeNames = ["Marathon – Fixed goal", "Marathon – Variable goal", "Marathon – tetris.com", "Grand master", "Shirase", "Endless (Tengen-like scoring)", "Endless (NES-like scoring)", "Endless (guideline scoring)", "40-line (Sprint)", "2-minute (Ultra)", "Relax"];
+		this.modeClasses = [GameScreenGuidelineMarathon, GameScreenGuidelineMarathonVariable, GameScreenGuidelineMarathonTetrisDotCom, GameScreenTGM, GameScreenShirase, GameScreenTengen, GameScreenNES, GameScreenGuidelineEndless, GameScreenGuideline40Line, GameScreenGuideline2Minute, GameScreenRelax];
 		this.optionEnablingMap = [
 			[true, false, true, false, true, true, true, true, true],
 			[true, false, true, false, true, true, true, true, true],
@@ -140,6 +141,7 @@ class OptionsScreen {
 			[true, true, true, true, true, true, true, true, true],
 			[true, true, true, true, true, true, true, true, true],
 			[true, true, true, true, true, true, true, true, true],
+			[true, false, false, false, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true]
 		];
@@ -256,17 +258,17 @@ class OptionsScreen {
 	}
 
 	setMode(mode) {
-		this.mode = Math.max(0, Math.min(9, mode));
+		this.mode = Math.max(0, Math.min(10, mode));
 		this.setStartingLevel(this.startingLevel);
 	}
 
 	handleModeChange(keycode) {
 		switch (keycode) {
 			case "ArrowLeft":
-				this.setMode((this.mode + 9) % 10);
+				this.setMode((this.mode + 10) % 11);
 				break;
 			case "ArrowRight":
-				this.setMode((this.mode + 1) % 10);
+				this.setMode((this.mode + 1) % 11);
 				break;
 		}
 	}

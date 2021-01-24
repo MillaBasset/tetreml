@@ -315,7 +315,7 @@ class PlayScreen {
 						};
 						if (this.hold != null) page.comment = `#Q=[${this.hold.code}](${this.current.code})`;
 						this.fumenPagesForCurrent.push(page);
-						this.pushGIFFrame();
+						this.pushGIFFrame(false);
 					} else {
 						let fell = false;
 						while (this.current.canFall(this.board)) {
@@ -751,7 +751,7 @@ class PlayScreen {
 		this.currentFumenPageDataCart.flags = { lock: true };
 	}
 
-	pushGIFFrame() {
+	pushGIFFrame(showClearing) {
 		let boardString = "";
 		let x;
 		for (let y = 18; y < 40; y++) for (x = 0; x < 10; x++) {
@@ -760,7 +760,8 @@ class PlayScreen {
 		}
 		this.gifFrames.push({
 			board: boardString,
-			current: this.current ? this.current.code + String.fromCharCode(this.current.state) + String.fromCharCode(this.current.x) + String.fromCharCode(this.current.y-18) : null
+			current: this.current ? this.current.code + String.fromCharCode(this.current.state) + String.fromCharCode(this.current.x) + String.fromCharCode(this.current.y-18) : null,
+			showClearing
 		});
 	}
 
@@ -779,7 +780,7 @@ class PlayScreen {
 		for (let frame of this.gifFrames) {
 			imageRendererContext.clearRect(0, 0, 160, 352);
 			imageRendererContext.drawImage(gifBackground, 0, 0);
-			const { board, current } = frame;
+			const { board, current, showClearing } = frame;
 			const minoes = [];
 			imageRendererContext.globalAlpha = 0.8;
 			for (let y = 0; y < 22; y++) {
@@ -801,7 +802,7 @@ class PlayScreen {
 					let row = y + mino[1];
 					if (row > -1) {
 						imageRendererContext.drawImage(sprite, 16 * mino[2], 16 * tetrimino.textureY, 16, 16, 16 * (x + mino[0]), 16 * row, 16, 16);
-						if (++minoes[row] > 9) {
+						if (showClearing && ++minoes[row] > 9) {
 							imageRendererContext.globalAlpha = 0.2;
 							imageRendererContext.fillRect(0, 16 * row, 160, 16);
 							imageRendererContext.globalAlpha = 1;
@@ -909,7 +910,7 @@ class PlayScreen {
 		this.pushFumenPage();
 		this.prepareFumenPageDataCart();
 		this.fumenPagesForCurrent = [];
-		this.pushGIFFrame();
+		this.pushGIFFrame(true);
 		let toClear = [];
 		let tSpinType = this.current.getTSpinType(this.board);
 		for (let mino of this.current.getLockPositions()) {

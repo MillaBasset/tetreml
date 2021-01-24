@@ -1,4 +1,4 @@
-// Version: 4
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -80,6 +80,7 @@ self.addEventListener('install', function (event) {
 		'SFX/-34.mp3',
 		'SFX/-35.mp3',
 		'SFX/-36.mp3',
+		'SFX/-37.mp3',
 		'SFX/sfxconfig.json',
 
 		'Textures/GIF background.png',
@@ -107,6 +108,7 @@ self.addEventListener('install', function (event) {
 		'RulesetsSingleplayer.js',
 		'SingleplayerShirase.js',
 		'SingleplayerTGM.js',
+		'SingleplayerRelax.js',
 		'SoundHandler.js',
 		'Tetreml.html',
 		'Tetreml.js',

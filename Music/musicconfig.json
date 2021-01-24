@@ -62,6 +62,9 @@
 	"2Minute_opening": 0,
 	"2Minute_loop": -4,
 
+	"relax_opening": 0,
+	"relax_loop": 0,
+
 	"twoPlayer_level1Opening": -1,
 	"twoPlayer_level1Loop": -2,
 	"twoPlayer_level6Trigger": -3,
