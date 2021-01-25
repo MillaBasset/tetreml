@@ -787,6 +787,7 @@ class PlayScreenBase {
 		this.totalMinos += 4;
 		let baseline = this.getBaseline();
 		if (baseline < 20) {
+			this.current = null;
 			this.gameOver();
 			return -1;
 		}
@@ -919,6 +920,8 @@ class PlayScreenBase {
 
 	checkGameOver() {
 		if (this.current.checkCollision(this.board)) {
+			this.queue.unshift(this.current);
+			this.current = null;
 			this.gameOver();
 			return;
 		}

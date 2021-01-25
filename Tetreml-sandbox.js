@@ -233,7 +233,7 @@ class PlayScreen {
 				for (let line of this.clearedLines) {
 					for (let i = 0; i < 10; i++) {
 						this.board[i].splice(line, 1);
-						this.board[i] = [undefined].concat(this.board[i]);
+						this.board[i].unshift(undefined);
 					}
 					this.minos.splice(line, 1);
 					this.minos.unshift(0);
@@ -919,6 +919,7 @@ class PlayScreen {
 		}
 		let baseline = this.current.y + this.current.baseY[this.current.state];
 		if (baseline < 20) {
+			this.current = null;
 			this.gameOver();
 			return;
 		}
@@ -997,6 +998,8 @@ class PlayScreen {
 
 	checkGameOver() {
 		if (this.current.checkCollision(this.board)) {
+			this.queue.unshift(this.current);
+			this.current = null;
 			this.gameOver();
 			return;
 		}

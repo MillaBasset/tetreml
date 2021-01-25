@@ -82,8 +82,6 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 
 	gameOver() {
 		if (this.inZone) {
-			this.queue.unshift(this.current);
-			this.current = null;
 			this.endZone();
 		} else {
 			super.gameOver();
@@ -161,12 +159,17 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				ctx.textBaseline = "middle";
 				let x = this.gridX + 5 * this.minoSize;
 				let y = this.gridY + (22 - this.oldZoneLines / 2) * this.minoSize;
-				ctx.globalAlpha = 1 - Math.max(0, Math.min(1, (this.zoneEndAnimationTime - 500) / 1000));
-				ctx.strokeText(this.oldZoneLines, x, y);
-				ctx.fillText(this.oldZoneLines, x, y);
+				ctx.save();
+				let newScale = scale * (1 + this.bouncy(this.zoneDisplayAnimationTime / 150));
+				ctx.setTransform(newScale, 0, 0, newScale, x * scale, y * scale);
+				ctx.globalAlpha = (1 - this.zoneDisplayAnimationTime / 150) * (1 - Math.max(0, Math.min(1, (this.zoneEndAnimationTime - 500) / 1000)));
+				ctx.strokeText(this.oldZoneLines, 0, 0);
+				ctx.fillText(this.oldZoneLines, 0, 0);
+				ctx.restore();
 				ctx.textBaseline = "alphabetic";
 				ctx.globalAlpha = 1;
 				this.zoneEndAnimationTime += timePassed;
+				this.zoneDisplayAnimationTime = Math.max(0, this.zoneDisplayAnimationTime - timePassed);
 			}
 		}
 	}
