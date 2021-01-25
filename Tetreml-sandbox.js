@@ -918,19 +918,18 @@ class PlayScreen {
 			if (++this.minos[mino[1]] == 10) toClear.push(mino[1]);
 		}
 		let baseline = this.current.y + this.current.baseY[this.current.state];
+		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
+		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
+		if (tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
+		if (toClear.length != 0) {
+			this.clearLines(toClear);
+		}
 		if (baseline < 20) {
 			this.current = null;
 			this.gameOver();
 			return;
 		}
-		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
-		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
-		if (tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
-		if (toClear.length != 0) {
-			this.clearLines(toClear)
-		} else {
-			this.nextTetrimino();
-		}
+		if (toClear.length == 0) this.nextTetrimino();
 		if (this.state != GameState.over && this.maxTetriminoes && !(--this.tetriminoesLeft)) this.gameOver();
 
 		if (this.clearTime != 0) this.buttonRotateClockwise = this.buttonRotateCounterClockwise = this.buttonHold = false; // Trigger the IRS.

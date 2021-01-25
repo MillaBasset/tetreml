@@ -786,11 +786,6 @@ class PlayScreenBase {
 		}
 		this.totalMinos += 4;
 		let baseline = this.getBaseline();
-		if (baseline < 20) {
-			this.current = null;
-			this.gameOver();
-			return -1;
-		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		if (!this.isSeeking && this.shouldPlayClearSounds && tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
 		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
@@ -801,9 +796,14 @@ class PlayScreenBase {
 		} else {
 			if (tSpinType) this.stats[0][1]++;
 			this.combo = -1;
-			this.nextTetrimino();
 		}
-
+		if (baseline < 20) {
+			this.current = null;
+			this.gameOver();
+			return -1;
+		}
+		if (toClear.length == 0) this.nextTetrimino();
+		
 		if (!this.isReplay && !this.lineClearDelayEnabled && this.clearTime > 0) {
 			this.clearTime = 0;
 			this.afterClear(timestamp);

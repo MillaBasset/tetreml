@@ -1110,11 +1110,6 @@ class Playfield {
 		}
 		this.totalMinos += 4;
 		let baseline = this.current.y + this.current.baseY[this.current.state];
-		if (baseline < 20) {
-			this.current = null;
-			this.parent.gameOver(this.player);
-			return;
-		}
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		this.score += this.scoring.getLockScore(baseline, this.parent.level, isDrop);
 		if (tSpinType) this.playSfx(toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin);
@@ -1123,9 +1118,15 @@ class Playfield {
 			this.clearLines(toClear);
 		} else {
 			this.combo = -1;
-			this.nextTetrimino();
 		}
 		this.parent.updateWarning();
+		
+		if (baseline < 20) {
+			this.current = null;
+			this.parent.gameOver(this.player);
+			return;
+		}
+		if (toClear.length == 0) this.nextTetrimino();
 
 		if (!this.lineClearDelayEnabled && this.clearTime > 0) {
 			this.clearTime = 0;

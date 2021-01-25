@@ -102,7 +102,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		ctx.textAlign = "right";
 		ctx.fillText("" + this.lines, 632, 72);
 		ctx.fillText("20\"", 632, 92);
-		if (!this.inZone) ctx.globalAlpha = 0.4;
+		if (!this.inZone) ctx.globalAlpha = 0.6;
 		ctx.fillRect(485, 96, 147 / 20000 * this.zoneTime, 10);
 		ctx.globalAlpha = 1;
 		ctx.fillText(formatDuration(Math.floor(this.playTime / 1000)), 632, 154);
