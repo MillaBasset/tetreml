@@ -788,8 +788,8 @@ class PlayScreenBase {
 		let baseline = this.getBaseline();
 		this.stackMinY = Math.min(this.current.y + this.current.topY[this.current.state], this.stackMinY);
 		if (!this.isSeeking && this.shouldPlayClearSounds && tSpinType) (toClear.length == 0 ? sfx.tSpinZero : sfx.tSpin).play();
-		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		this.clearLines(toClear);
+		this.addReward(rewardIndexMapping[tSpinType] + toClear.length);
 		if (toClear.length != 0) {
 			this.stats[toClear.length][tSpinType ? 1 : 0]++;
 			if (this.stats[toClear.length][2] != null) this.stats[toClear.length][2]++;

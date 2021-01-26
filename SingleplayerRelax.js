@@ -213,6 +213,10 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		return res;
 	}
 
+	getComboBonus() {
+		return super.getComboBonus() * (this.inZone ? 1 + this.zoneMultiplier : 1);
+	}
+
 	getRewardAmount(reward) {
 		return super.getRewardAmount(reward) * (this.inZone ? 1 + this.zoneMultiplier : 1);
 	}
