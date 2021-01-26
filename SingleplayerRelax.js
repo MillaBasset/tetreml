@@ -199,10 +199,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	}
 
 	hardDrop(timestamp) {
+		let oldZoneMultiplier = this.zoneMultiplier;
 		let res = super.hardDrop(timestamp);
 		if (this.inZone) {
-			this.score += this.lockScore * this.zoneMultiplier;
-			this.lockScore *= this.zoneMultiplier + 1;
+			this.score += this.lockScore * oldZoneMultiplier;
+			this.lockScore *= oldZoneMultiplier + 1;
 		}
 		return res;
 	}
