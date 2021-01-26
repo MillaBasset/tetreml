@@ -1192,7 +1192,7 @@ class Playfield {
 			this.clearTime = 1000;
 			this.garbageLines += 4;
 			this.allClears++;
-			this.allClearTime = 1000;
+			this.allClearTime = 3000;
 			this.playSfx(sfx.allClear);
 		}
 		this.current = null;

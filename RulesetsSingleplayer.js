@@ -839,7 +839,7 @@ class PlayScreenBase {
 		if ((this.totalMinos -= toClear.length * 10) == 0) {
 			this.score += 1000;
 			this.clearTime = 1000;
-			this.allClearTime = 1000;
+			this.allClearTime = 3000;
 			if (!this.isSeeking && this.shouldPlayClearSounds) sfx.allClear.play();
 		}
 		this.current = null;

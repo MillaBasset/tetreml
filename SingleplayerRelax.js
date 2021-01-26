@@ -11,6 +11,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.music = new Music("relax_opening", new Music("relax_loop"));
 		this.oldZoneLines = 0;
 		this.zoneEndAnimationTime = 2000;
+		this.colorInversionEnabled = false;
+		this.colorInversionChanging = false;
+		this.colorInversionIncrease = false;
+		this.colorInversionTime = 0;
+		this.colorInversionValue = 0;
 	}
 
 	start() {
@@ -52,10 +57,14 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.lockTime = 0;
 		this.shouldPlayClearSounds = true;
 		this.clearEffectTime = 1000;
+		this.colorInversionChanging = true;
+		this.colorInversionIncrease = false;
+		this.colorInversionTime *= 2;
 		sfx.zoneEnd.play();
 	}
 
 	clearLines(toClear) {
+		let oldZoneLines = this.zoneLines;
 		this.zoneLines += toClear.length;
 		super.clearLines(toClear);
 		if (this.inZone) {
@@ -71,6 +80,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				}
 				this.clearedLines = [];
 				this.zoneDisplayAnimationTime = 150;
+				if (oldZoneLines < 8 && this.zoneLines > 7) {
+					this.colorInversionEnabled = true;
+					this.colorInversionChanging = true;
+					this.colorInversionIncrease = true;
+				}
 			}
 		} else {
 			if (this.zoneLines > 9) {
@@ -115,6 +129,25 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		return input < 0.4 ? -2.5 * input**2 + input : (input - 0.4) / 0.6;
 	}
 
+	renderZoneLines(zoneLines, alpha) {
+		ctx.font = zoneLines < 3 ? "24px Tetreml" : "48px Tetreml";
+		ctx.strokeStyle = "#000";
+		ctx.lineWidth = 2;
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		let x = this.gridX + 5 * this.minoSize;
+		let y = this.gridY + (22 - zoneLines / 2) * this.minoSize;
+		ctx.save();
+		let newScale = scale * (1 + this.bouncy(this.zoneDisplayAnimationTime / 150));
+		ctx.setTransform(newScale, 0, 0, newScale, x * scale, y * scale);
+		ctx.globalAlpha = alpha * (1 - this.zoneDisplayAnimationTime / 150);
+		ctx.strokeText(zoneLines, 0, 0);
+		ctx.fillText(zoneLines, 0, 0);
+		ctx.restore();
+		ctx.textBaseline = "alphabetic";
+		ctx.globalAlpha = 1;
+	}
+
 	renderInFront(timePassed) {
 		super.renderInFront(timePassed);
 		if (this.state == GameState.playing) {
@@ -122,22 +155,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				ctx.globalAlpha = 0.5;
 				ctx.fillStyle = "#FFF";
 				ctx.fillRect(this.gridX, this.gridY + (22 - this.zoneLines) * this.minoSize, 10 * this.minoSize, this.zoneLines * this.minoSize);
-				ctx.font = this.zoneLines < 3 ? "24px Tetreml" : "48px Tetreml";
-				ctx.strokeStyle = "#000";
-				ctx.lineWidth = 2;
-				ctx.textAlign = "center";
-				ctx.textBaseline = "middle";
-				let x = this.gridX + 5 * this.minoSize;
-				let y = this.gridY + (22 - this.zoneLines / 2) * this.minoSize;
-				ctx.save();
-				let newScale = scale * (1 + this.bouncy(this.zoneDisplayAnimationTime / 150));
-				ctx.setTransform(newScale, 0, 0, newScale, x * scale, y * scale);
-				ctx.globalAlpha = 0.7 * (1 - this.zoneDisplayAnimationTime / 150);
-				ctx.strokeText(this.zoneLines, 0, 0);
-				ctx.fillText(this.zoneLines, 0, 0);
-				ctx.restore();
-				ctx.textBaseline = "alphabetic";
-				ctx.globalAlpha = 1;
+				this.renderZoneLines(this.zoneLines, 0.7);
 				this.zoneDisplayAnimationTime = Math.max(0, this.zoneDisplayAnimationTime - timePassed);
 			}
 			if (this.zoneEndAnimationTime < 2000 && this.oldZoneLines != 0) {
@@ -151,27 +169,49 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 					this.minoSize * 10 * (1 + curve),
 					height * (1 - curve)
 				);
-				ctx.font = this.oldZoneLines < 3 ? "24px Tetreml" : "48px Tetreml";
-				ctx.fillStyle = "#FFF";
-				ctx.strokeStyle = "#000";
-				ctx.lineWidth = 2;
-				ctx.textAlign = "center";
-				ctx.textBaseline = "middle";
-				let x = this.gridX + 5 * this.minoSize;
-				let y = this.gridY + (22 - this.oldZoneLines / 2) * this.minoSize;
-				ctx.save();
-				let newScale = scale * (1 + this.bouncy(this.zoneDisplayAnimationTime / 150));
-				ctx.setTransform(newScale, 0, 0, newScale, x * scale, y * scale);
-				ctx.globalAlpha = (1 - this.zoneDisplayAnimationTime / 150) * (1 - Math.max(0, Math.min(1, (this.zoneEndAnimationTime - 500) / 1000)));
-				ctx.strokeText(this.oldZoneLines, 0, 0);
-				ctx.fillText(this.oldZoneLines, 0, 0);
-				ctx.restore();
-				ctx.textBaseline = "alphabetic";
-				ctx.globalAlpha = 1;
+				this.renderZoneLines(this.oldZoneLines, 1 - Math.max(0, Math.min(1, (this.zoneEndAnimationTime - 500) / 1000)));
 				this.zoneEndAnimationTime += timePassed;
 				this.zoneDisplayAnimationTime = Math.max(0, this.zoneDisplayAnimationTime - timePassed);
 			}
+			if (this.colorInversionChanging) {
+				if (this.colorInversionIncrease) {
+					if ((this.colorInversionTime = Math.min(800, this.colorInversionTime + timePassed)) == 800) this.colorInversionChanging = false;
+					this.colorInversionValue = this.colorInversionTime / 800;
+				} else {
+					if ((this.colorInversionTime = Math.max(0, this.colorInversionTime - timePassed)) == 0) {
+						this.colorInversionChanging = false;
+						this.colorInversionEnabled = false;
+					}
+					this.colorInversionValue = this.colorInversionTime / 1600;
+				}
+			}
 		}
+
+		if (this.colorInversionEnabled) {
+			ctx.save();
+			ctx.filter = `invert(${this.colorInversionValue})`;
+			ctx.drawImage(mainWindow, 0, 0, 640, 360);
+			ctx.restore();
+		}
+	}
+
+	hardDrop(timestamp) {
+		let res = super.hardDrop(timestamp);
+		if (this.inZone) {
+			this.score += this.lockScore;
+			this.lockScore *= 2;
+		}
+		return res;
+	}
+
+	softDrop(timestamp) {
+		let res = super.softDrop(timestamp);
+		if (this.inZone && !res) this.score++;
+		return res;
+	}
+
+	addReward(reward) {
+		if (!this.inZone) super.addReward(reward);
 	}
 
 	getFallInterval() {
