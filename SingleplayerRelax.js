@@ -6,11 +6,12 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.inZone = false;
 		this.zoneTime = 0;
 		this.zoneLines = 0;
+		this.oldZoneLines = 0;
+		this.zoneMultiplier = 0;
 		this.zoneDisplayAnimationTime = 0;
+		this.zoneEndAnimationTime = 2000;
 		this.originalLineClearDelayEnabled = this.lineClearDelayEnabled = lineClearDelayEnabled;
 		this.music = new Music("relax_opening", new Music("relax_loop"));
-		this.oldZoneLines = 0;
-		this.zoneEndAnimationTime = 2000;
 		this.colorInversionEnabled = false;
 		this.colorInversionChanging = false;
 		this.colorInversionIncrease = false;
@@ -24,10 +25,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	}
 
 	processGameLogic(timePassed) {
-		if (this.state == GameState.playing && !this.inZone && buttonStatus.zone && this.zoneTime != 0) {
+		if (this.state == GameState.playing && !this.inZone && buttonStatus.zone && this.isTetriminoControllable() && this.zoneTime != 0) {
 			buttonStatus.zone = false;
 			this.inZone = true;
 			this.zoneLines = 0;
+			this.zoneMultiplier = this.zoneTime > 19999 ? 1 : 0;
 			this.shouldPlayClearSounds = false;
 			this.lineClearDelayEnabled = false;
 		}
@@ -84,6 +86,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 					this.colorInversionEnabled = true;
 					this.colorInversionChanging = true;
 					this.colorInversionIncrease = true;
+					this.zoneMultiplier++;
 				}
 			}
 		} else {
@@ -198,20 +201,20 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	hardDrop(timestamp) {
 		let res = super.hardDrop(timestamp);
 		if (this.inZone) {
-			this.score += this.lockScore;
-			this.lockScore *= 2;
+			this.score += this.lockScore * this.zoneMultiplier;
+			this.lockScore *= this.zoneMultiplier + 1;
 		}
 		return res;
 	}
 
 	softDrop(timestamp) {
 		let res = super.softDrop(timestamp);
-		if (this.inZone && !res) this.score++;
+		if (this.inZone && !res) this.score += this.zoneMultiplier;
 		return res;
 	}
 
-	addReward(reward) {
-		if (!this.inZone) super.addReward(reward);
+	getRewardAmount(reward) {
+		return super.getRewardAmount(reward) * (this.inZone ? 1 + this.zoneMultiplier : 1);
 	}
 
 	getFallInterval() {

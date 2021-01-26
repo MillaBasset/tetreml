@@ -158,7 +158,7 @@ class PlayScreenBase {
 			this.clearTime = Math.max(0, this.clearTime);
 			if (this.isNewLevel && this.clearTime == 0) this.isNewLevel = false;
 			if (!this.isReplay) {
-				if (this.isMinoControllable()) if (this.current.canFall(this.board)) {
+				if (this.isTetriminoControllable()) if (this.current.canFall(this.board)) {
 					for (let i = iStart, j = 0; fallInterval <= this.fallTime && j < 22; i += fallInterval, this.fallTime -= fallInterval, j++) {
 						if (i >= afterClearTime) this.actionQueue.push([0, "fall", i]);
 					}
@@ -192,13 +192,13 @@ class PlayScreenBase {
 					}
 				} else this.buttonHardDrop = false;
 				if (buttonStatus.rotateClockwise) {
-					if (this.isMinoControllable() && !this.buttonRotateClockwise) {
+					if (this.isTetriminoControllable() && !this.buttonRotateClockwise) {
 						this.actionQueue.push([4, "rotateClockwise", latestTime]);
 						this.buttonRotateClockwise = true;
 					}
 				} else this.buttonRotateClockwise = false;
 				if (buttonStatus.rotateCounterClockwise) {
-					if (this.isMinoControllable() && !this.buttonRotateCounterClockwise) {
+					if (this.isTetriminoControllable() && !this.buttonRotateCounterClockwise) {
 						this.actionQueue.push([5, "rotateCounterClockwise", latestTime]);
 						this.buttonRotateCounterClockwise = true;
 					}
@@ -208,7 +208,7 @@ class PlayScreenBase {
 						if (buttonStatus.quitModifier) {
 							this.pause(false);
 							this.optionsScreen.openGameScreen();
-						} else if (this.isMinoControllable()) {
+						} else if (this.isTetriminoControllable()) {
 							this.actionQueue.push([6, "doHold", latestTime]);
 							this.buttonHold = true;
 						}
@@ -344,17 +344,17 @@ class PlayScreenBase {
 		} else this.buttonVolumeDown = false;
 	}
 
-	isMinoControllable() {
+	isTetriminoControllable() {
 		return this.clearTime == 0 && this.current != null;
 	}
 
 	processInstaFall(timestamp) {
-		if (this.isReplay || this.state != GameState.playing || !this.isMinoControllable() || this.getFallInterval() != 0) return;
+		if (this.isReplay || this.state != GameState.playing || !this.isTetriminoControllable() || this.getFallInterval() != 0) return;
 		while (this.current.canFall(this.board)) this.fall(timestamp);
 	}
 
 	addKeypress() {
-		if (this.isMinoControllable()) this.keypresses++;
+		if (this.isTetriminoControllable()) this.keypresses++;
 	}
 
 	isMinoVisible(x, y) {
@@ -632,7 +632,7 @@ class PlayScreenBase {
 	}
 
 	fall(timestamp) {
-		if (!this.isMinoControllable() || !this.current.canFall(this.board)) return false;
+		if (!this.isTetriminoControllable() || !this.current.canFall(this.board)) return false;
 		this.current.onMove();
 		if (++this.current.y > this.maxY) {
 			this.lockTime = 0;
@@ -648,7 +648,7 @@ class PlayScreenBase {
 	}
 
 	lockDown(timestamp) {
-		if (!this.isMinoControllable()) return;
+		if (!this.isTetriminoControllable()) return;
 		this.recordAction("lockDown", timestamp);
 		this.lock(false, timestamp);
 		if (!this.isSeeking) sfx.lock.play();
@@ -656,7 +656,7 @@ class PlayScreenBase {
 	}
 
 	move(offset, isInitialPress, timestamp) {
-		if (this.state == GameState.playing && this.isMinoControllable()) {
+		if (this.state == GameState.playing && this.isTetriminoControllable()) {
 			let newX = this.current.x + offset;
 			if (!this.current.checkCollision(this.board, newX, this.current.y)) {
 				if (!this.isSeeking) (this.current.canFall(this.board) ? sfx.move : sfx.moveOnGround).play();
@@ -670,12 +670,12 @@ class PlayScreenBase {
 				return true;
 			}
 		}
-		this.wasNull = !this.isMinoControllable();
+		this.wasNull = !this.isTetriminoControllable();
 		return false;
 	}
 
 	rotateClockwise(timestamp) {
-		if (this.isMinoControllable()) {
+		if (this.isTetriminoControllable()) {
 			let inAir = this.current.canFall(this.board);
 			if (!this.current.rotateClockwise(this.board)) return;
 			this.addKeypress();
@@ -687,7 +687,7 @@ class PlayScreenBase {
 	}
 
 	rotateCounterClockwise(timestamp) {
-		if (this.isMinoControllable()) {
+		if (this.isTetriminoControllable()) {
 			let inAir = this.current.canFall(this.board);
 			if (!this.current.rotateCounterClockwise(this.board)) return;
 			this.addKeypress();
@@ -699,7 +699,7 @@ class PlayScreenBase {
 	}
 
 	softDrop(timestamp) {
-		if (this.isMinoControllable() && this.current.canFall(this.board)) {
+		if (this.isTetriminoControllable() && this.current.canFall(this.board)) {
 			if (++this.current.y > this.maxY) {
 				this.lockTime = 0;
 				this.moveCounter = 0;
@@ -728,7 +728,7 @@ class PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (!this.isMinoControllable()) return;
+		if (!this.isTetriminoControllable()) return;
 		let count = 0;
 		while (this.current.canFall(this.board)) {
 			if (!this.isSeeking && Math.random() < 0.25) this.spawnParticle();
@@ -751,7 +751,7 @@ class PlayScreenBase {
 	}
 
 	doHold(timestamp) {
-		if (this.isMinoControllable() && !this.holdSwitched) {
+		if (this.isTetriminoControllable() && !this.holdSwitched) {
 			this.oldHold = this.hold;
 			this.hold = this.current;
 			if (this.oldHold == null) this.nextTetrimino(); else {
@@ -776,7 +776,7 @@ class PlayScreenBase {
 	}
 	
 	lock(isDrop, timestamp) {
-		if (!this.isMinoControllable()) return;
+		if (!this.isTetriminoControllable()) return;
 		let toClear = [];
 		this.tetriminoes++;
 		let tSpinType = this.current.getTSpinType(this.board);
@@ -1412,7 +1412,7 @@ class GameScreenNES extends PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (!this.isMinoControllable()) return;
+		if (!this.isTetriminoControllable()) return;
 		this.lockScoreStartLine = this.getBaseline();
 		let res = super.hardDrop(timestamp);
 		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;
@@ -1585,7 +1585,7 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 	}
 
 	hardDrop(timestamp) {
-		if (!this.isMinoControllable()) return;
+		if (!this.isTetriminoControllable()) return;
 		this.lockScoreStartLine = this.getBaseline();
 		let res = super.hardDrop(timestamp);
 		this.lockScoreEndLine = this.lockScoreStartLine + res - 1;
