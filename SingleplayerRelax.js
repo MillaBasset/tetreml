@@ -5,6 +5,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		super(parent, showKeystrokes, false, true);
 		this.inZone = false;
 		this.zoneTime = 0;
+		this.zoneCharge = 0;
 		this.zoneLines = 0;
 		this.oldZoneLines = 0;
 		this.zoneMultiplier = 0;
@@ -53,7 +54,6 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 			this.oldZoneLines = this.zoneLines;
 			this.zoneEndAnimationTime = 0;
 		} else this.afterClear();
-		this.zoneLines = 0;
 		this.zoneTime = 0;
 		this.fallTime = 0;
 		this.lockTime = 0;
@@ -67,10 +67,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 
 	clearLines(toClear) {
 		let oldZoneLines = this.zoneLines;
-		this.zoneLines += toClear.length;
+		let lines = toClear.length;
 		super.clearLines(toClear);
 		if (this.inZone) {
 			if (toClear.length != 0) {
+				this.zoneLines += lines;
 				let x;
 				for (let row of this.clearedLines.sort((a, b) => b - a)) {
 					for (let x = 0; x < 10; x++) {
@@ -90,9 +91,10 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				}
 			}
 		} else {
-			if (this.zoneLines > 9) {
-				this.zoneTime = Math.min(20000, this.zoneTime + 5000 * Math.floor(this.zoneLines / 10));
-				this.zoneLines %= 10;
+			this.zoneCharge += lines;
+			if (this.zoneCharge > 9) {
+				this.zoneTime = Math.min(20000, this.zoneTime + 5000);
+				this.zoneCharge %= 10;
 			}
 		}
 	}
