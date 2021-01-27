@@ -1,4 +1,4 @@
-const zoneRewardMapping = [undefined, "Monotris", "Ditris", "Tritris", "Tetratris", "Pentatris", "Hexatris", "Heptatris", "Octotris", "Enneatris", "Decatris", "Hendecatris", "Dodecatris", "Triadecatris", "Tesseradecatris", "Pentedecatris", "Hexadecatris", "Heptadecatris", "Octodecatris", "Enneadecatris", "Icositris", "Icosikaihenatris", "Icosidyotris"];
+const zoneRewardMapping = [undefined, "Monotris", "Ditris", "Tritris", "Tetratris", "Pentatris", "Hexatris", "Heptatris", "Octotris", "Enneatris", "Decatris", "Hendecatris", "Dodecatris", "Triadecatris", "Tesseradecatris", "Pentedecatris", "Hexadecatris", "Heptadecatris", "Octodecatris", "Enneadecatris", "Icositris", "Icosihenatris", "Icosidyotris", "Icositriatris", "Icositettaratris"];
 
 class GameScreenRelax extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
@@ -18,10 +18,59 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.colorInversionIncrease = false;
 		this.colorInversionTime = 0;
 		this.colorInversionValue = 0;
+		this.gameSaveFields = ["score", "lines", "combo", "backToBack", "moveCounter", "fallTime", "lockTime", "maxY", "clearTime", "playTime", "stats", "clearedLines", "tetriminoes", "stackMinY", "holds", "keypresses", "isClearing", "inZone", "zoneTime", "zoneCharge", "zoneLines", "oldZoneLines", "zoneMultiplier", "zoneDisplayAnimationTime", "zoneEndAnimationTime", "colorInversionEnabled", "colorInversionChanging", "colorInversionIncrease", "colorInversionTime", "colorInversionValue", "shouldPlayClearSounds", "lineClearDelayEnabled", "fallPeriod"];
+		this.newGame = true;
+
+		// Load game state.
+		if ("tetrisRelaxGameState" in localStorage) {
+			try {
+				let state = JSON.parse(localStorage.tetrisRelaxGameState);
+				for (let field of this.gameSaveFields) if (state[field] !== undefined) this[field] = state[field];
+				let minos = 0, x = 0, board = state.board, mino = 0;
+				this.totalMinos = 0;
+				this.stackMinY = 40;
+				for (let y = 0; y < 40; y++) {
+					minos = 0;
+					for (x = 0; x < 10; x++) {
+						mino = board[x * 40 + y];
+						if (mino == -1) {
+							this.board[x][y] = undefined;
+						} else {
+							this.board[x][y] = new Mino(mino[0], mino[1], mino[2]);
+							minos++;
+							this.totalMinos++;
+							this.stackMinY = y;
+						}
+					}
+					this.minos[y] = minos;
+				}
+				if (state.current == null) this.current = null;
+				else {
+					this.current = new tetriminoTypeMapping[state.current.type]();
+					this.current.x = state.current.x;
+					this.current.y = state.current.y;
+					this.current.state = state.current.state;
+				}
+				this.random.mt = [...state.randommt];
+				this.random.mti = state.randommti;
+				this.queue = [];
+				for (let char of state.queue) this.queue.push(new tetriminoTypeMapping[char]());
+				this.hold = state.hold == "" ? null : new tetriminoTypeMapping[state.hold]();
+				this.newGame = false;
+			} catch (e) {
+				console.error(e);
+			}
+		}
+		
+		window.addEventListener("beforeunload", this.autoSaveCallback = () => { this.saveGameState(); });
 	}
 
 	start() {
-		super.start();
+		this.state = GameState.playing;
+		if (this.newGame) {
+			this.nextTetrimino();
+			this.processInstaFall(0);
+		}
 		this.music.play();
 	}
 
@@ -155,7 +204,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 
 	renderInFront(timePassed) {
 		super.renderInFront(timePassed);
-		if (this.state == GameState.playing) {
+		if (this.state != GameState.paused) {
 			if (this.inZone && this.zoneLines != 0) {
 				ctx.globalAlpha = 0.5;
 				ctx.fillStyle = "#FFF";
@@ -178,17 +227,18 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				this.zoneEndAnimationTime += timePassed;
 				this.zoneDisplayAnimationTime = Math.max(0, this.zoneDisplayAnimationTime - timePassed);
 			}
-			if (this.colorInversionChanging) {
-				if (this.colorInversionIncrease) {
-					if ((this.colorInversionTime = Math.min(800, this.colorInversionTime + timePassed)) == 800) this.colorInversionChanging = false;
-					this.colorInversionValue = this.colorInversionTime / 800;
-				} else {
-					if ((this.colorInversionTime = Math.max(0, this.colorInversionTime - timePassed)) == 0) {
-						this.colorInversionChanging = false;
-						this.colorInversionEnabled = false;
-					}
-					this.colorInversionValue = this.colorInversionTime / 1600;
+		}
+
+		if (this.state == GameState.playing && this.colorInversionChanging) {
+			if (this.colorInversionIncrease) {
+				if ((this.colorInversionTime = Math.min(800, this.colorInversionTime + timePassed)) == 800) this.colorInversionChanging = false;
+				this.colorInversionValue = this.colorInversionTime / 800;
+			} else {
+				if ((this.colorInversionTime = Math.max(0, this.colorInversionTime - timePassed)) == 0) {
+					this.colorInversionChanging = false;
+					this.colorInversionEnabled = false;
 				}
+				this.colorInversionValue = this.colorInversionTime / 1600;
 			}
 		}
 
@@ -225,7 +275,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	}
 
 	getFallInterval() {
-		return this.inZone ? Infinity : 1000;
+		return this.inZone ? Infinity : this.fallPeriod;
 	}
 
 	getLockDelay() {
@@ -237,9 +287,44 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.music.pause();
 	}
 
+	saveGameState() {
+		if (this.state == GameState.over) {
+			delete localStorage.tetrisRelaxGameState;
+			return;
+		}
+		let state = {};
+		for (let field of this.gameSaveFields) state[field] = this[field];
+		let board = [];
+		for (let x = 0; x < 10; x++) for (let y = 0; y < 40; y++) {
+			let mino = this.board[x][y];
+			board.push(mino ? [mino.directions, mino.textureY, mino.disappearTime] : -1);
+		}
+		state.board = board;
+		if (this.current == null) state.current = null;
+		else state.current = {
+			type: this.current.code,
+			x: this.current.x,
+			y: this.current.y,
+			state: this.current.state
+		};
+		state.randommt = [...this.random.mt];
+		state.randommti = this.random.mti;
+		state.queue = "";
+		for (let tetrimino of this.queue) state.queue += tetrimino.code;
+		state.hold = this.hold ? this.hold.code : "";
+		localStorage.tetrisRelaxGameState = JSON.stringify(state);
+	}
+
 	quit() {
 		this.music.pause();
+		window.removeEventListener("beforeunload", this.autoSaveCallback);
+		this.saveGameState();
 		super.quit();
+	}
+
+	restart() {
+		delete localStorage.tetrisRelaxGameState;
+		super.restart();
 	}
 
 	resume() {

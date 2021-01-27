@@ -144,7 +144,7 @@ class OptionsScreen {
 			[true, true, true, true, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true],
 			[true, false, false, false, true, true, true, true, true],
-			[true, false, false, false, true, true, true, true, true]
+			[true, false, true, false, true, true, true, true, true]
 		];
 		this.speedCurveNames = ["tetris.com", "Tengen", "NES (NTSC)", "NES (PAL)"];
 		this.speedCurves = [
@@ -153,6 +153,7 @@ class OptionsScreen {
 			[[0, 800, 800], [10, 717, 717], [10, 633, 633], [10, 550, 500], [10, 467, 467], [10, 383, 383], [10, 300, 300], [10, 217, 217], [10, 133, 133], [10, 100, 100], [10, 83, 83], [30, 67, 67], [30, 50, 50], [30, 33, 33], [100, 17, 17]],
 			[[0, 720, 720], [10, 640, 640], [10, 580, 580], [10, 500, 500], [10, 440, 440], [10, 360, 360], [10, 300, 300], [10, 220, 220], [10, 140, 140], [10, 100, 100], [10, 80, 80], [30, 60, 60], [30, 40, 40], [30, 20, 20]]
 		];
+		this.relaxSpeedCurve = [undefined, 1000, 793, 618, 473, 355, 262, 190, 135, 94, 64, 43, 28, 18, 11, 7, 4, 3, 2, 1, 0];
 		this.shift = false;
 		this.ctrl = false;
 		this.shiftLeft = this.shiftRight = this.ctrlLeft = this.ctrlRight = false;
@@ -238,6 +239,7 @@ class OptionsScreen {
 			gui.autoRepeatDelay = this.autoRepeatDelay;
 			gui.autoRepeatPeriod = this.autoRepeatPeriod;
 		}
+		if (this.mode == 10 && gui.newGame) gui.fallPeriod = this.relaxSpeedCurve[this.startingLevel];
 		gui.softDropPeriod = this.softDropPeriod;
 		gui.optionsScreen = this;
 		openGui(gui);
@@ -291,7 +293,14 @@ class OptionsScreen {
 	}
 
 	setStartingLevel(level) {
-		this.startingLevel = this.mode < 2 ? Math.max(1, Math.min(15, level)) : this.mode == 2 ? Math.max(1, Math.min(30, level)) : Math.max(1, Math.min(this.speedCurves[this.speedCurve].length, level));
+		this.startingLevel =
+			this.mode < 2
+			? Math.max(1, Math.min(15, level)) // Marathon.
+			: this.mode == 2
+			? Math.max(1, Math.min(30, level)) // Marathon (tetris.com).
+			: this.mode == 10
+			? Math.max(1, Math.min(20, level)) // Relax.
+			: Math.max(1, Math.min(this.speedCurves[this.speedCurve].length, level)); // Endless.
 	}
 
 	handleStartingLevelChange(keycode) {

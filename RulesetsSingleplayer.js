@@ -206,8 +206,7 @@ class PlayScreenBase {
 				if (buttonStatus.hold) {
 					if (!this.buttonHold) {
 						if (buttonStatus.quitModifier) {
-							this.pause(false);
-							this.optionsScreen.openGameScreen();
+							this.restart();
 						} else if (this.isTetriminoControllable()) {
 							this.actionQueue.push([6, "doHold", latestTime]);
 							this.buttonHold = true;
@@ -946,6 +945,11 @@ class PlayScreenBase {
 
 	quit() {
 		goBack();
+	}
+
+	restart() {
+		this.optionsScreen.openGameScreen();
+		this.pause(false);
 	}
 
 	recordAction(action, timestamp = this.playTime) {
