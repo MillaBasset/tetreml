@@ -948,8 +948,8 @@ class PlayScreenBase {
 	}
 
 	restart() {
-		this.optionsScreen.openGameScreen();
 		this.pause(false);
+		this.optionsScreen.openGameScreen();
 	}
 
 	recordAction(action, timestamp = this.playTime) {
