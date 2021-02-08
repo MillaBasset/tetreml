@@ -6,10 +6,6 @@ const imageRenderer = document.getElementById('imageRenderer');
 const imageRendererContext = imageRenderer.getContext('2d');
 imageRendererContext.imageSmoothingEnabled = false;
 
-const tempImageRenderer = document.getElementById('tempImageRenderer');
-const tempImageRendererContext = tempImageRenderer.getContext('2d');
-tempImageRendererContext.imageSmoothingEnabled = false;
-
 const radioTetreml = document.getElementById("radioTetreml");
 
 const sprite = new Image();
@@ -19,12 +15,14 @@ const gifBackground = new Image();
 gifBackground.src = "Textures/GIF background.png";
 
 class ImageRendererTetreml {
-	initializeFrame(ctx) {
-		ctx.drawImage(gifBackground, 0, 0);
+	initializeFrame() {
+		imageRendererContext.drawImage(gifBackground, 0, 0);
 	}
 
-	drawMino(ctx, x, y, color) {
-		ctx.drawImage(sprite, 0, 16 * color, 16, 16, x * 16, 336 - 16 * y, 16, 16);
+	drawMino(x, y, color, alpha, hasTop) {
+		imageRendererContext.globalAlpha = alpha;
+		imageRendererContext.drawImage(sprite, 0, 16 * color, 16, 16, x * 16, 336 - 16 * y, 16, 16);
+		imageRendererContext.globalAlpha = 1;
 	}
 }
 
@@ -34,16 +32,22 @@ class ImageRendererSolid {
 		this.topColors = ["#949494", "#43D3FF", "#1BA6F9", "#FFBF60", "#FFF952", "#88EE86", "#E56ADD", "#FF9484"];
 	}
 
-	initializeFrame(ctx) {
-		ctx.fillStyle = "#2B2D37";
-		ctx.fillRect(0, 0, 160, 352);
+	initializeFrame() {
+		imageRendererContext.fillStyle = "#2B2D37";
+		imageRendererContext.fillRect(0, 0, 160, 352);
 	}
 
-	drawMino(ctx, x, y, color) {
-		ctx.fillStyle = this.colors[color];
-		ctx.fillRect(x * 16, 336 - 16 * y, 16, 16);
-		ctx.fillStyle = this.topColors[color];
-		ctx.fillRect(x * 16, 333 - 16 * y, 16, 3);
+	drawMino(x, y, color, alpha, hasTop) {
+		imageRendererContext.fillStyle = "#2B2D37";
+		imageRendererContext.fillRect(x * 16, 336 - 16 * y, 16, 16);
+		imageRendererContext.globalAlpha = alpha;
+		imageRendererContext.fillStyle = this.colors[color];
+		imageRendererContext.fillRect(x * 16, 336 - 16 * y, 16, 16);
+		if (!hasTop) {
+			imageRendererContext.fillStyle = this.topColors[color];
+			imageRendererContext.fillRect(x * 16, 333 - 16 * y, 16, 3);
+		}
+		imageRendererContext.globalAlpha = 1;
 	}
 }
 
@@ -82,21 +86,17 @@ async function generate() {
 		imageRendererContext.clearRect(0, 0, 160, 352);
 		imageRendererContext.globalAlpha = 1;
 		renderer.initializeFrame(imageRendererContext);
-		tempImageRendererContext.clearRect(0, 0, 160, 352);
 		for (let y = 0; y < 22; y++) {
 			let count = 0;
 			for (let x = 0; x < 10; x++) {
 				let mino = field.at(x, y);
 				if (mino != "_") {
-					renderer.drawMino(tempImageRendererContext, x, y, minoMapping[mino]);
+					renderer.drawMino(x, y, minoMapping[mino], 0.8, false);
 					count++;
 				}
 			}
 			minos.push(count);
 		}
-		imageRendererContext.globalAlpha = 0.8;
-		imageRendererContext.drawImage(tempImageRenderer, 0, 0, 160, 352);
-		imageRendererContext.globalAlpha = 1;
 		let renderLineClear = false;
 		if (page.operation != undefined) {
 			renderLineClear = true;
@@ -105,7 +105,7 @@ async function generate() {
 			for (let position of tetrimino.positions()) {
 				let { x, y } = position;
 				if (field.at(x, y) != "_") renderLineClear = false;
-				renderer.drawMino(imageRendererContext, x, y, color);
+				renderer.drawMino(x, y, color, 1, y == 21 || field.at(x, y + 1) != "_");
 				minos[y]++;
 			}
 		}
