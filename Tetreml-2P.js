@@ -298,8 +298,8 @@ class GameOverScreen {
 		}
 	}
 
-	render() {
-		this.playScreen.render();
+	render(timePassed) {
+		this.playScreen.render(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
 		for (let i = 0; i < 2; i++) {
@@ -379,17 +379,7 @@ class PlayScreen {
 		sfx.ready.play();
 	}
 
-	render() {
-		let timePassed = 0;
-		if (this.oldTime == null) {
-			this.oldTime = new Date().getTime();
-			return;
-		} else {
-			let currentTime = new Date().getTime();
-			timePassed = currentTime - this.oldTime;
-			this.oldTime = currentTime;
-		}
-
+	render(timePassed) {
 		if (this.playfields[0].buttonStatus.esc) {
 			if (!this.buttonEsc) {
 				switch (this.state) {
@@ -1258,11 +1248,10 @@ class Playfield {
 			for (let i = 0; i < lines; i++) {
 				let garbageLine = this.garbageGenerator.generate();
 				let minos = 0;
-				for (let j = 0; j < 10; j++)
-					if (this.board[j][0] != undefined) {
-						this.parent.gameOver(this.player);
-						return;
-					}
+				if (this.minos[0] != 0) {
+					this.parent.gameOver(this.player);
+					return;
+				}
 				for (let j = 0; j < 10; j++) {
 					this.board[j].splice(0, 1);
 					this.board[j].push(garbageLine[j]);
@@ -1476,7 +1465,7 @@ class KeymappingScreen {
 		openGui(gui);
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
@@ -1810,7 +1799,7 @@ class OptionsScreen {
 		this.handleNumericPropertyChange(player, keycode, (player, amount) => this.setStereoSeparation(amount), [this.stereoSeparation, this.stereoSeparation]);
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
@@ -1879,7 +1868,7 @@ class MainScreen {
 		document.addEventListener("keypress", this.onkeypress);
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "center";
@@ -1898,27 +1887,5 @@ class MainScreen {
 
 // -----------------------
 
-var currentGui = null;
-
-function openGui(gui) {
-	if (currentGui != null) currentGui.close();
-	currentGui = gui;
-	if (currentGui != null) currentGui.init();
-}
-
-function goBack() {
-	if (currentGui == null) return;
-	openGui(currentGui.parent == undefined ? null : currentGui.parent);
-}
-
 openGui(new MainScreen());
-
-function render() {
-	requestAnimationFrame(render);
-	ctx.fillStyle = "#000";
-	ctx.fillRect(0, 0, 640, 360);
-	if (currentGui == null) return;
-	currentGui.render();
-}
-
 requestAnimationFrame(render);

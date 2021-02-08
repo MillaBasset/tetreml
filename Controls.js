@@ -125,16 +125,7 @@ class ControlsEditScreen {
 		return this.controlsList[this.selectedSection];
 	}
 
-	render() {
-		let timePassed = 0;
-		if (this.oldTime == null) {
-			this.oldTime = new Date().getTime();
-			return;
-		} else {
-			let currentTime = new Date().getTime();
-			timePassed = currentTime - this.oldTime;
-			this.oldTime = currentTime;
-		}
+	render(timePassed) {
 		if (this.editingTime) {
 			this.editingTime = Math.max(0, this.editingTime - timePassed);
 			if (!this.editingTime) this.currentControlsSublist[this.selectedControl+1][1] = null;

@@ -188,7 +188,7 @@ class ReplayScreen {
 		this.playScreen.replaySpeed = Math.min(5, Math.max(0.1, this.playScreen.replaySpeed + delta));
 	}
 
-	render() {
+	render(timePassed) {
 		if (keyStatus.beginning) {
 			if (!this.beginning) {
 				this.seek(0);
@@ -239,7 +239,7 @@ class ReplayScreen {
 				this.volumeUp = true;
 			}
 		} else this.volumeUp = false;
-		this.playScreen.render();
+		this.playScreen.render(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.strokeStyle = "#FFF";
 		ctx.lineWidth = 1;
@@ -339,7 +339,7 @@ class ReplayScreen {
 
 class InitialScreen {
 	init() { }
-	render() {
+	render(timePassed) {
 		ctx.font = "14px Tetreml";
 		ctx.fillStyle = "#FFF";
 		ctx.textAlign = "center";
@@ -361,35 +361,6 @@ var spriteElectronika = new Image();
 spriteElectronika.src = "Textures/Electronika.png?state=original";
 
 var ctx = mainWindow.getContext("2d");
-
-var currentGui = null;
-
-function openGui(gui) {
-	if (currentGui != null) currentGui.close();
-	currentGui = gui;
-	if (currentGui != null) currentGui.init();
-}
-
-function goBack() {
-	if (currentGui == null) return;
-	openGui(currentGui.parent == undefined ? null : currentGui.parent);
-}
-
-var isBusyRendering = false;
-
-function render() {
-	requestAnimationFrame(render);
-	if (!isBusyRendering) try {
-		isBusyRendering = true;
-		ctx.fillStyle = "#000";
-		ctx.fillRect(0, 0, 640, 360);
-		if (currentGui == null) return;
-		currentGui.render();
-	} finally {
-		isBusyRendering = false;
-	}
-}
-
 var fileSelector = document.getElementById("fileSelector");
 
 function loadReplay() {
@@ -406,7 +377,6 @@ function onReplayFileChange() {
 }
 
 openGui(new InitialScreen(null));
-
 requestAnimationFrame(render);
 
 fileSelector.disabled = false;

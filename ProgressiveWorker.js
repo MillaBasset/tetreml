@@ -1,4 +1,4 @@
-// Version: 11
+// Version: 1
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
@@ -96,6 +96,9 @@ self.addEventListener('install', function (event) {
 		'Customizer.html',
 		'/favicon.ico',
 		'Fumen.js',
+		'FumenToGIF.html',
+		'FumenToGIF.js',
+		'GUIManager.js',
 		'HTMLHandler.js',
 		'index.html',
 		'MersenneTwister.js',

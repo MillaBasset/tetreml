@@ -389,7 +389,7 @@ class OptionsScreen {
 		ctx.globalAlpha = 1;
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
@@ -477,7 +477,7 @@ class MainScreen {
 		document.addEventListener("keypress", this.onkeypress);
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.fillStyle = "#FFF";
 		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "center";
@@ -497,34 +497,5 @@ class MainScreen {
 	}
 }
 
-var currentGui = null;
-
-function openGui(gui) {
-	if (currentGui != null) currentGui.close();
-	currentGui = gui;
-	if (currentGui != null) currentGui.init();
-}
-
-function goBack() {
-	if (currentGui == null) return;
-	openGui(currentGui.parent == undefined ? null : currentGui.parent);
-}
-
 openGui(new MainScreen(null));
-
-var isBusyRendering = false;
-
-function render() {
-	requestAnimationFrame(render);
-	if (!isBusyRendering) try {
-		isBusyRendering = true;
-		ctx.fillStyle = "#000";
-		ctx.fillRect(0, 0, 640, 360);
-		if (currentGui == null) return;
-		currentGui.render();
-	} finally {
-		isBusyRendering = false;
-	}
-}
-
 requestAnimationFrame(render);

@@ -362,17 +362,7 @@ class PlayScreenBase {
 		return mino != undefined && (this.isReplay || mino.shouldRender(this.playTime)) && mino.textureY != -1;
 	}
 
-	render() {
-		let timePassed = 0;
-		if (this.oldTime == null) {
-			this.oldTime = new Date().getTime();
-			return;
-		} else {
-			let currentTime = new Date().getTime();
-			timePassed = currentTime - this.oldTime;
-			this.oldTime = currentTime;
-		}
-
+	render(timePassed) {
 		if (this.isReplay) {
 			if (this.state == GameState.playing) this.handleReplayEpoch(this.playTime + Math.floor(timePassed * this.replaySpeed));
 		}

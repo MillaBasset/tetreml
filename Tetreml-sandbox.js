@@ -214,17 +214,8 @@ class PlayScreen {
 		return x > -1 && x < 10 && y > -1 && y < 40 && this.board[x][y] != undefined;
 	}
 
-	render() {
+	render(timePassed) {
 		// Process game logic.
-		let timePassed = 0;
-		if (this.oldTime == null) {
-			this.oldTime = new Date().getTime();
-			return;
-		} else {
-			let currentTime = new Date().getTime();
-			timePassed = currentTime - this.oldTime;
-			this.oldTime = currentTime;
-		}
 		if (this.state == GameState.playing) {
 			this.clearTime -= timePassed;
 			this.fallTime -= Math.min(0, this.clearTime);
@@ -605,7 +596,10 @@ class PlayScreen {
 			this.volumeDisplayTime -= timePassed;
 		}
 
-		if (this.gifIsRendering) ctx.fillText("Rendering GIF...", 15, 20);
+		if (this.gifIsRendering) {
+			ctx.fillText("Rendering GIF...", 15, 20);
+			ctx.fillText(`${this.completedGIFFrames} / ${this.totalGIFFrames}`, 15, 35);
+		}
 
 		ctx.fillText("Intermediate frames", 485, 20);
 		ctx.textAlign = "right";
@@ -813,6 +807,13 @@ class PlayScreen {
 			gif.addFrame(imageRenderer, {copy: true});
 		}
 
+		this.completedGIFFrames = 0;
+		this.totalGIFFrames = this.gifFrames.length;
+
+		gif.on("progress", (progress) => {
+			this.completedGIFFrames = progress.completed;
+		});
+
 		gif.on("finished", (blob) => {
 			let date = new Date();
 			let filename = `Tetreml sandbox – ${date.getHours()}h${date.getMinutes() < 10 ? "0" : ""}${date.getMinutes()}.${date.getSeconds() < 10 ? "0" : ""}${date.getSeconds()} ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.gif`;
@@ -952,6 +953,14 @@ class PlayScreen {
 
 	clearLines(toClear) {
 		this.clearedLines = toClear.sort((a, b) => a - b);
+		if (this.stackMinY == toClear[0]) {
+			let m;
+			for (let y = toClear[0]; y < 40; y++) {
+				m = this.minos[y];
+				if (m == 0) this.stackMinY++;
+				else if (m != 10) break;
+			}
+		}
 		this.stackMinY += this.clearedLines.length;
 		this.clearEffectTime = 0;
 		this.clearTime = 500;
@@ -1516,7 +1525,7 @@ class EditScreen {
 			ctx.drawImage(sprite, mino[2] * 16, tetrimino.textureY * 16, 16, 16, x + 8 * mino[0], y + 8 * mino[1], 8, 8);
 	}
 
-	render() {
+	render(timePassed) {
 		ctx.imageSmoothingEnabled = false;
 		ctx.drawImage(editScreenImage, 0, 0);
 		// Render the current board.
@@ -1645,31 +1654,9 @@ class EditScreen {
 	}
 }
 
-var currentGui = null;
-
-function openGui(gui) {
-	if (currentGui != null) currentGui.close();
-	currentGui = gui;
-	if (currentGui != null) currentGui.init();
-}
-
-function goBack() {
-	if (currentGui == null) return;
-	openGui(currentGui.parent == undefined ? null : currentGui.parent);
-}
-
 var mainWindow = document.getElementById("mainWindow");
 
 var ctx = mainWindow.getContext("2d");
 
 openGui(new EditScreen(null));
-
-function render() {
-	requestAnimationFrame(render);
-	ctx.fillStyle = "#000";
-	ctx.fillRect(0, 0, 640, 360);
-	if (currentGui == null) return;
-	currentGui.render();
-}
-
 requestAnimationFrame(render);

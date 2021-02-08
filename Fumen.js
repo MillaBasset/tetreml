@@ -61,7 +61,7 @@ exports.createActionDecoder = function (width, fieldTop, garbageLine) {
             case 8:
                 return defines_1.Piece.Gray;
         }
-        throw new Error('Unexpected piece');
+        throw new Error('Unexpected tetrimino.');
     }
     function decodeRotation(n) {
         switch (n) {
@@ -74,7 +74,7 @@ exports.createActionDecoder = function (width, fieldTop, garbageLine) {
             case 3:
                 return defines_1.Rotation.Left;
         }
-        throw new Error('Unexpected rotation');
+        throw new Error('Unexpected tetrimino rotation.');
     }
     function decodeCoordinate(n, piece, rotation) {
         var x = n % width;
@@ -199,7 +199,7 @@ exports.createActionEncoder = function (width, fieldTop, garbageLine) {
             case defines_1.Rotation.Left:
                 return 3;
         }
-        throw new Error('No reachable');
+        throw new Error('No reachable.');
     }
     return {
         encode: function (action) {
@@ -238,7 +238,7 @@ var Buffer = /** @class */ (function () {
         for (var count = 0; count < max; count += 1) {
             var v = this.values.shift();
             if (v === undefined) {
-                throw new Error('Unexpected fumen');
+                throw new Error('Unexpected Fumen data.');
             }
             value += v * Math.pow(Buffer.tableLength, count);
         }
@@ -377,7 +377,7 @@ function extract(str) {
             return format('110', sub);
         }
     }
-    throw new Error('Unsupported fumen version');
+    throw new Error('Unsupported Fumen version.');
 }
 exports.extract = extract;
 function decode(fumen) {
@@ -388,7 +388,7 @@ function decode(fumen) {
         case '110':
             return innerDecode(data, 21);
     }
-    throw new Error('Unsupported fumen version');
+    throw new Error('Unsupported Fumen version.');
 }
 exports.decode = decode;
 function innerDecode(data, fieldTop) {
@@ -610,7 +610,7 @@ function parsePieceName(piece) {
         case Piece.Empty:
             return '_';
     }
-    throw new Error("Unknown piece: " + piece);
+    throw new Error("Unknown tetrimino: " + piece + ".");
 }
 exports.parsePieceName = parsePieceName;
 function parsePiece(piece) {
@@ -637,7 +637,7 @@ function parsePiece(piece) {
         case 'EMPTY':
             return Piece.Empty;
     }
-    throw new Error("Unknown piece: " + piece);
+    throw new Error("Unknown tetrimino: " + piece + ".");
 }
 exports.parsePiece = parsePiece;
 var Rotation;
@@ -658,7 +658,7 @@ function parseRotationName(rotation) {
         case Rotation.Reverse:
             return 'reverse';
     }
-    throw new Error("Unknown rotation: " + rotation);
+    throw new Error("Unknown tetrimino rotation: " + rotation + ".");
 }
 exports.parseRotationName = parseRotationName;
 function parseRotation(rotation) {
@@ -672,7 +672,7 @@ function parseRotation(rotation) {
         case 'reverse':
             return Rotation.Reverse;
     }
-    throw new Error("Unknown rotation: " + rotation);
+    throw new Error("Unknown tetrimino rotation: " + rotation + ".");
 }
 exports.parseRotation = parseRotation;
 
@@ -957,7 +957,7 @@ var Field = /** @class */ (function () {
         }
         var mino = toMino(operation);
         if (!force && !this.canFill(mino)) {
-            throw Error('Cannot fill piece on field');
+            throw Error('Cannot fill tetrimino in the field.');
         }
         this.field.fillAll(mino.positions(), defines_1.parsePiece(mino.type));
         return mino;
@@ -974,7 +974,7 @@ var Field = /** @class */ (function () {
             this.fill(mino);
             return mino;
         }
-        throw Error('Cannot put piece on field');
+        throw Error('Cannot put tetrimino on the field.');
     };
     Field.prototype.clearLine = function () {
         this.field.clearLine();
@@ -1213,7 +1213,7 @@ var PlayField = /** @class */ (function () {
     PlayField.loadInner = function (blocks, length) {
         var len = length !== undefined ? length : blocks.length;
         if (len % 10 !== 0) {
-            throw new Error('Num of blocks in field should be mod 10');
+            throw new Error('Number of blocks in the field should be a multiple of 10.');
         }
         var field = length !== undefined ? new PlayField({ length: length }) : new PlayField({});
         for (var index = 0; index < len; index += 1) {
@@ -1363,7 +1363,7 @@ function getBlocks(piece, rotation) {
         case defines_1.Rotation.Right:
             return rotateRight(blocks);
     }
-    throw new Error('Unsupported block');
+    throw new Error('Unsupported block.');
 }
 exports.getBlocks = getBlocks;
 function getPieces(piece) {
@@ -1383,7 +1383,7 @@ function getPieces(piece) {
         case defines_1.Piece.Z:
             return [[0, 0], [1, 0], [0, 1], [-1, 1]];
     }
-    throw new Error('Unsupported rotation');
+    throw new Error('Unsupported tetrimino rotation.');
 }
 exports.getPieces = getPieces;
 function rotateRight(positions) {
@@ -1499,7 +1499,7 @@ var Quiz = /** @class */ (function () {
                 return Operation.Direct;
             }
         }
-        throw new Error("Unexpected hold piece in quiz: " + this.quiz);
+        throw new Error("Unexpected hold tetrimino in quiz: " + this.quiz + ".");
     };
     Object.defineProperty(Quiz.prototype, "leastInActiveBag", {
         get: function () {
@@ -1520,7 +1520,7 @@ var Quiz = /** @class */ (function () {
             return quiz;
         }
         if (!replaced.match(/^#Q=\[[TIOSZJL]?]\([TIOSZJL]?\)[TIOSZJL]*;?.*$/i)) {
-            throw new Error("Current piece doesn't exist, however next pieces exist: " + quiz);
+            throw new Error("Current tetrimino doesn't exist, however next tetriminoes exist: " + quiz + ".");
         }
         return replaced;
     };
@@ -1533,14 +1533,14 @@ var Quiz = /** @class */ (function () {
     };
     Quiz.prototype.swap = function () {
         if (this.hold === '') {
-            throw new Error("Cannot find hold piece: " + this.quiz);
+            throw new Error("Cannot find hold tetrimino: " + this.quiz + ".");
         }
         var next = this.next;
         return new Quiz("#Q=[" + this.current + "](" + next + ")" + this.leastAfterNext2);
     };
     Quiz.prototype.stock = function () {
         if (this.hold !== '' || this.next === '') {
-            throw new Error("Cannot stock: " + this.quiz);
+            throw new Error("Cannot stock: " + this.quiz + ".");
         }
         var least = this.leastAfterNext2;
         var head = least[0] !== undefined ? least[0] : '';
@@ -1558,7 +1558,7 @@ var Quiz = /** @class */ (function () {
             case Operation.Stock:
                 return this.stock();
         }
-        throw new Error('Unexpected operation');
+        throw new Error('Unexpected operation.');
     };
     Quiz.prototype.format = function () {
         var quiz = this.nextIfEnd();
