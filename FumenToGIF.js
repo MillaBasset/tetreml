@@ -48,7 +48,7 @@ class ImageRendererSolid {
 }
 
 const minoMapping = {
-	"_": 0,
+	"X": 0,
 	"I": 1,
 	"J": 2,
 	"L": 3,
