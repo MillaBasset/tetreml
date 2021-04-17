@@ -197,7 +197,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 					this.coolRegretTime = 5000;
 				}
 			}
-			this.lastRegretMarkTime = this.playTime;
+			this.lastRegretMarkTime = this.latestTime;
 			if (!this.isSeeking && this.state != GameState.over && this.level < 1300) sfx.grandMasterLevelUp.play();
 		}
 
@@ -272,6 +272,10 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 				this.processInstaFall(timestamp);
 			}
 		} else super.doHold(timestamp);
+	}
+
+	getOriginalQueueTetrimino() {
+		return new (this.tetriminoTypeMapping[this.current.textureY == -1 ? this.current.code.toLowerCase() : this.current.code])();
 	}
 
 	customLock(isDrop) {
@@ -362,6 +366,7 @@ class GameScreenShirase extends GameScreenGuidelineBase {
 		if ((this.totalMinos -= toClear.length * 10) == 0) {
 			this.score += 1000;
 			this.clearTime = 1000;
+			this.allClearTime = 3000;
 			if (!this.isSeeking) sfx.allClear.play();
 		}
 		this.current = null;

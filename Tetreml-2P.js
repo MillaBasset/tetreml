@@ -761,49 +761,6 @@ class Playfield {
 			} else {
 				this.softDropCounter = -1;
 			}
-			if (this.buttonStatus.hardDrop) {
-				if (this.current != null && !this.buttonHardDrop) {
-					let start = this.current.y + this.current.baseY[this.current.state];
-					while (this.current.canFall(this.board)) {
-						if (Math.random() < 0.25) this.spawnParticle();
-						this.current.y++;
-					}
-					let end = this.current.y + this.current.baseY[this.current.state];
-					this.score += this.scoring.getHardDropScore(start, end);
-					if (start != end) this.current.onMove();
-					this.playSfx(start != end ? sfx.hardDrop : sfx.softLock);
-					for (let i = 0; i < 3; i++) this.spawnParticle();
-					this.lock(true);
-					if (this.clearTime == 0) {
-						if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
-						if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
-					}
-					this.processInstaFall();
-					this.buttonHardDrop = true;
-				}
-			} else this.buttonHardDrop = false;
-			if (this.buttonStatus.rotateClockwise) {
-				if (this.current != null && !this.buttonRotateClockwise) {
-					let inAir = this.current.canFall(this.board);
-					if (this.current.rotateClockwise(this.board)) {
-						this.processInstaFall();
-						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
-						if (this.moveCounter++ < 15) this.lockTime = 0;
-					}
-					this.buttonRotateClockwise = true;
-				}
-			} else this.buttonRotateClockwise = false;
-			if (this.buttonStatus.rotateCounterClockwise) {
-				if (this.current != null && !this.buttonRotateCounterClockwise) {
-					let inAir = this.current.canFall(this.board);
-					if (this.current.rotateCounterClockwise(this.board)) {
-						this.processInstaFall();
-						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
-						if (this.moveCounter++ < 15) this.lockTime = 0;
-					}
-					this.buttonRotateCounterClockwise = true;
-				}
-			} else this.buttonRotateCounterClockwise = false;
 			if (this.buttonStatus.hold) {
 				if (!this.buttonHold) {
 					if (this.buttonStatus.quitModifier) {
@@ -828,6 +785,49 @@ class Playfield {
 					}
 				}
 			} else this.buttonHold = false;
+			if (this.buttonStatus.rotateClockwise) {
+				if (this.current != null && !this.buttonRotateClockwise) {
+					let inAir = this.current.canFall(this.board);
+					if (this.current.rotateClockwise(this.board)) {
+						this.processInstaFall();
+						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateClockwise = true;
+				}
+			} else this.buttonRotateClockwise = false;
+			if (this.buttonStatus.rotateCounterClockwise) {
+				if (this.current != null && !this.buttonRotateCounterClockwise) {
+					let inAir = this.current.canFall(this.board);
+					if (this.current.rotateCounterClockwise(this.board)) {
+						this.processInstaFall();
+						this.playSfx(inAir ? sfx.rotate : sfx.rotateOnGround);
+						if (this.moveCounter++ < 15) this.lockTime = 0;
+					}
+					this.buttonRotateCounterClockwise = true;
+				}
+			} else this.buttonRotateCounterClockwise = false;
+			if (this.buttonStatus.hardDrop) {
+				if (this.current != null && !this.buttonHardDrop) {
+					let start = this.current.y + this.current.baseY[this.current.state];
+					while (this.current.canFall(this.board)) {
+						if (Math.random() < 0.25) this.spawnParticle();
+						this.current.y++;
+					}
+					let end = this.current.y + this.current.baseY[this.current.state];
+					this.score += this.scoring.getHardDropScore(start, end);
+					if (start != end) this.current.onMove();
+					this.playSfx(start != end ? sfx.hardDrop : sfx.softLock);
+					for (let i = 0; i < 3; i++) this.spawnParticle();
+					this.lock(true);
+					if (this.clearTime == 0) {
+						if (this.moveLeftCounter >= this.autoRepeatPeriod) this.moveDisabledLeft = true;
+						if (this.moveRightCounter >= this.autoRepeatPeriod) this.moveDisabledRight = true;
+					}
+					this.processInstaFall();
+					this.buttonHardDrop = true;
+				}
+			} else this.buttonHardDrop = false;
 
 			if (this.buttonStatus.left) {
 				if (!this.moveDisabledLeft && (!this.buttonMoveLeft || this.moveLock != 2)) {

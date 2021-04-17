@@ -108,10 +108,10 @@ class PlayScreenBase {
 			(timestamp) => { this.fall(timestamp) },
 			(timestamp) => { this.lockDown(timestamp); },
 			(timestamp) => { this.softDrop(timestamp); },
-			(timestamp) => { this.hardDrop(timestamp); },
+			(timestamp) => { this.doHold(timestamp); },
 			(timestamp) => { this.rotateClockwise(timestamp); },
 			(timestamp) => { this.rotateCounterClockwise(timestamp); },
-			(timestamp) => { this.doHold(timestamp); },
+			(timestamp) => { this.hardDrop(timestamp); },
 			(timestamp) => { if (!this.moveDisabledLeft) this.move(-1, false, timestamp); },
 			(timestamp) => { if (!this.moveDisabledLeft) this.move(-1, true, timestamp); },
 			(timestamp) => { if (!this.moveDisabledRight) this.move(1, false, timestamp); },
@@ -185,12 +185,16 @@ class PlayScreenBase {
 				} else {
 					this.softDropCounter = -1;
 				}
-				if (buttonStatus.hardDrop) {
-					if (!this.buttonHardDrop) {
-						this.actionQueue.push([3, "hardDrop", latestTime]);
-						this.buttonHardDrop = true;
+				if (buttonStatus.hold) {
+					if (!this.buttonHold) {
+						if (buttonStatus.quitModifier) {
+							this.restart();
+						} else if (this.isTetriminoControllable()) {
+							this.actionQueue.push([3, "doHold", latestTime]);
+							this.buttonHold = true;
+						}
 					}
-				} else this.buttonHardDrop = false;
+				} else this.buttonHold = false;
 				if (buttonStatus.rotateClockwise) {
 					if (this.isTetriminoControllable() && !this.buttonRotateClockwise) {
 						this.actionQueue.push([4, "rotateClockwise", latestTime]);
@@ -203,16 +207,12 @@ class PlayScreenBase {
 						this.buttonRotateCounterClockwise = true;
 					}
 				} else this.buttonRotateCounterClockwise = false;
-				if (buttonStatus.hold) {
-					if (!this.buttonHold) {
-						if (buttonStatus.quitModifier) {
-							this.restart();
-						} else if (this.isTetriminoControllable()) {
-							this.actionQueue.push([6, "doHold", latestTime]);
-							this.buttonHold = true;
-						}
+				if (buttonStatus.hardDrop) {
+					if (!this.buttonHardDrop) {
+						this.actionQueue.push([6, "hardDrop", latestTime]);
+						this.buttonHardDrop = true;
 					}
-				} else this.buttonHold = false;
+				} else this.buttonHardDrop = false;
 			}
 			
 			let moveEvents = [];
@@ -616,7 +616,7 @@ class PlayScreenBase {
 		if (this.isReplay) this.clearTime = 0;
 		if (this.current == null) this.nextTetrimino();
 		this.isClearing = false;
-		//this.clearedLines = [];
+		this.clearedLines = [];
 		this.recordAction("afterClear", time);
 	}
 
@@ -909,7 +909,7 @@ class PlayScreenBase {
 
 	checkGameOver() {
 		if (this.current.checkCollision(this.board)) {
-			this.queue.unshift(this.current);
+			this.queue.unshift(this.getOriginalQueueTetrimino());
 			this.current = null;
 			this.gameOver();
 			return;
@@ -917,6 +917,10 @@ class PlayScreenBase {
 		if (this.current.canFall(this.board)) this.current.y++;
 		this.maxY = this.current.Y;
 		if (!this.isSeeking && this.shouldHintTetrimino) sfx["tetrimino" + this.queue[0].code.toUpperCase()].play();
+	}
+
+	getOriginalQueueTetrimino() {
+		return this.current;
 	}
 
 	gameOver() {

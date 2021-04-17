@@ -18,7 +18,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		this.colorInversionIncrease = false;
 		this.colorInversionTime = 0;
 		this.colorInversionValue = 0;
-		this.gameSaveFields = ["score", "lines", "combo", "backToBack", "moveCounter", "fallTime", "lockTime", "maxY", "clearTime", "playTime", "stats", "clearedLines", "tetriminoes", "stackMinY", "holds", "keypresses", "isClearing", "inZone", "zoneTime", "zoneCharge", "zoneLines", "oldZoneLines", "zoneMultiplier", "zoneDisplayAnimationTime", "zoneEndAnimationTime", "colorInversionEnabled", "colorInversionChanging", "colorInversionIncrease", "colorInversionTime", "colorInversionValue", "shouldPlayClearSounds", "lineClearDelayEnabled", "fallPeriod"];
+		this.gameSaveFields = ["score", "lines", "combo", "backToBack", "moveCounter", "fallTime", "lockTime", "maxY", "clearTime", "playTime", "stats", "clearedLines", "tetriminoes", "stackMinY", "holds", "keypresses", "isClearing", "inZone", "zoneTime", "zoneCharge", "zoneLines", "oldZoneLines", "zoneMultiplier", "zoneDisplayAnimationTime", "zoneEndAnimationTime", "colorInversionEnabled", "colorInversionChanging", "colorInversionIncrease", "colorInversionTime", "colorInversionValue", "shouldPlayClearSounds", "fallPeriod"];
 		this.newGame = true;
 
 		// Load game state.
@@ -56,6 +56,7 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 				this.queue = [];
 				for (let char of state.queue) this.queue.push(new tetriminoTypeMapping[char]());
 				this.hold = state.hold == "" ? null : new tetriminoTypeMapping[state.hold]();
+				this.lineClearDelayEnabled = this.inZone ? false : this.originalLineClearDelayEnabled;
 				this.newGame = false;
 			} catch (e) {
 				console.error(e);

@@ -235,7 +235,7 @@ class GameScreenTGM extends GameScreenGuidelineBase {
 				this.coolRegretBoost++;
 				this.speedLevel += 100;
 			}
-			this.lastRegretMarkTime = this.playTime;
+			this.lastRegretMarkTime = this.latestTime;
 			if (!this.isSeeking) {
 				let musicIndex = this.getMusicIndex();
 				if (this.state != GameState.over && musicIndex != this.musicPointer) {
