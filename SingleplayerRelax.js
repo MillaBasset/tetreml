@@ -85,7 +85,12 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 			this.lineClearDelayEnabled = false;
 		}
 		super.processGameLogic(timePassed);
-		if (this.inZone && this.state == GameState.playing && (this.zoneTime = Math.max(0, this.zoneTime - timePassed)) == 0) this.endZone();
+		if (this.inZone && this.state == GameState.playing) this.zoneTime = Math.max(0, this.zoneTime - timePassed);
+	}
+
+	lock(isDrop, timestamp) {
+		super.lock(isDrop, timestamp);
+		if (this.inZone && this.zoneTime === 0) this.endZone();
 	}
 
 	endZone() {
