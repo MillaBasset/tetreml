@@ -154,6 +154,13 @@ class TetriminoI extends Tetrimino {
 		this.code = "I"; // Used for saving replays.
 		this.fumenOffsetX = [0, 1, 1, 0];
 		this.fumenOffsetY = [0, 0, -1, -1];
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 1, null, null],
+			[2, 2, 2, 1, 1, 2, 2, 2, 2, null],
+			[null, 1, 2, 1, 0, 1, 2, 1, null, null],
+			[2, 2, 2, 2, 1, 1, 2, 2, 2, 2]
+		];
+		this.finesse[1][-1] = 2;
 	}
 }
 
@@ -174,6 +181,12 @@ class TetriminoJ extends Tetrimino {
 		this.textureY = 2;
 		this.outlineColor = "#333398";
 		this.code = "J";
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[2, 2, 3, 2, 1, 2, 3, 3, 2, null],
+			[null, 3, 4, 3, 2, 3, 4, 4, 3, null],
+			[null, 2, 3, 2, 1, 2, 3, 3, 2, 2]
+		];
 	}
 }
 
@@ -194,6 +207,12 @@ class TetriminoL extends Tetrimino {
 		this.textureY = 3;
 		this.outlineColor = "#986500";
 		this.code = "L";
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[2, 2, 3, 2, 1, 2, 3, 3, 2, null],
+			[null, 3, 4, 3, 2, 3, 4, 4, 3, null],
+			[null, 2, 3, 2, 1, 2, 3, 3, 2, 2]
+		];
 	}
 }
 
@@ -210,9 +229,12 @@ class TetriminoO extends Tetrimino {
 		this.textureY = 4;
 		this.outlineColor = "#989800";
 		this.code = "O";
+		this.finesse = [[1, 2, 2, 1, 0, 1, 2, 2, 1, null]];
 	}
 
-	tryChangeState(board, newState) {}
+	tryChangeState(board, newState) {
+		return 1;
+	}
 }
 
 class TetriminoS extends Tetrimino {
@@ -232,6 +254,12 @@ class TetriminoS extends Tetrimino {
 		this.textureY = 5;
 		this.outlineColor = "#009800";
 		this.code = "S";
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[2, 2, 2, 1, 1, 2, 3, 2, 2, null],
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[null, 2, 2, 2, 1, 1, 2, 3, 2, 2]
+		];
 	}
 }
 
@@ -252,6 +280,12 @@ class TetriminoT extends Tetrimino {
 		this.textureY = 6;
 		this.outlineColor = "#692398";
 		this.code = "T";
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[2, 2, 3, 2, 1, 2, 3, 3, 2, null],
+			[null, 3, 4, 3, 2, 3, 4, 4, 3, null],
+			[null, 2, 3, 2, 1, 2, 3, 3, 2, 2]
+		]
 
 		// For detecting T-spins.
 		this.corners = [[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1], [1, -1], [1, 1]];
@@ -320,6 +354,12 @@ class TetriminoZ extends Tetrimino {
 		this.textureY = 7;
 		this.outlineColor = "#983030";
 		this.code = "Z";
+		this.finesse = [
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[2, 2, 2, 1, 1, 2, 3, 2, 2, null],
+			[null, 1, 2, 1, 0, 1, 2, 2, 1, null],
+			[null, 2, 2, 2, 1, 1, 2, 3, 2, 2],
+		];
 	}
 }
 

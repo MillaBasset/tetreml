@@ -76,6 +76,7 @@ class PlayScreenBase {
 		this.holdSwitched = false;
 		this.playTime = 0;
 		this.stats = [[null, 0, null], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, null, null]]; // First level: number of lines cleared; Second level: normal, by T-spin, total.
+		this.statsLineHeight = 25;
 		this.rewardAmounts = [100, 400, 900, 2500, 25, 50, 75, 50, 150, 600, 1250];
 		this.clearedLines = [];
 		this.clearEffectTime = 1000;
@@ -87,6 +88,8 @@ class PlayScreenBase {
 		this.particles = [];
 		this.holds = 0;
 		this.keypresses = 0;
+		this.currentKeypresses = 0;
+		this.finesseFaults = 0;
 		this.wasNull = true;
 		this.moveLock = 0; // 0: None; 1: Left; 2: Right.
 		this.moveDisabledLeft = this.moveDisabledRight = false;
@@ -353,7 +356,10 @@ class PlayScreenBase {
 	}
 
 	addKeypress() {
-		if (this.isTetriminoControllable()) this.keypresses++;
+		if (this.isTetriminoControllable()) {
+			this.keypresses++;
+			this.currentKeypresses++;
+		}
 	}
 
 	isMinoVisible(x, y) {
@@ -382,6 +388,19 @@ class PlayScreenBase {
 		ctx.font = "350 24px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("STATS", 19, 86);
+		ctx.font = "12px Tetreml";
+		ctx.fillText("Zero-line", 20, 130+this.statsLineHeight);
+		ctx.fillText("Single", 20, 130+2*this.statsLineHeight);
+		ctx.fillText("Double", 20, 130+3*this.statsLineHeight);
+		ctx.fillText("Triple", 20, 130+4*this.statsLineHeight);
+		ctx.fillText("Tetris", 20, 130+5*this.statsLineHeight);
+
+		ctx.textAlign = "right";
+		ctx.fillText("Normal", 118, 130);
+		ctx.fillText("T-spin", 163, 130);
+		ctx.fillText("Total", 208, 130);
+
+		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 130 + this.statsLineHeight * (i+1));
 
 		this.renderBehind(timePassed);
 
@@ -752,6 +771,8 @@ class PlayScreenBase {
 				this.checkGameOver();
 			}
 			this.holds++;
+			this.finesseFaults += this.currentKeypresses;
+			this.currentKeypresses = 0;
 			if (!this.isSeeking) sfx.hold.play();
 			if (this.moveLock) this.wasNull = true;
 			this.holdSwitched = true;
@@ -766,6 +787,8 @@ class PlayScreenBase {
 	
 	lock(isDrop, timestamp) {
 		if (!this.isTetriminoControllable()) return;
+		this.finesseFaults += this.currentKeypresses - this.current.finesse[this.current.state][this.current.x];
+		this.currentKeypresses = 0;
 		let toClear = [];
 		this.tetriminoes++;
 		let tSpinType = this.current.getTSpinType(this.board);
@@ -1104,6 +1127,13 @@ class GameScreenTengen extends PlayScreenBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 85);
@@ -1114,24 +1144,6 @@ class GameScreenTengen extends PlayScreenBase {
 			ctx.fillText("High score", 485, 57);
 		}
 
-		ctx.fillText("Zero-line", 20, 155);
-		ctx.fillText("Single", 20, 180);
-		ctx.fillText("Double", 20, 205);
-		ctx.fillText("Triple", 20, 230);
-		ctx.fillText("Tetris", 20, 255);
-
-		ctx.fillText("Tetriminoes placed", 20, 295);
-		ctx.fillText("Holds", 20, 315);
-
-		ctx.textAlign = "right";
-		ctx.fillText("Normal", 118, 130);
-		ctx.fillText("T-spin", 163, 130);
-		ctx.fillText("Total", 208, 130);
-
-		ctx.fillText("" + this.tetriminoes, 208, 295);
-		ctx.fillText("" + this.holds, 208, 315);
-
-		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
 		let isLastLevel = this.level == this.levels.length;
 		ctx.fillText("" + (isLastLevel ? "" : this.level + 1), 632, 85);
 		ctx.fillText("" + (isLastLevel ? "" : this.totalLinesToNextLevel), 632, 111);
@@ -1320,6 +1332,13 @@ class GameScreenNES extends PlayScreenBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 85);
@@ -1329,25 +1348,7 @@ class GameScreenNES extends PlayScreenBase {
 			ctx.fillText("Max lines", 485, 137);
 			ctx.fillText("High score", 485, 57);
 		}
-
-		ctx.fillText("Zero-line", 20, 155);
-		ctx.fillText("Single", 20, 180);
-		ctx.fillText("Double", 20, 205);
-		ctx.fillText("Triple", 20, 230);
-		ctx.fillText("Tetris", 20, 255);
-
-		ctx.fillText("Tetriminoes placed", 20, 295);
-		ctx.fillText("Holds", 20, 315);
-
-		ctx.textAlign = "right";
-		ctx.fillText("Normal", 118, 130);
-		ctx.fillText("T-spin", 163, 130);
-		ctx.fillText("Total", 208, 130);
-
-		ctx.fillText("" + this.tetriminoes, 208, 295);
-		ctx.fillText("" + this.holds, 208, 315);
-
-		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
+		
 		let isLastLevel = this.level == this.levels.length;
 		ctx.fillText("" + (isLastLevel ? "" : this.level + 1), 632, 85);
 		ctx.fillText("" + (isLastLevel ? "" : this.totalLinesToNextLevel), 632, 111);
@@ -1530,31 +1531,6 @@ class GameScreenGuidelineBase extends PlayScreenBase {
 		this.singleSaveableFields.push("lockScore", "lockScoreStartLine", "lockScoreEndLine", "lockScoreTime");
 	}
 
-	renderBehind(timePassed) {
-		super.renderBehind(timePassed);
-		ctx.fillStyle = "#FFF";
-		ctx.font = "12px Tetreml";
-		ctx.textAlign = "left";
-
-		ctx.fillText("Zero-line", 20, 155);
-		ctx.fillText("Single", 20, 180);
-		ctx.fillText("Double", 20, 205);
-		ctx.fillText("Triple", 20, 230);
-		ctx.fillText("Tetris", 20, 255);
-
-		ctx.fillText("Tetriminoes placed", 20, 295);
-		ctx.fillText("Holds", 20, 315);
-
-		ctx.textAlign = "right";
-		ctx.fillText("Normal", 118, 130);
-		ctx.fillText("T-spin", 163, 130);
-		ctx.fillText("Total", 208, 130);
-
-		ctx.fillText("" + this.tetriminoes, 208, 295);
-		ctx.fillText("" + this.holds, 208, 315);
-		for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++) if (this.stats[i][j] != null) ctx.fillText("" + this.stats[i][j], 118 + 45 * j, 155 + 25 * i);
-	}
-
 	renderInFront(timePassed) {
 		super.renderInFront(timePassed);
 
@@ -1630,6 +1606,13 @@ class GameScreenGuidelineMarathon extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -1802,6 +1785,13 @@ class GameScreenGuidelineMarathonVariable extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -1985,6 +1975,13 @@ class GameScreenGuidelineMarathonTetrisDotCom extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		if (!this.isReplay) ctx.fillText("High score", 485, 57);
@@ -2163,6 +2160,13 @@ class GameScreenGuidelineEndless extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Level " + this.level, 485, 85);
@@ -2301,6 +2305,9 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
 		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.singleSaveableFields.push("actionTime");
+		this.statsLineHeight = 20;
+		this.perfectFinesse = false;
+		this.previousModifier = true;
 	}
 
 	init() {
@@ -2319,6 +2326,10 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 	}
 
 	processGameLogic(timePassed) {
+		if (this.state == GameState.warmup) {
+			if (!this.previousModifier && buttonStatus.quitModifier) this.perfectFinesse = true;
+			this.previousModifier = buttonStatus.quitModifier;
+		}
 		if (this.state == GameState.playing)
 			if (this.isReplay) {
 				if (!this.isClearing) this.actionTime += timePassed;
@@ -2331,6 +2342,13 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 260);
+		ctx.fillText("Holds", 20, 280);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 260);
+		ctx.fillText("" + this.holds, 208, 280);
 		ctx.textAlign = "left";
 		ctx.fillText("Time", 485, 30);
 		ctx.fillText("Lines: " + this.lines, 485, 85);
@@ -2338,7 +2356,8 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 		if (!this.isReplay) {
 			if (this.shortestTime != -1) ctx.fillText("Shortest time", 485, 57);
 			ctx.fillText("High score", 485, 152);
-			ctx.fillText("Tetrimino manipulations", 20, 335);
+			ctx.fillText("Tetrimino manipulations", 20, 300);
+			ctx.fillText(this.perfectFinesse ? "PERFECT FINESSE MODE" : "Extra keypresses", 20, 320);
 		}
 		
 		ctx.textAlign = "right";
@@ -2353,7 +2372,8 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 				ctx.fillRect(485, 34, Math.min(147, 147 * this.actionTime / this.shortestTime), 10);
 			}
 			ctx.fillRect(485, 130, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
-			ctx.fillText("" + this.keypresses, 208, 335);
+			ctx.fillText(this.keypresses, 208, 300);
+			if (!this.perfectFinesse) ctx.fillText(this.finesseFaults, 208, 320);
 		}
 
 		ctx.font = "20px Tetreml";
@@ -2373,6 +2393,23 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 				ctx.fillText(this.gameOverMessage, 320, 60, 150);
 				break;
 		}
+	}
+
+	checkFinesse() {
+		if (this.perfectFinesse && this.finesseFaults != 0) {
+			this.doSaveReplay = false;
+			this.gameOver("You got a finesse fault.");
+		}
+	}
+
+	doHold(timestamp) {
+		super.doHold(timestamp);
+		this.checkFinesse();
+	}
+
+	lock(isDrop, timestamp) {
+		super.lock(isDrop, timestamp);
+		this.checkFinesse();
 	}
 
 	clearLines(toClear) {
@@ -2400,10 +2437,10 @@ class GameScreenGuideline40Line extends GameScreenGuidelineBase {
 		currentSong.resume();
 	}
 
-	gameOver() {
+	gameOver(message = "The stack got too high.") {
 		super.gameOver();
 		if (!this.isReplay && this.score > this.highScore) localStorage.tetris40LineHighScore = this.score;
-		this.gameOverMessage = "The stack got too high.";
+		this.gameOverMessage = message;
 		stopCurrentMusic();
 		if (!this.isSeeking) sfx.gameOver.play();
 	}
@@ -2436,6 +2473,7 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 	constructor(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled) {
 		super(parent, showKeystrokes, doSaveReplay, lineClearDelayEnabled);
 		this.singleSaveableFields.push("timeLeft");
+		this.statsLineHeight = 20;
 	}
 
 	init() {
@@ -2478,6 +2516,13 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 260);
+		ctx.fillText("Holds", 20, 280);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 260);
+		ctx.fillText("" + this.holds, 208, 280);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Lines", 485, 85);
@@ -2485,7 +2530,8 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 		if (!this.isReplay) {
 			ctx.fillText("High score", 485, 57);
 			ctx.fillText("Max lines", 485, 111);
-			ctx.fillText("Tetrimino manipulations", 20, 335);
+			ctx.fillText("Tetrimino manipulations", 20, 300);
+			ctx.fillText("Extra keypresses", 20, 320);
 		}
 		
 		ctx.textAlign = "right";
@@ -2498,7 +2544,8 @@ class GameScreenGuideline2Minute extends GameScreenGuidelineBase {
 			ctx.fillText("" + this.maxLines, 632, 111);
 			ctx.fillRect(485, 34, this.highScore == 0 ? 147 : Math.min(147, 147 * this.score / this.highScore), 10);
 			ctx.fillRect(485, 89, this.maxLines == 0 ? 147 : Math.min(147, 147 * this.lines / this.maxLines), 10);
-			ctx.fillText("" + this.keypresses, 208, 335);
+			ctx.fillText(this.keypresses, 208, 300);
+			ctx.fillText(this.finesseFaults, 208, 320);
 		}
 
 		ctx.font = "20px Tetreml";

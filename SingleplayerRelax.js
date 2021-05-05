@@ -167,6 +167,13 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 		super.renderBehind(timePassed);
 		ctx.fillStyle = "#FFF";
 		ctx.font = "12px Tetreml";
+
+		ctx.textAlign = "left";
+		ctx.fillText("Tetriminoes placed", 20, 295);
+		ctx.fillText("Holds", 20, 315);
+		ctx.textAlign = "right";
+		ctx.fillText("" + this.tetriminoes, 208, 295);
+		ctx.fillText("" + this.holds, 208, 315);
 		ctx.textAlign = "left";
 		ctx.fillText("Score", 485, 30);
 		ctx.fillText("Lines", 485, 72);
