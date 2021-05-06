@@ -85,7 +85,13 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 			this.lineClearDelayEnabled = false;
 		}
 		super.processGameLogic(timePassed);
-		if (this.inZone && this.state == GameState.playing) this.zoneTime = Math.max(0, this.zoneTime - timePassed);
+		if (this.inZone && this.state == GameState.playing && this.zoneTime !== 0) {
+			this.zoneTime = Math.max(0, this.zoneTime - timePassed);
+			if (this.zoneTime === 0) {
+				this.fallTime = 0;
+				this.lockTime = 0;
+			}
+		}
 	}
 
 	lock(isDrop, timestamp) {
@@ -288,11 +294,11 @@ class GameScreenRelax extends GameScreenGuidelineBase {
 	}
 
 	getFallInterval() {
-		return this.inZone ? Infinity : this.fallPeriod;
+		return this.inZone && this.zoneTime > 0 ? Infinity : this.fallPeriod;
 	}
 
 	getLockDelay() {
-		return this.inZone ? Infinity : 500;
+		return this.inZone && this.zoneTime > 0 ? Infinity : 500;
 	}
 
 	pause(playSound = true) {
