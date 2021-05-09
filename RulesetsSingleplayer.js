@@ -771,8 +771,6 @@ class PlayScreenBase {
 				this.checkGameOver();
 			}
 			this.holds++;
-			this.finesseFaults += this.currentKeypresses;
-			this.currentKeypresses = 0;
 			if (!this.isSeeking) sfx.hold.play();
 			if (this.moveLock) this.wasNull = true;
 			this.holdSwitched = true;

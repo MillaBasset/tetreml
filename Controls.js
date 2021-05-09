@@ -132,11 +132,11 @@ class ControlsEditScreen {
 		}
 
 		ctx.fillStyle = "#FFF";
-		ctx.font = "300 40px Segoe UI";
+		ctx.font = "300 40px Tetreml";
 		ctx.textAlign = "left";
 		ctx.fillText("Edit controls", 15, 50);
 
-		ctx.font = "12px Segoe UI";
+		ctx.font = "12px Tetreml";
 
 		if (this.controlsList.length > 1) {
 			ctx.textAlign = "center";
