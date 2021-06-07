@@ -174,7 +174,7 @@ class PlayScreenBase {
 					if (this.softDropCounter == -1) {
 						this.actionQueue.push([2, "softDrop", latestTime]);
 						this.softDropCounter = 0;
-						this.addKeypress();
+						this.keypresses++;
 					} else {
 						this.softDropCounter += timePassed;
 						let times = Math.floor(this.softDropCounter / this.softDropPeriod);
@@ -225,6 +225,7 @@ class PlayScreenBase {
 						moveEvents.push([8, "moveLeft", latestTime]);
 						this.moveLeftCounter = this.oldMoveLeftCounter = 0;
 						this.moveLock = 1;
+						this.currentKeypresses++;
 					} else {
 						this.moveLeftCounter += timePassed;
 						let newCounter = DASDiv(this.moveLeftCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
@@ -254,6 +255,7 @@ class PlayScreenBase {
 						moveEvents.push([10, "moveRight", latestTime]);
 						this.moveRightCounter = this.oldMoveRightCounter = 0;
 						this.moveLock = 2;
+						this.currentKeypresses++;
 					} else {
 						this.moveRightCounter += timePassed;
 						let newCounter = DASDiv(this.moveRightCounter - this.autoRepeatDelay, this.autoRepeatPeriod);
@@ -671,7 +673,7 @@ class PlayScreenBase {
 				this.current.x = newX;
 				this.current.onMove();
 				if (this.moveCounter++ < 15) this.lockTime = 0;
-				if (isInitialPress || this.wasNull) this.addKeypress();
+				if (isInitialPress || this.wasNull) this.keypresses++;
 				this.wasNull = false;
 				this.recordAction(offset > 0 ? "moveRight" : "moveLeft", timestamp);
 				if (!this.isSeeking && !this.processInstaFall(timestamp) && this.current.checkCollision(this.board, newX + offset, this.current.y)) sfx.wall.play();
@@ -685,8 +687,9 @@ class PlayScreenBase {
 	rotateClockwise(timestamp) {
 		if (this.isTetriminoControllable()) {
 			let inAir = this.current.canFall(this.board);
+			this.currentKeypresses++;
 			if (!this.current.rotateClockwise(this.board)) return;
-			this.addKeypress();
+			this.keypresses++;
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			this.recordAction("rotateClockwise", timestamp);
@@ -697,8 +700,9 @@ class PlayScreenBase {
 	rotateCounterClockwise(timestamp) {
 		if (this.isTetriminoControllable()) {
 			let inAir = this.current.canFall(this.board);
+			this.currentKeypresses++;
 			if (!this.current.rotateCounterClockwise(this.board)) return;
-			this.addKeypress();
+			this.keypresses++;
 			if (!this.isSeeking) (inAir ? sfx.rotate : sfx.rotateOnGround).play();
 			if (this.moveCounter++ < 15) this.lockTime = 0;
 			this.recordAction("rotateCounterClockwise", timestamp);
