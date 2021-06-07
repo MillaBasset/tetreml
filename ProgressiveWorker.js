@@ -1,4 +1,4 @@
-// Version: 11
+// Version: 12
 self.addEventListener('install', function (event) {
 	console.log("Tetreml: Updating files...");
 	event.waitUntil(caches.open("TetremlCustomAssets"));
