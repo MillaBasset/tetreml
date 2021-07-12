@@ -635,9 +635,9 @@ class PlayScreenBase {
 		}
 		// Ensure that nextTetrimino always runs.
 		if (this.isReplay) this.clearTime = 0;
-		if (this.current == null) this.nextTetrimino();
 		this.isClearing = false;
 		this.clearedLines = [];
+		if (this.current == null) this.nextTetrimino();
 		this.recordAction("afterClear", time);
 	}
 
